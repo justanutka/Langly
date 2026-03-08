@@ -16,9 +16,9 @@ class LanguageCreate(BaseModel):
     name: str
     code: str
 
-
 class WordCreate(BaseModel):
     language_id: int
+    module_id: int
     word: str
     translation: str
     example: str | None = None

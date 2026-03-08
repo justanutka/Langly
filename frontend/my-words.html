@@ -38,7 +38,17 @@
     <main class="main-content">
       <div class="words-header">
         <h1>My Words</h1>
-        <button class="btn-main" id="create-folder-btn">+ Create Folder</button>
+
+        <div class="create-folder-box">
+          <input
+            type="text"
+            id="folder-name-input"
+            placeholder="Folder name"
+            class="folder-input"
+          />
+          <button class="btn-main" id="create-folder-btn">Create Folder</button>
+        </div>
+
       </div>
 
       <!-- FOLDERS VIEW -->
@@ -53,8 +63,15 @@
 
         <div class="modules-grid" id="modules-container"></div>
 
-        <button class="btn-main" id="create-module-btn">+ Create Module</button>
-      </div>
+        <div class="create-module-box">
+          <input
+            type="text"
+            id="module-name-input"
+            placeholder="Module name"
+            class="folder-input"
+          />
+          <button class="btn-main" id="create-module-btn">Create Module</button>
+        </div>
 
       <!-- WORDS VIEW -->
       <div id="words-view" style="display:none;">

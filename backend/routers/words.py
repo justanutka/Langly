@@ -111,7 +111,8 @@ def create_word(
         word=word.word,
         translation=word.translation,
         example=word.example,
-        language_id=word.language_id
+        language_id=word.language_id,
+        module_id=word.module_id
     )
 
     db.add(new_word)

@@ -168,3 +168,17 @@ MODULES
   border-radius:14px;
   box-shadow:0 8px 24px rgba(0,0,0,0.04);
 }
+
+.create-folder-box{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.folder-input{
+padding:10px 12px;
+border-radius:8px;
+border:1px solid #d1d5db;
+font-size:14px;
+width:200px;
+}

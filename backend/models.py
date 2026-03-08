@@ -65,6 +65,7 @@ class Word(Base):
     example = Column(String, nullable=True)
 
     language_id = Column(Integer, ForeignKey("languages.id"))
+    module_id = Column(Integer, ForeignKey("modules.id"), nullable=True)
 
     language = relationship("Language", back_populates="words")
     review_state = relationship("ReviewState", back_populates="word", uselist=False)
@@ -95,3 +96,31 @@ class Achievement(Base):
     description = Column(String)
 
     user_id = Column(Integer, ForeignKey("users.id"))
+
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(String, nullable=False)
+
+    user_id = Column(Integer, ForeignKey("users.id"))
+    language_id = Column(Integer, ForeignKey("languages.id"))
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    modules = relationship("Module", back_populates="folder", cascade="all, delete")
+
+class Module(Base):
+    __tablename__ = "modules"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(String, nullable=False)
+
+    folder_id = Column(Integer, ForeignKey("folders.id"))
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    folder = relationship("Folder", back_populates="modules")
+    words = relationship("Word")
