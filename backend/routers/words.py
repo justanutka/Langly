@@ -7,7 +7,7 @@ router = APIRouter(prefix="/words", tags=["Words"])
 
 
 # =========================
-# SPELLING CHECK
+# SPELLING CHECK (LanguageTool)
 # =========================
 def check_spelling(text: str, language_code: str):
 
@@ -20,19 +20,47 @@ def check_spelling(text: str, language_code: str):
         response = requests.post(
             url,
             data={
-                "text": text,
+                "text": f"This is {text}",
                 "language": language_code
             },
-            timeout=2
+            timeout=3
         )
 
         if response.status_code != 200:
             return []
 
-        return response.json().get("matches", [])
+        data = response.json()
+        return data.get("matches", [])
 
     except Exception:
         return []
+
+
+# =========================
+# REAL WORD CHECK (Dictionary API)
+# =========================
+def validate_word_exists(word: str, language_code: str):
+
+    if not word:
+        return False
+
+    # Надёжная проверка для английского
+    if language_code == "en":
+
+        try:
+            response = requests.get(
+                f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}",
+                timeout=3
+            )
+
+            return response.status_code == 200
+
+        except Exception:
+            return False
+
+    # Для остальных языков fallback на LanguageTool
+    matches = check_spelling(word, language_code)
+    return len(matches) == 0
 
 
 # =========================
@@ -63,7 +91,10 @@ def create_word(
             detail="You have not selected this language"
         )
 
-    # Проверка на дубликат
+    # =========================
+    # DUPLICATE CHECK
+    # =========================
+
     existing_word = db.query(models.Word).filter(
         models.Word.language_id == word.language_id,
         models.Word.word == word.word
@@ -75,29 +106,32 @@ def create_word(
             detail="Word already exists in this language"
         )
 
-    # =========================
-    # SPELLING CHECK
-    # =========================
-
     language_code = language.code
 
-    matches_word = check_spelling(word.word, language_code)
+    # =========================
+    # WORD VALIDATION
+    # =========================
 
-    if matches_word:
-        suggestions = matches_word[0].get("replacements", [])
-        if suggestions:
-            suggestion = suggestions[0]["value"]
-            raise HTTPException(
-                status_code=400,
-                detail=f"Spelling mistake in word. Did you mean '{suggestion}'?"
-            )
+    is_valid_word = validate_word_exists(word.word.strip(), language_code)
 
-    matches_example = check_spelling(word.example, language_code)
+    if not is_valid_word:
+        raise HTTPException(
+            status_code=400,
+            detail="This word does not seem to exist or is misspelled"
+        )
+
+    # =========================
+    # EXAMPLE SPELL CHECK
+    # =========================
+
+    matches_example = check_spelling(word.example or "", language_code)
 
     if matches_example:
         suggestions = matches_example[0].get("replacements", [])
+
         if suggestions:
             suggestion = suggestions[0]["value"]
+
             raise HTTPException(
                 status_code=400,
                 detail=f"Spelling mistake in example. Suggested correction: '{suggestion}'"

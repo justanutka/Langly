@@ -2,111 +2,137 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <title>My Words – Langly</title>
+    <meta charset="UTF-8" />
+    <title>My Words – Langly</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <link rel="stylesheet" href="css/app.css">
-  <link rel="stylesheet" href="css/words.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/words.css">
 </head>
 
 <body>
-  <header class="top-bar">
+
+<header class="top-bar">
     <div class="brand">Langly</div>
     <button class="logout-btn">Log out</button>
-  </header>
+</header>
 
-  <div class="app-layout">
+<div class="app-layout">
+
     <aside class="sidebar">
-      <nav class="sidebar-nav">
-        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
-        <a href="my-words.html" class="nav-item active">📚 My words</a>
-        <a href="lessons.html" class="nav-item">📖 My lessons</a>
-        <a href="study.html" class="nav-item">🧠 Study cards</a>
-        <a href="profile.html" class="nav-item">👤 Profile</a>
-      </nav>
 
-      <div class="sidebar-footer">
-        Logged in as:
-        <div id="user-email"></div>
-      </div>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+            <a href="my-words.html" class="nav-item active">📚 My words</a>
+            <a href="lessons.html" class="nav-item">📖 My lessons</a>
+            <a href="study.html" class="nav-item">🧠 Study cards</a>
+            <a href="profile.html" class="nav-item">👤 Profile</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            Logged in as:
+            <div id="user-email"></div>
+        </div>
+
     </aside>
 
     <main class="main-content">
-      <div class="words-header">
-        <h1>My Words</h1>
 
-        <div class="create-folder-box">
-          <input
-            type="text"
-            id="folder-name-input"
-            placeholder="Folder name"
-            class="folder-input"
-          />
-          <button class="btn-main" id="create-folder-btn">Create Folder</button>
+        <div class="words-header">
+
+            <h1>My Words</h1>
+
+            <div class="create-folder-box">
+                <input
+                    id="folder-name-input"
+                    placeholder="Folder name"
+                />
+
+                <button id="create-folder-btn" class="btn-main">
+                    Create Folder
+                </button>
+            </div>
+
         </div>
 
-      </div>
+        <!-- FOLDERS VIEW -->
 
-      <!-- FOLDERS VIEW -->
-      <div id="folders-view">
-        <div class="folders-container" id="folders-container"></div>
-      </div>
-
-      <!-- MODULES VIEW -->
-      <div id="modules-view" style="display:none;">
-        <button class="back-btn" id="back-to-folders">← Back to folders</button>
-        <h2 id="folder-title"></h2>
-
-        <div class="modules-grid" id="modules-container"></div>
-
-        <div class="create-module-box">
-          <input
-            type="text"
-            id="module-name-input"
-            placeholder="Module name"
-            class="folder-input"
-          />
-          <button class="btn-main" id="create-module-btn">Create Module</button>
+        <div id="folders-view">
+            <div id="folders-container" class="folders-container"></div>
         </div>
 
-      <!-- WORDS VIEW -->
-      <div id="words-view" style="display:none;">
-        <button class="back-btn" id="back-to-modules">← Back to modules</button>
-        <h2 id="module-title"></h2>
 
-        <div class="add-word-card">
-          <div class="add-word-row">
-            <input type="text" id="word-input" placeholder="Word in study language">
-            <input type="text" id="translation-input" placeholder="Translation in native language">
-            <button class="btn-main" id="save-word-btn">Add Word</button>
-          </div>
+        <!-- MODULES VIEW -->
 
-          <div id="word-error" class="word-error"></div>
+        <div id="modules-view" style="display:none;">
+
+            <button id="back-to-folders" class="back-btn">
+                ← Back to folders
+            </button>
+
+            <h2 id="folder-title"></h2>
+
+            <div id="modules-container" class="modules-grid"></div>
+
+            <div class="create-module-box">
+
+                <input
+                    id="module-name-input"
+                    placeholder="Module name"
+                />
+
+                <button id="create-module-btn" class="btn-main">
+                    Create Module
+                </button>
+
+            </div>
+
         </div>
 
-        <div class="words-list" id="words-list"></div>
-      </div>
 
-      <!-- STUDY VIEW -->
-      <div id="study-view" style="display:none;">
-        <button class="back-btn" id="back-from-study">← Back to module</button>
+        <!-- WORDS VIEW -->
 
-        <div class="study-modes">
-          <button class="btn-main mode-btn" data-mode="flashcards">🎴 Flashcards</button>
-          <button class="btn-main mode-btn" data-mode="quiz">🧠 Quiz</button>
-          <button class="btn-main mode-btn" data-mode="test">📝 Test</button>
+        <div id="words-view" style="display:none;">
+
+            <button id="back-to-modules" class="back-btn">
+                ← Back to modules
+            </button>
+
+            <h2 id="module-title"></h2>
+
+            <div class="add-word-card">
+
+                <input
+                    id="word-input"
+                    placeholder="Word"
+                />
+
+                <input
+                    id="translation-input"
+                    placeholder="Translation"
+                />
+
+                <button id="save-word-btn" class="btn-main">
+                    Add Word
+                </button>
+
+                <div id="word-error"></div>
+
+            </div>
+
+            <div id="words-list" class="words-list"></div>
+
         </div>
 
-        <div id="study-content"></div>
-      </div>
     </main>
-  </div>
 
-  <script src="js/words.js"></script>
+</div>
+
+<script src="js/words.js"></script>
+
 </body>
-
 </html>
