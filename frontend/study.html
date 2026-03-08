@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Study – Language Learning App</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #4f46e5, #111827);
+      color: #f9fafb;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ---------- SIDEBAR ---------- */
+
+    .sidebar {
+      width: 240px;
+      background: #f9fafb;
+      color: #111827;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #e5e7eb;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .sidebar-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #4f46e5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .sidebar-title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .nav-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+      margin: 18px 0 6px;
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .nav-item {
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #111827;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: #eef2ff;
+    }
+
+    .nav-link.active {
+      background: #eef2ff;
+      color: #4f46e5;
+      font-weight: 500;
+    }
+
+    .nav-icon {
+      width: 18px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+
+    .main {
+      flex: 1;
+      padding: 32px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 16px;
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      text-align: center;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: left;
+    }
+
+    .lang-pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .folder-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 12px 0 4px;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .folder-label {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    select {
+      padding: 7px 9px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #f9fafb;
+      font-size: 13px;
+      min-width: 220px;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 1px #6366f1;
+    }
+
+    .folder-info {
+      text-align: left;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 10px;
+    }
+
+    .word {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+    }
+
+    .translation {
+      font-size: 18px;
+      color: #e5e7eb;
+      margin-bottom: 22px;
+      min-height: 22px;
+    }
+
+    .btn-main {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+      background: #22c55e;
+      color: #022c22;
+      margin: 0 auto 18px;
+      display: inline-block;
+      min-width: 140px;
+    }
+
+    .btn-main:hover {
+      background: #16a34a;
+    }
+
+    .grades {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .grade-btn {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      min-width: 60px;
+    }
+
+    .grade-btn:hover {
+      border-color: #6366f1;
+      background: #111827;
+    }
+
+    #message {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    #message.error {
+      color: #fca5a5;
+    }
+
+    #message.success {
+      color: #bbf7d0;
+    }
+  </style>
+</head>
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">L</div>
+      <div class="sidebar-title">Language App</div>
+    </div>
+
+    <div>
+      <div class="nav-section-title">Main</div>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a class="nav-link" href="my-words.html">
+            <span class="nav-icon">🏠</span>
+            <span>My words</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="study.html">
+            <span class="nav-icon">🃏</span>
+            <span>Study cards</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="profile.html">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="nav-section-title">Other</div>
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">
+            <span class="nav-icon">🌐</span>
+            <span>Landing page</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      Logged in as: <span id="sidebar-email">—</span>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="card">
+      <div class="top-row">
+        <div style="text-align:left;">
+          <h1>Study session</h1>
+          <p class="subtitle">Review your words using spaced repetition. You can study a specific lesson or module.</p>
+        </div>
+        <div class="lang-pill" id="lang-pill">Language: –</div>
+      </div>
+
+      <div class="folder-row">
+        <span class="folder-label">Folder:</span>
+        <select id="study-folder-select"></select>
+      </div>
+      <div id="folder-info" class="folder-info"></div>
+
+      <div id="content">
+        <div class="word" id="word">Loading...</div>
+        <div class="translation" id="translation">(hidden)</div>
+
+        <button class="btn-main" id="toggle-btn">Show translation</button>
+
+        <div class="grades">
+          <button class="grade-btn" data-grade="0">0</button>
+          <button class="grade-btn" data-grade="1">1</button>
+          <button class="grade-btn" data-grade="2">2</button>
+          <button class="grade-btn" data-grade="3">3</button>
+          <button class="grade-btn" data-grade="4">4</button>
+          <button class="grade-btn" data-grade="5">5</button>
+        </div>
+      </div>
+
+      <div id="message"></div>
+    </div>
+  </main>
+
+  <script>
+    const email = localStorage.getItem("userEmail");
+    const targetLanguage = localStorage.getItem("targetLanguage") || "en";
+
+    const sidebarEmail = document.getElementById("sidebar-email");
+    const langNames = { en: "English", de: "German", es: "Spanish", fr: "French" };
+
+    const langPill = document.getElementById("lang-pill");
+    const wordEl = document.getElementById("word");
+    const translationEl = document.getElementById("translation");
+    const toggleBtn = document.getElementById("toggle-btn");
+    const gradeButtons = document.querySelectorAll(".grade-btn");
+    const messageBox = document.getElementById("message");
+    const content = document.getElementById("content");
+
+    const folderSelect = document.getElementById("study-folder-select");
+    const folderInfo = document.getElementById("folder-info");
+
+    let words = [];
+    let currentIndex = 0;
+    let showTranslation = false;
+    let folders = [];
+
+    if (email) {
+      sidebarEmail.textContent = email;
+    } else {
+      sidebarEmail.textContent = "guest";
+      messageBox.textContent = "You are not logged in. Please log in again.";
+      messageBox.className = "error";
+      content.style.display = "none";
+    }
+
+    langPill.textContent = "Language: " + (langNames[targetLanguage] || targetLanguage);
+
+    // ---------- FOLDERS ----------
+
+    async function loadFolders() {
+      if (!email) return;
+      try {
+        const url = new URL("http://127.0.0.1:8000/api/folders");
+        url.searchParams.set("email", email);
+        url.searchParams.set("language_code", targetLanguage);
+
+        const res = await fetch(url.toString());
+        const data = await res.json();
+
+        if (!res.ok) {
+          folderInfo.textContent = data.detail || "Could not load folders.";
+          return;
+        }
+
+        folders = data;
+        renderFolderOptions();
+      } catch (err) {
+        console.error(err);
+        folderInfo.textContent = "Cannot connect to API (folders).";
+      }
+    }
+
+    function renderFolderOptions() {
+      folderSelect.innerHTML = "";
+
+      const optAll = document.createElement("option");
+      optAll.value = "";
+      optAll.textContent = "All words (all folders)";
+      folderSelect.appendChild(optAll);
+
+      for (const f of folders) {
+        const opt = document.createElement("option");
+        opt.value = String(f.id);
+        opt.textContent = f.full_path;
+        folderSelect.appendChild(opt);
+      }
+
+      folderInfo.textContent =
+        "Choose a lesson or module to study. When you select a parent folder (e.g. Lesson 1), all its subfolders (Fruits, Animals, ...) are included.";
+    }
+
+    folderSelect.addEventListener("change", () => {
+      loadWords();
+    });
+
+    // ---------- STUDY LOGIC ----------
+
+    async function loadWords() {
+      if (!email) return;
+
+      messageBox.textContent = "Loading words...";
+      messageBox.className = "";
+
+      try {
+        const url = new URL("http://127.0.0.1:8000/api/study");
+        url.searchParams.set("email", email);
+        url.searchParams.set("language_code", targetLanguage);
+        if (folderSelect.value) {
+          url.searchParams.set("folder_id", folderSelect.value);
+        }
+
+        const res = await fetch(url.toString());
+        const data = await res.json();
+
+        if (!res.ok) {
+          messageBox.textContent = data.detail || "Could not load words.";
+          messageBox.className = "error";
+          content.style.display = "none";
+          return;
+        }
+
+        words = data;
+        currentIndex = 0;
+
+        if (words.length === 0) {
+          wordEl.textContent = "No words to review.";
+          translationEl.textContent = "";
+          toggleBtn.style.display = "none";
+          document.querySelector(".grades").style.display = "none";
+          messageBox.textContent = "Try another folder or add some words first.";
+          messageBox.className = "";
+          return;
+        }
+
+        toggleBtn.style.display = "inline-block";
+        document.querySelector(".grades").style.display = "flex";
+
+        showTranslation = false;
+        toggleBtn.textContent = "Show translation";
+        renderCurrentWord();
+        messageBox.textContent = "";
+        messageBox.className = "";
+      } catch (err) {
+        console.error(err);
+        messageBox.textContent = "Cannot connect to API. Is the server running?";
+        messageBox.className = "error";
+        content.style.display = "none";
+      }
+    }
+
+    function renderCurrentWord() {
+      const w = words[currentIndex];
+      wordEl.textContent = w.source_text;
+
+      if (showTranslation) {
+        translationEl.textContent = w.translation;
+        translationEl.style.opacity = "1";
+      } else {
+        translationEl.textContent = "Translation hidden";
+        translationEl.style.opacity = "0.4";
+      }
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      showTranslation = !showTranslation;
+      if (showTranslation) {
+        translationEl.textContent = words[currentIndex].translation;
+        translationEl.style.opacity = "1";
+        toggleBtn.textContent = "Hide translation";
+      } else {
+        translationEl.textContent = "Translation hidden";
+        translationEl.style.opacity = "0.4";
+        toggleBtn.textContent = "Show translation";
+      }
+    });
+
+    gradeButtons.forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const grade = parseInt(btn.dataset.grade, 10);
+        await sendGrade(grade);
+        nextWord();
+      });
+    });
+
+    async function sendGrade(grade) {
+      const w = words[currentIndex];
+      try {
+        await fetch("http://127.0.0.1:8000/api/study/grade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            word_id: w.id,
+            grade,
+          }),
+        });
+      } catch (err) {
+        console.error(err);
+        messageBox.textContent = "Could not send grade, but you can continue.";
+        messageBox.className = "error";
+      }
+    }
+
+    function nextWord() {
+      if (words.length === 0) return;
+      currentIndex += 1;
+      if (currentIndex >= words.length) {
+        wordEl.textContent = "Session finished 🎉";
+        translationEl.textContent = "";
+        toggleBtn.style.display = "none";
+        document.querySelector(".grades").style.display = "none";
+        messageBox.textContent = "You’ve reviewed all due words for now.";
+        messageBox.className = "success";
+        return;
+      }
+      showTranslation = false;
+      toggleBtn.textContent = "Show translation";
+      renderCurrentWord();
+    }
+
+    // ---------- INIT ----------
+
+    (async () => {
+      if (!email) return;
+      await loadFolders();
+      await loadWords();
+    })();
+  </script>
+</body>
+</html>

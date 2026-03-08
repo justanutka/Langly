@@ -1,0 +1,140 @@
+/* ========================================
+   PROFILE PAGE (SAFE STYLES)
+   Работает поверх app.css
+======================================== */
+
+/* Используем те же шрифты */
+.profile-card,
+.profile-card h1,
+.profile-section,
+.profile-section h3,
+.profile-section p,
+#language-select,
+.primary-btn {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Контейнер профиля */
+.profile-card {
+  background: linear-gradient(180deg, #ffffff, #f9faff);
+  padding: 50px;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(80, 90, 255, 0.08);
+  max-width: 820px;
+  margin: 0 auto;
+  transition: 0.3s ease;
+}
+
+/* Заголовок */
+.profile-card h1 {
+  font-family: 'Sora', sans-serif;
+  font-size: 34px;
+  font-weight: 600;
+  margin-bottom: 35px;
+  color: #4D65FF;
+}
+
+/* Блоки внутри */
+.profile-section {
+  margin-bottom: 40px;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #eef0ff;
+  transition: 0.25s ease;
+}
+
+.profile-section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(80, 90, 255, 0.08);
+}
+
+.profile-section h3 {
+  font-size: 18px;
+  margin-bottom: 18px;
+  font-weight: 600;
+  color: #2d2d2d;
+}
+
+.profile-section p {
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #555;
+}
+
+.profile-section strong {
+  color: #1a1a1a;
+}
+
+/* ========================
+   LANGUAGE BLOCK
+======================== */
+
+#language-select {
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid #dde2ff;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+#language-select:focus {
+  border-color: #6c7cff;
+  box-shadow: 0 0 0 3px rgba(108, 124, 255, 0.15);
+}
+
+/* Кнопка */
+.primary-btn {
+  margin-left: 12px;
+  padding: 10px 22px;
+  border-radius: 16px;
+  border: none;
+  background: linear-gradient(135deg, #6c7cff, #8b96ff);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(108, 124, 255, 0.35);
+}
+
+.primary-btn:active {
+  transform: scale(0.97);
+}
+
+/* ========================
+   SUCCESS MESSAGE
+======================== */
+
+.form-message {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.form-message.success {
+  color: #2ecc71;
+  opacity: 1;
+}
+
+.form-message.error {
+  color: #e74c3c;
+  opacity: 1;
+}
+
+/* ========================
+   RESPONSIVE
+======================== */
+
+@media (max-width: 900px) {
+  .profile-card {
+    padding: 30px;
+  }
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>My Words – Langly</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/words.css" />
+</head>
+
+<body>
+  <header class="top-bar">
+    <div class="brand">Langly</div>
+    <button class="logout-btn">Log out</button>
+  </header>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="my-words.html" class="nav-item active">📚 My words</a>
+        <a href="lessons.html" class="nav-item">📖 My lessons</a>
+        <a href="study.html" class="nav-item">🧠 Study cards</a>
+        <a href="profile.html" class="nav-item">👤 Profile</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        Logged in as:
+        <div id="user-email"></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="words-header">
+        <h1>My Words</h1>
+        <button class="btn-main" id="create-folder-btn">+ Create Folder</button>
+      </div>
+
+      <!-- FOLDERS VIEW -->
+      <div id="folders-view">
+        <div class="folders-container" id="folders-container"></div>
+      </div>
+
+      <!-- MODULES VIEW -->
+      <div id="modules-view" style="display:none;">
+        <button class="back-btn" id="back-to-folders">← Back to folders</button>
+        <h2 id="folder-title"></h2>
+
+        <div class="modules-grid" id="modules-container"></div>
+
+        <button class="btn-main" id="create-module-btn">+ Create Module</button>
+      </div>
+
+      <!-- WORDS VIEW -->
+      <div id="words-view" style="display:none;">
+        <button class="back-btn" id="back-to-modules">← Back to modules</button>
+        <h2 id="module-title"></h2>
+
+        <div class="add-word-card">
+          <div class="add-word-row">
+            <input type="text" id="word-input" placeholder="Word in study language">
+            <input type="text" id="translation-input" placeholder="Translation in native language">
+            <button class="btn-main" id="save-word-btn">Add Word</button>
+          </div>
+
+          <div id="word-error" class="word-error"></div>
+        </div>
+
+        <div class="words-list" id="words-list"></div>
+      </div>
+
+      <!-- STUDY VIEW -->
+      <div id="study-view" style="display:none;">
+        <button class="back-btn" id="back-from-study">← Back to module</button>
+
+        <div class="study-modes">
+          <button class="btn-main mode-btn" data-mode="flashcards">🎴 Flashcards</button>
+          <button class="btn-main mode-btn" data-mode="quiz">🧠 Quiz</button>
+          <button class="btn-main mode-btn" data-mode="test">📝 Test</button>
+        </div>
+
+        <div id="study-content"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/words.js"></script>
+</body>
+
+</html>

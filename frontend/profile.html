@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Langly – Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="brand">Langly</div>
+    <button id="logout-btn" class="logout-btn">Log out</button>
+  </header>
+
+  <div class="app-layout">
+
+    <aside class="sidebar">
+
+
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-item">🏠 Dashboard</a>
+        <a href="#" class="nav-item">📚 My words</a>
+        <a href="lessons.html" class="nav-item">📖 My lessons</a>
+        <a href="#" class="nav-item">🧠 Study cards</a>
+        <a href="profile.html" class="nav-item active">👤 Profile</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        Logged in as:
+        <div id="user-email"></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <div class="profile-card">
+
+        <h1>Your Profile</h1>
+
+        <div class="profile-section">
+          <h3>Account Information</h3>
+          <p><strong>Email:</strong> <span id="profile-email"></span></p>
+          <p><strong>Level:</strong> <span id="profile-level"></span></p>
+          <p><strong>XP:</strong> <span id="profile-xp"></span></p>
+          <p><strong>Streak:</strong> 🔥 <span id="profile-streak"></span></p>
+        </div>
+
+        <div class="profile-section">
+          <h3>Language Settings</h3>
+
+          <label for="language-select">Active Language:</label>
+          <select id="language-select"></select>
+
+          <button class="primary-btn" onclick="changeLanguage()">
+            Save Language
+          </button>
+          <div id="language-message" class="form-message"></div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

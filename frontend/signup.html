@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign up – Langly</title>
+
+  <!-- Sora из Google Fonts для логотипа -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/signup.css">
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="top-bar">
+    <a href="index.html" class="brand">Langly</a>
+    <a href="login.html" class="top-link">Log in</a>
+  </header>
+
+  <!-- MAIN -->
+  <main class="page">
+    <div class="auth-card">
+      <img src="img/book_star.png" alt="Langly" class="auth-illustration" />
+
+      <h1 class="auth-title">Create your account</h1>
+
+      <form id="signup-form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" required />
+        </div>
+
+        <div class="field">
+          <label for="confirm">Confirm password</label>
+          <input id="confirm" type="password" required />
+        </div>
+
+        <div class="field">
+          <label>Your native language</label>
+
+          <div class="custom-select" id="native-select">
+            <div class="select-trigger">
+              <span id="selected-value"></span>
+              <div class="arrow"></div>
+            </div>
+
+            <div class="select-options" id="select-options">
+            <!-- JS вставит языки сюда -->
+            </div>
+          </div>
+        </div>
+
+    
+        <div class="checkbox-row">
+          <input id="terms" type="checkbox" />
+          <label for="terms" style="margin:0;">
+            I agree to <a href="#">Terms</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary">Sign up</button>
+      </form>
+
+      <div id="message"></div>
+
+      <div class="auth-footer">
+        Already have an account? <a href="login.html">Log in!</a>
+      </div>
+    </div>
+  </main>
+<script src="js/signup.js"></script>
+</body>
+</html>

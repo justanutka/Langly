@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Log in – Langly</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/login.css">
+  
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">Langly</div>
+    <a class="header-link" href="signup.html">Sign up</a>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container">
+
+    <!-- LEFT CARD -->
+    <section class="card">
+      <h1>Log in</h1>
+
+      <form id="login-form">
+        <label class="field-label">Email</label>
+        <input id="email" type="email" class="text-input" />
+
+        <label class="field-label" style="margin-top: 14px;">Password</label>
+        <input id="password" type="password" class="text-input" />
+
+        <div class="forgot-row">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
+
+        <button class="btn-primary" type="submit">Log in</button>
+
+        <p id="message"></p>
+
+        <p class="below-text">
+          Don’t have an account?
+          <a href="signup.html">Sign up</a>
+        </p>
+      </form>
+    </section>
+
+    <!-- RIGHT IMAGE -->
+    <section>
+      <img src="img/couple_login.png" class="illustration" alt="studying couple" />
+    </section>
+
+  </main>
+
+  <script>
+  const form = document.getElementById("login-form");
+  const messageBox = document.getElementById("message");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    messageBox.textContent = "";
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !password) {
+      messageBox.textContent = "Please enter your email and password.";
+      messageBox.style.color = "#e11d48";
+      return;
+    }
+
+    try {
+      //form-urlencoded
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
+
+      const res = await fetch("http://127.0.0.1:8000/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        messageBox.textContent = data.detail || "Login failed.";
+        messageBox.style.color = "#e11d48";
+        return;
+      }
+
+      //saving token
+      localStorage.setItem("token", data.access_token);
+
+      messageBox.textContent = "Login successful!";
+      messageBox.style.color = "#16a34a";
+
+      //dashboard
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 800);
+
+    } catch {
+      messageBox.textContent = "Cannot connect to API.";
+      messageBox.style.color = "#e11d48";
+    }
+  });
+</script>
+</body>
+</html>
