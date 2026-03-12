@@ -44,23 +44,74 @@ def validate_word_exists(word: str, language_code: str):
     if not word:
         return False
 
-    # Надёжная проверка для английского
-    if language_code == "en":
+    word = word.lower().strip()
 
-        try:
-            response = requests.get(
+    try:
+
+        # =====================
+        # ENGLISH
+        # =====================
+        if language_code == "en":
+
+            r = requests.get(
                 f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}",
                 timeout=3
             )
 
-            return response.status_code == 200
+            return r.status_code == 200
 
-        except Exception:
-            return False
+        # =====================
+        # SPANISH
+        # =====================
+        if language_code == "es":
 
-    # Для остальных языков fallback на LanguageTool
-    matches = check_spelling(word, language_code)
-    return len(matches) == 0
+            r = requests.get(
+                f"https://api.dictionaryapi.dev/api/v2/entries/es/{word}",
+                timeout=3
+            )
+
+            return r.status_code == 200
+
+        # =====================
+        # GERMAN
+        # =====================
+        if language_code == "de":
+
+            r = requests.get(
+                f"https://api.dictionaryapi.dev/api/v2/entries/de/{word}",
+                timeout=3
+            )
+
+            return r.status_code == 200
+
+        # =====================
+        # RUSSIAN
+        # =====================
+        if language_code == "ru":
+
+            r = requests.get(
+                f"https://ru.wiktionary.org/wiki/{word}",
+                timeout=3
+            )
+
+            return "Русский" in r.text
+
+        # =====================
+        # POLISH
+        # =====================
+        if language_code == "pl":
+
+            r = requests.get(
+                f"https://pl.wiktionary.org/wiki/{word}",
+                timeout=3
+            )
+
+            return "język polski" in r.text
+
+    except Exception:
+        return False
+
+    return False
 
 
 # =========================
