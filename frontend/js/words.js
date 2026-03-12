@@ -9,32 +9,74 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    /* -----------------------------
+       VIEWS
+    ----------------------------- */
+
     const foldersView = document.getElementById("folders-view");
     const modulesView = document.getElementById("modules-view");
     const wordsView = document.getElementById("words-view");
+
+    /* -----------------------------
+       CONTAINERS
+    ----------------------------- */
 
     const foldersContainer = document.getElementById("folders-container");
     const modulesContainer = document.getElementById("modules-container");
     const wordsList = document.getElementById("words-list");
 
+    /* -----------------------------
+       INPUTS
+    ----------------------------- */
+
     const folderInput = document.getElementById("folder-name-input");
+    const folderDescription = document.getElementById("folder-description");
+    const folderEmoji = document.getElementById("folder-emoji");
+
     const moduleInput = document.getElementById("module-name-input");
+
+    const wordInput = document.getElementById("word-input");
+    const translationInput = document.getElementById("translation-input");
+
+    /* -----------------------------
+       BUTTONS
+    ----------------------------- */
 
     const createFolderBtn = document.getElementById("create-folder-btn");
     const createModuleBtn = document.getElementById("create-module-btn");
     const saveWordBtn = document.getElementById("save-word-btn");
 
-    const wordInput = document.getElementById("word-input");
-    const translationInput = document.getElementById("translation-input");
-
     const backToFoldersBtn = document.getElementById("back-to-folders");
     const backToModulesBtn = document.getElementById("back-to-modules");
+
+    /* -----------------------------
+       TITLES
+    ----------------------------- */
 
     const folderTitle = document.getElementById("folder-title");
     const moduleTitle = document.getElementById("module-title");
 
+    /* -----------------------------
+       MODALS
+    ----------------------------- */
+
+    const folderModal = document.getElementById("folder-modal");
+    const moduleModal = document.getElementById("module-modal");
+
+    const openFolderModal = document.getElementById("open-folder-modal");
+    const closeFolderModal = document.getElementById("close-folder-modal");
+    const closeModuleModal = document.getElementById("close-module-modal");
+
+    /* -----------------------------
+       STATE
+    ----------------------------- */
+
     let currentFolderId = null;
     let currentModuleId = null;
+
+    /* -----------------------------
+       USER
+    ----------------------------- */
 
     async function getUser() {
 
@@ -46,6 +88,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return await res.json();
     }
+
+    /* -----------------------------
+       MODAL HANDLERS
+    ----------------------------- */
+
+    if (openFolderModal) {
+        openFolderModal.onclick = () => folderModal.style.display = "flex";
+    }
+
+    if (closeFolderModal) {
+        closeFolderModal.onclick = () => folderModal.style.display = "none";
+    }
+
+    if (closeModuleModal) {
+        closeModuleModal.onclick = () => moduleModal.style.display = "none";
+    }
+
+    /* -----------------------------
+       LOAD FOLDERS
+    ----------------------------- */
 
     async function loadFolders() {
 
@@ -64,31 +126,86 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("div");
             card.className = "folder-card";
 
-            card.innerHTML = `📁 ${folder.name}`;
+            card.innerHTML = `
+                <div class="folder-top">
+                    <div class="folder-emoji">
+                        ${folder.emoji || "📁"}
+                    </div>
+
+                    <div class="folder-title">
+                        ${folder.name}
+                    </div>
+                </div>
+
+                <div class="folder-description">
+                    ${folder.description || ""}
+                </div>
+
+                <div class="folder-actions">
+                    <div class="action-pill">Cards</div>
+                    <div class="action-pill quiz-pill">Quiz</div>
+                    <div class="action-pill test-pill">Test</div>
+                </div>
+            `;
 
             card.onclick = () => openFolder(folder);
 
             foldersContainer.appendChild(card);
+
         });
+
+        /* CREATE FOLDER CARD */
+
+        const createCard = document.createElement("div");
+        createCard.className = "folder-create-card";
+
+        createCard.innerHTML = `
+            <div class="plus">+</div>
+            <div>Create folder</div>
+        `;
+
+        createCard.onclick = () => {
+            folderModal.style.display = "flex";
+        };
+
+        foldersContainer.appendChild(createCard);
+
     }
+
+    /* -----------------------------
+       CREATE FOLDER
+    ----------------------------- */
 
     createFolderBtn.onclick = async () => {
 
         const name = folderInput.value.trim();
+        const description = folderDescription.value.trim();
+        const emoji = folderEmoji.value.trim();
 
         if (!name) return;
 
-        await fetch(`${BASE_URL}/folders?name=${name}`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`
+        await fetch(
+            `${BASE_URL}/folders?name=${name}&description=${description}&emoji=${emoji}`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-        });
+        );
 
         folderInput.value = "";
+        folderDescription.value = "";
+        folderEmoji.value = "";
+
+        folderModal.style.display = "none";
 
         loadFolders();
     };
+
+    /* -----------------------------
+       OPEN FOLDER
+    ----------------------------- */
 
     async function openFolder(folder) {
 
@@ -101,6 +218,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         loadModules(folder.id);
     }
+
+    /* -----------------------------
+       LOAD MODULES
+    ----------------------------- */
 
     async function loadModules(folderId) {
 
@@ -119,13 +240,38 @@ document.addEventListener("DOMContentLoaded", () => {
             const card = document.createElement("div");
             card.className = "module-card";
 
-            card.innerHTML = `🧠 ${module.name}`;
+            card.innerHTML = `
+                <div class="module-icon">🧠</div>
+                <div class="module-name">${module.name}</div>
+            `;
 
             card.onclick = () => openModule(module);
 
             modulesContainer.appendChild(card);
+
         });
+
+        /* CREATE MODULE CARD */
+
+        const createCard = document.createElement("div");
+        createCard.className = "folder-create-card";
+
+        createCard.innerHTML = `
+            <div class="plus">+</div>
+            <div>Create module</div>
+        `;
+
+        createCard.onclick = () => {
+            moduleModal.style.display = "flex";
+        };
+
+        modulesContainer.appendChild(createCard);
+
     }
+
+    /* -----------------------------
+       CREATE MODULE
+    ----------------------------- */
 
     createModuleBtn.onclick = async () => {
 
@@ -133,17 +279,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!name) return;
 
-        await fetch(`${BASE_URL}/modules?folder_id=${currentFolderId}&name=${name}`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`
+        await fetch(
+            `${BASE_URL}/modules?folder_id=${currentFolderId}&name=${name}`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             }
-        });
+        );
 
         moduleInput.value = "";
 
+        moduleModal.style.display = "none";
+
         loadModules(currentFolderId);
     };
+
+    /* -----------------------------
+       OPEN MODULE
+    ----------------------------- */
 
     async function openModule(module) {
 
@@ -156,6 +311,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         loadWords();
     }
+
+    /* -----------------------------
+       LOAD WORDS
+    ----------------------------- */
 
     async function loadWords() {
 
@@ -181,11 +340,25 @@ document.addEventListener("DOMContentLoaded", () => {
             const item = document.createElement("div");
             item.className = "word-item";
 
-            item.innerHTML = `${word.word} — ${word.translation}`;
+            item.innerHTML = `
+                <div class="word-main">
+                    ${word.word}
+                </div>
+
+                <div class="word-translation">
+                    ${word.translation}
+                </div>
+            `;
 
             wordsList.appendChild(item);
+
         });
+
     }
+
+    /* -----------------------------
+       ADD WORD
+    ----------------------------- */
 
     saveWordBtn.onclick = async () => {
 
@@ -217,15 +390,27 @@ document.addEventListener("DOMContentLoaded", () => {
         loadWords();
     };
 
+    /* -----------------------------
+       NAVIGATION
+    ----------------------------- */
+
     backToFoldersBtn.onclick = () => {
+
         modulesView.style.display = "none";
         foldersView.style.display = "block";
+
     };
 
     backToModulesBtn.onclick = () => {
+
         wordsView.style.display = "none";
         modulesView.style.display = "block";
+
     };
+
+    /* -----------------------------
+       INIT
+    ----------------------------- */
 
     loadFolders();
 
