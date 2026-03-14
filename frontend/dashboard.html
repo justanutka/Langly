@@ -1,54 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>Langly – Dashboard</title>
+    <meta charset="UTF-8">
+    <title>Langly – Dashboard</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 
-  <link rel="stylesheet" href="css/app.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/sidebar.css">
 </head>
+
 <body>
 
-  <!-- HEADER -->
-  <header class="top-bar">
-    <div class="brand">Langly</div>
-    <button id="logout-btn" class="logout-btn">Log out</button>
-  </header>
+<header class="top-bar">
 
-  <div class="app-layout">
+    <div class="brand">
+        Langly
+    </div>
 
-    <!-- SIDEBAR -->
+    <button id="logout-btn" class="logout-btn">
+        Log out
+    </button>
+
+</header>
+
+
+<div class="app-layout">
+
     <aside class="sidebar">
-      
-      <nav class="sidebar-nav">
-        <a href="#" class="nav-item active" data-page="dashboard">🏠 Dashboard</a>
-        <a href="my-words.html" class="nav-item">📚 My words</a>
-        <a href="lessons.html" class="nav-item">📖 My lessons</a>
-        <a href="#" class="nav-item" data-page="study">🧠 Study cards</a>
-        <a href="profile.html" class="nav-item">👤 Profile</a>
-      </nav>
 
-      <div class="sidebar-footer">
-        Logged in as:
-        <div id="user-email"></div>
-      </div>
+        <!-- BURGER BUTTON -->
+
+        <div class="sidebar-toggle" id="sidebar-toggle">
+            ☰
+        </div>
+
+
+        <!-- MAIN NAVIGATION -->
+
+        <nav class="sidebar-nav">
+
+            <a href="#" class="nav-item active">
+                <span class="icon">🏠</span>
+                <span class="label">Dashboard</span>
+            </a>
+
+            <a href="my-words.html" class="nav-item">
+                <span class="icon">📚</span>
+                <span class="label">My words</span>
+            </a>
+
+            <a href="lessons.html" class="nav-item">
+                <span class="icon">📖</span>
+                <span class="label">My lessons</span>
+            </a>
+
+            <a href="#" class="nav-item">
+                <span class="icon">🧠</span>
+                <span class="label">Study cards</span>
+            </a>
+
+            <a href="profile.html" class="nav-item">
+                <span class="icon">👤</span>
+                <span class="label">Profile</span>
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <!-- USER FOLDERS -->
+
+        <div class="sidebar-section">
+
+            <div class="sidebar-title">
+                Your folders
+            </div>
+
+            <div id="folders-container"></div>
+
+            <div class="sidebar-item add" id="add-folder-btn">
+                <span class="icon">+</span>
+                <span class="label">New folder</span>
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <!-- STUDY SECTION -->
+
+        <div class="sidebar-section">
+
+            <div class="sidebar-title">
+                Start studying
+            </div>
+
+            <div class="sidebar-item">
+                <span class="icon">🧠</span>
+                <span class="label">Cards</span>
+            </div>
+
+            <div class="sidebar-item">
+                <span class="icon">❓</span>
+                <span class="label">Quiz</span>
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="sidebar-footer">
+
+            Logged in as:
+
+            <div id="user-email"></div>
+
+        </div>
+
     </aside>
 
-    <!-- MAIN CONTENT -->
+
     <main class="main-content">
 
-      <div id="welcome-container"></div>
-      <div id="stats-container"></div>
-      <div id="today-words-container"></div>
+        <div id="welcome-container"></div>
+
+        <div id="stats-container"></div>
+
+        <div id="today-words-container"></div>
 
     </main>
 
-  </div>
+</div>
 
-  <script src="js/app.js"></script>
-  <script src="js/words.js"></script>
+
+<script src="js/app.js"></script>
+<script src="js/words.js"></script>
 
 </body>
 </html>

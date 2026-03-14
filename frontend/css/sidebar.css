@@ -1,0 +1,305 @@
+/* SIDEBAR */
+
+.sidebar {
+    width: 260px;
+
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.85);
+
+    border-right: 1px solid rgba(0,0,0,0.05);
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 30px 20px;
+
+    min-height: 100vh;
+
+    transition: width 0.28s cubic-bezier(.4,0,.2,1);
+}
+
+
+
+
+/* NAVIGATION */
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 12px 14px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    color: #0F172A;
+    font-size: 14px;
+
+    transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+    background: rgba(77,101,255,0.08);
+}
+
+.nav-item.active {
+    background: linear-gradient(
+        135deg,
+        rgba(77,101,255,0.15),
+        rgba(124,140,255,0.15)
+    );
+
+    color: #4D65FF;
+    font-weight: 600;
+}
+
+
+/* ICON */
+
+.icon {
+    font-size: 18px;
+    width: 24px;
+    min-width: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+
+
+/* DIVIDER */
+
+.sidebar-divider {
+    height: 1px;
+    width: 100%;
+
+    background: #E5E7EB;
+
+    margin: 18px 0;
+}
+
+
+/* SECTION */
+
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-title {
+    font-size: 12px;
+    font-weight: 600;
+
+    color: #64748B;
+
+    margin-bottom: 6px;
+    letter-spacing: 0.03em;
+}
+
+
+/* ITEMS */
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    color: #0F172A;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.sidebar-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+.sidebar-item.add {
+    color: #4D65FF;
+    font-weight: 500;
+}
+
+/* ICON ANIMATION */
+
+.nav-item,
+.sidebar-item,
+.folder-item {
+    transition: all 0.2s ease;
+}
+
+/* FOOTER */
+
+.sidebar-footer {
+    margin-top: auto;
+
+    font-size: 12px;
+
+    color: #64748B;
+}
+
+#user-email {
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+
+/* TOGGLE BUTTON */
+
+.sidebar-toggle {
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748B;
+
+    display: flex;
+    align-items: center;
+
+    height: 40px;
+    margin-bottom: 10px;
+    padding-left: 14px;
+}
+
+
+
+
+/* COLLAPSED SIDEBAR */
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+
+/* скрываем текст */
+
+.sidebar.collapsed .label,
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .sidebar-footer,
+.sidebar.collapsed .folder-name {
+    display: none;
+}
+
+
+/* центрируем иконки */
+
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .sidebar-item,
+.sidebar.collapsed .folder-item {
+    justify-content: center;
+}
+
+
+/* FOLDER ITEMS */
+
+.folder-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    cursor: pointer;
+}
+
+.folder-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* sidebar is open */
+
+.sidebar:not(.collapsed) .sidebar-toggle {
+    justify-content: flex-start;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+    padding-left: 0;
+}
+
+
+/* sidebar is closed */
+
+.sidebar.collapsed .sidebar-toggle {
+    justify-content: center;
+}
+
+/* text animation */
+
+.label,
+.folder-name,
+.sidebar-title,
+.sidebar-footer {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* COLLAPSED SIDEBAR */
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+
+/* TEXT ANIMATION */
+
+.label,
+.folder-name,
+.sidebar-title,
+.sidebar-footer {
+
+    white-space: nowrap;
+
+    opacity: 1;
+    transform: translateX(0);
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        width 0.18s ease;
+}
+
+
+/* text hidden when collapsed */
+
+.sidebar.collapsed .label,
+.sidebar.collapsed .folder-name,
+.sidebar.collapsed .sidebar-title,
+.sidebar.collapsed .sidebar-footer {
+
+    opacity: 0;
+    transform: translateX(-8px);
+
+    width: 0;
+    overflow: hidden;
+}
+
+
+/* center icons when collapsed */
+
+.sidebar.collapsed .nav-item,
+.sidebar.collapsed .sidebar-item,
+.sidebar.collapsed .folder-item {
+    justify-content: center;
+}
+
+
+/* sidebar toggle positioning */
+
+.sidebar:not(.collapsed) .sidebar-toggle {
+    justify-content: flex-start
+}
