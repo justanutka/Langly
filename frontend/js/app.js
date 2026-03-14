@@ -2,10 +2,14 @@ const BASE_URL = "http://127.0.0.1:8000";
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    if (!document.getElementById("welcome-container")) {
-        return;
+    const isDashboard = document.getElementById("welcome-container");
+
+    if (isDashboard) {
+        await loadFullDashboard();
     }
 
+    await loadSidebar();
+    
     const token = localStorage.getItem("token");
 
     if (!token) {

@@ -1,6 +1,8 @@
 /* SIDEBAR */
 
 .sidebar {
+
+    will-change: width;
     width: 260px;
 
     backdrop-filter: blur(12px);
@@ -43,7 +45,7 @@
     color: #0F172A;
     font-size: 14px;
 
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .nav-item:hover {
@@ -173,25 +175,11 @@
     padding-left: 14px;
 }
 
-
-
-
 /* COLLAPSED SIDEBAR */
 
 .sidebar.collapsed {
     width: 70px;
 }
-
-
-/* скрываем текст */
-
-.sidebar.collapsed .label,
-.sidebar.collapsed .sidebar-title,
-.sidebar.collapsed .sidebar-footer,
-.sidebar.collapsed .folder-name {
-    display: none;
-}
-
 
 /* центрируем иконки */
 
@@ -246,12 +234,6 @@
 .sidebar-title,
 .sidebar-footer {
     transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-/* COLLAPSED SIDEBAR */
-
-.sidebar.collapsed {
-    width: 70px;
 }
 
 

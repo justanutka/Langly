@@ -1,4 +1,3 @@
-const BASE_URL = "http://127.0.0.1:8000";
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -21,9 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
        CONTAINERS
     ----------------------------- */
 
-    const foldersContainer = document.getElementById("folders-container");
+    const foldersContainer = document.getElementById("folders-grid");
     const modulesContainer = document.getElementById("modules-container");
     const wordsList = document.getElementById("words-list");
+
+    if (!foldersContainer) return;
 
     /* -----------------------------
        INPUTS
@@ -90,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* -----------------------------
-       MODAL HANDLERS
+       MODALS
     ----------------------------- */
 
     if (openFolderModal) {
@@ -154,8 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
 
-        /* CREATE FOLDER CARD */
-
         const createCard = document.createElement("div");
         createCard.className = "folder-create-card";
 
@@ -169,7 +168,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         foldersContainer.appendChild(createCard);
-
     }
 
     /* -----------------------------
@@ -251,8 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         });
 
-        /* CREATE MODULE CARD */
-
         const createCard = document.createElement("div");
         createCard.className = "folder-create-card";
 
@@ -266,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         modulesContainer.appendChild(createCard);
-
     }
 
     /* -----------------------------
@@ -412,6 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
        INIT
     ----------------------------- */
 
-    loadFolders();
+    setTimeout(() => {
+        loadFolders();
+    }, 50);
 
 });
