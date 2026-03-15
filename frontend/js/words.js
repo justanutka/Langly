@@ -163,8 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <div>Create folder</div>
         `;
 
-        createCard.onclick = () => {
-            folderModal.style.display = "flex";
+        card.onclick = () => {
+
+            history.pushState(null, "", `?folder=${folder.id}`);
+
+            openFolder(folder);
+
         };
 
         foldersContainer.appendChild(createCard);
@@ -207,6 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function openFolder(folder) {
 
+        history.pushState(null, "", `?folder=${folder.id}`);
+
         currentFolderId = folder.id;
 
         foldersView.style.display = "none";
@@ -215,6 +221,24 @@ document.addEventListener("DOMContentLoaded", () => {
         folderTitle.textContent = folder.name;
 
         loadModules(folder.id);
+    }
+
+    window.openFolderFromSidebar = async function(folderId) {
+
+        const res = await fetch(BASE_URL + "/folders/", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        const folders = await res.json();
+
+        const folder = folders.find(f => f.id == folderId);
+
+        if (folder) {
+            openFolder(folder);
+        }
+
     }
 
     /* -----------------------------
@@ -407,8 +431,76 @@ document.addEventListener("DOMContentLoaded", () => {
        INIT
     ----------------------------- */
 
-    setTimeout(() => {
-        loadFolders();
-    }, 50);
+   setTimeout(async () => {
 
+        await loadFolders();
+
+        const params = new URLSearchParams(window.location.search);
+
+        /* OPEN FOLDER FROM SIDEBAR */
+
+        const folderId = params.get("folder");
+
+        if (folderId) {
+
+            const res = await fetch(BASE_URL + "/folders/", {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            const folders = await res.json();
+
+            const folder = folders.find(f => f.id == folderId);
+
+            if (folder) {
+                openFolder(folder);
+            }
+
+        }
+
+        /* OPEN CREATE FOLDER MODAL */
+
+        if (params.get("create") === "true") {
+
+            const modal = document.getElementById("folder-modal");
+
+            if (modal) modal.style.display = "flex";
+
+        }
+
+    }, 50);
 });
+
+function getFolderFromURL() {
+
+    const params = new URLSearchParams(window.location.search);
+    return params.get("folder");
+
+}
+
+window.openFolderFromSidebar = async function(folderId) {
+
+    try {
+
+        const res = await fetch(BASE_URL + "/folders/", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        const folders = await res.json();
+
+        const folder = folders.find(f => f.id == folderId);
+
+        if (!folder) return;
+
+        openFolder(folder);
+
+    } catch (error) {
+
+        console.error("Sidebar folder open error:", error);
+
+    }
+
+};

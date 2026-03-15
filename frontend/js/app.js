@@ -260,12 +260,33 @@ async function loadFolders() {
 
         recentFolders.forEach(folder => {
 
-            container.innerHTML += `
-                <div class="folder-item">
-                    <span class="icon">📁</span>
-                    <span class="folder-name">${folder.name}</span>
-                </div>
+            const item = document.createElement("div");
+            item.className = "folder-item";
+
+            item.innerHTML = `
+                <span class="icon">📁</span>
+                <span class="folder-name">${folder.name}</span>
             `;
+
+            item.onclick = () => {
+
+                //if we are already on words page
+                if (window.location.pathname.includes("my-words.html")) {
+
+                    if (typeof openFolderFromSidebar === "function") {
+                        openFolderFromSidebar(folder.id);
+                    }
+
+                } else {
+
+                    //go to words page and open the folder
+                    window.location.href = `my-words.html?folder=${folder.id}`;
+
+                }
+
+            };
+
+            container.appendChild(item);
 
         });
 

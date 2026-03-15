@@ -9,9 +9,12 @@ async function loadSidebar() {
     container.innerHTML = html;
 
     initSidebar();
+    initNewFolderButton();
 
 }
 
+
+/* SIDEBAR TOGGLE */
 
 function initSidebar() {
 
@@ -20,10 +23,41 @@ function initSidebar() {
 
     if (!toggle || !sidebar) return;
 
-    toggle.onclick = () => {
+    toggle.addEventListener("click", () => {
 
         sidebar.classList.toggle("collapsed");
 
-    };
+    });
+
+}
+
+
+/* NEW FOLDER BUTTON */
+
+function initNewFolderButton() {
+
+    const newFolderBtn = document.getElementById("add-folder-btn");
+
+    if (!newFolderBtn) return;
+
+    newFolderBtn.addEventListener("click", (e) => {
+
+        e.preventDefault();
+
+        if (window.location.pathname.includes("my-words.html")) {
+
+            const modal = document.getElementById("folder-modal");
+
+            if (modal) {
+                modal.style.display = "flex";
+            }
+
+        } else {
+
+            window.location.href = "my-words.html?create=true";
+
+        }
+
+    });
 
 }
