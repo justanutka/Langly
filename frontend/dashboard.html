@@ -2,68 +2,34 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <title>Langly – Dashboard</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet"
-    >
-
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/sidebar.css">
-
 </head>
 
 <body>
 
-    <!-- TOP BAR -->
+<header class="top-bar">
+    <div class="brand">Langly</div>
+    <button id="logout-btn" class="logout-btn">Log out</button>
+</header>
 
-    <header class="top-bar">
+<div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <div class="brand">
-            Langly
-        </div>
+    <main class="main-content">
+        <div id="welcome-container"></div>
+        <div id="stats-container"></div>
+        <div id="today-words-container"></div>
+    </main>
+</div>
 
-        <button id="logout-btn" class="logout-btn">
-            Log out
-        </button>
-
-    </header>
-
-
-    <!-- APP LAYOUT -->
-
-    <div class="app-layout">
-
-        <!-- SIDEBAR (loaded dynamically) -->
-
-        <div id="sidebar-container"></div>
-
-
-        <!-- MAIN CONTENT -->
-
-        <main class="main-content">
-
-            <div id="welcome-container"></div>
-
-            <div id="stats-container"></div>
-
-            <div id="today-words-container"></div>
-
-        </main>
-
-    </div>
-
-
-    <!-- SCRIPTS -->
-
-    <script src="js/sidebar.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/words.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/app.js"></script>
+<script src="js/words.js"></script>
 
 </body>
 

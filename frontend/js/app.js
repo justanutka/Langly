@@ -1,7 +1,6 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
 document.addEventListener("DOMContentLoaded", async () => {
-
     const isDashboard = document.getElementById("welcome-container");
 
     if (isDashboard) {
@@ -9,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await loadSidebar();
-    
+
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -28,13 +27,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
-
             localStorage.removeItem("token");
             window.location.href = "index.html";
-
         });
     }
-
 });
 
 
