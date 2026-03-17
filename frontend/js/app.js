@@ -19,8 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await checkLanguageSelected();
     await loadUserEmail();
     await loadFolders();
-    await loadFullDashboard();
-
+    
     initSidebarToggle();
 
     const logoutBtn = document.getElementById("logout-btn");

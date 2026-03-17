@@ -334,9 +334,12 @@ document.addEventListener("DOMContentLoaded", () => {
     /* -----------------------------
        LOAD WORDS
     ----------------------------- */
+    let wordsLoaded = false;
 
     async function loadWords() {
 
+         if (wordsLoaded) return;
+        
         const user = await getUser();
 
         const res = await fetch(
@@ -372,7 +375,8 @@ document.addEventListener("DOMContentLoaded", () => {
             wordsList.appendChild(item);
 
         });
-
+        
+        wordsLoaded = true;
     }
 
     /* -----------------------------
