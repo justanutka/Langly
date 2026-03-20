@@ -1,5 +1,13 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+  const logo = document.getElementById("logo");
+
+    if (logo) {
+        logo.addEventListener("click", () => {
+            window.location.href = "dashboard.html"; 
+        });
+    }
+
   const token = localStorage.getItem("token");
 
   if (!token) {
