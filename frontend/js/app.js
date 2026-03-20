@@ -133,31 +133,24 @@ async function loadFullDashboard() {
 
 
 function renderWelcome(dashboard, stats) {
-
     const container = document.getElementById("welcome-container");
     if (!container) return;
 
     const xpNeededTotal = stats.xp_to_next_level + dashboard.xp;
 
-    let percent = xpNeededTotal > 0
-        ? (dashboard.xp / xpNeededTotal) * 100
-        : 0;
+    let percent = xpNeededTotal > 0 ? (dashboard.xp / xpNeededTotal) * 100 : 0;
 
     container.innerHTML = `
         <div class="welcome-card">
-
             <h1 style="color:#4C5BFF;">Welcome back 👋</h1>
-
             <div class="level-row">
                 Level ${dashboard.level} • 
                 XP ${dashboard.xp} / ${xpNeededTotal} • 
                 🔥 Streak ${dashboard.streak}
             </div>
-
             <div class="progress-bar">
                 <div class="progress-fill" style="width:${percent}%"></div>
             </div>
-
         </div>
     `;
 }

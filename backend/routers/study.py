@@ -117,53 +117,20 @@ def get_dashboard(
 # STATS
 # =========================
 @router.get("/stats")
-def get_study_stats(
-    current_user: models.User = Depends(auth.get_current_user),
-    db: Session = Depends(database.get_db)
-):
+def get_study_stats(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+    total_words = db.query(models.Word).filter(models.Word.language_id == current_user.active_language_id).count()
 
-    if not current_user.active_language_id:
-        return {
-            "level": current_user.level,
-            "xp": current_user.xp,
-            "xp_to_next_level": 0,
-            "streak": current_user.streak,
-            "freeze_days": current_user.freeze_days,
-            "total_words": 0,
-            "mastered_words": 0,
-            "due_today": 0,
-            "progress_percent": 0
-        }
+    mastered_words = db.query(models.Word).join(models.ReviewState).filter(
+        models.Word.language_id == current_user.active_language_id,
+        models.ReviewState.repetition >= 5
+    ).count()
 
-    total_words = (
-        db.query(models.Word)
-        .filter(models.Word.language_id == current_user.active_language_id)
-        .count()
-    )
+    due_today = db.query(models.Word).join(models.ReviewState).filter(
+        models.Word.language_id == current_user.active_language_id,
+        models.ReviewState.next_review <= datetime.utcnow().isoformat()
+    ).count()
 
-    mastered_words = (
-        db.query(models.Word)
-        .join(models.ReviewState)
-        .filter(
-            models.Word.language_id == current_user.active_language_id,
-            models.ReviewState.repetition >= 5
-        )
-        .count()
-    )
-
-    due_today = (
-        db.query(models.Word)
-        .join(models.ReviewState)
-        .filter(
-            models.Word.language_id == current_user.active_language_id,
-            models.ReviewState.next_review <= datetime.utcnow().isoformat()
-        )
-        .count()
-    )
-
-    progress_percent = 0
-    if total_words > 0:
-        progress_percent = round((mastered_words / total_words) * 100, 2)
+    progress_percent = (mastered_words / total_words) * 100 if total_words > 0 else 0
 
     xp_needed = int(100 * (current_user.level ** 1.5))
     xp_to_next_level = xp_needed - current_user.xp

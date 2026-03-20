@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("profile-email").textContent = user.email;
     document.getElementById("user-email").textContent = user.email;
-
+    document.getElementById("profile-level").textContent = ` ${user.level}`;
+    document.getElementById("profile-xp").textContent = `${user.xp}`;
+      document.getElementById("profile-streak").textContent = ` ${user.streak} 🔥`;
 
     // =========================
     // LOAD LANGUAGES

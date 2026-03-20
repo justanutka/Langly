@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
 
@@ -82,7 +83,18 @@ def login(
 # CURRENT USER
 # =========================
 @router.get("/me")
-def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
+def read_users_me(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+    #update streak if it's new day
+    if current_user.last_study_date != str(datetime.today().date()):
+        current_user.last_study_date = str(datetime.today().date())
+        if current_user.last_study_date != str(datetime.today().date()):
+            current_user.streak = 0
+        else:
+            current_user.streak += 1
+        
+        db.commit()
+        db.refresh(current_user)
+
     return {
         "email": current_user.email,
         "level": current_user.level,
