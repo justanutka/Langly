@@ -83,23 +83,63 @@ def login(
 # CURRENT USER
 # =========================
 @router.get("/me")
-def read_users_me(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    #update streak if it's new day
-    if current_user.last_study_date != str(datetime.today().date()):
-        current_user.last_study_date = str(datetime.today().date())
-        if current_user.last_study_date != str(datetime.today().date()):
-            current_user.streak = 0
-        else:
+def read_users_me(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    today = datetime.utcnow().date()
+
+    #if it's first entrance
+    if not current_user.last_study_date:
+        current_user.last_study_date = str(today)
+        current_user.streak = 1
+
+    else:
+        last_date = datetime.strptime(
+            current_user.last_study_date, "%Y-%m-%d"
+        ).date()
+
+        diff_days = (today - last_date).days
+
+        if diff_days == 0:
+            pass
+
+        elif diff_days == 1:
+            #the next day
             current_user.streak += 1
-        
-        db.commit()
-        db.refresh(current_user)
+            current_user.last_study_date = str(today)
+
+            #BONUS EVERY 7 DAYS
+            if current_user.streak > 0 and current_user.streak % 7 == 0:
+                current_user.freeze_days += 1
+                current_user.xp += 50
+            
+            #LEVEL UP LOGIC
+            xp_needed = int(100 * (current_user.level ** 1.5))
+
+            while current_user.xp >= xp_needed:
+                current_user.xp -= xp_needed
+                current_user.level += 1
+                xp_needed = int(100 * (current_user.level ** 1.5))
+
+        elif diff_days > 1:
+            #if the day off
+            if current_user.freeze_days > 0:
+                current_user.freeze_days -= 1
+                current_user.last_study_date = str(today)
+            else:
+                current_user.streak = 1
+                current_user.last_study_date = str(today)
+
+    db.commit()
+    db.refresh(current_user)
 
     return {
         "email": current_user.email,
         "level": current_user.level,
         "xp": current_user.xp,
         "streak": current_user.streak,
+        "freeze_days": current_user.freeze_days,
         "active_language_id": current_user.active_language_id,
         "active_language_name": current_user.active_language.name if current_user.active_language else None,
         "native_language_id": current_user.native_language_id,
