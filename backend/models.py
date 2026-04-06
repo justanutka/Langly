@@ -106,6 +106,8 @@ class Folder(Base):
 
     user_id = Column(Integer, ForeignKey("users.id"))
     language_id = Column(Integer, ForeignKey("languages.id"))
+    description = Column(String, nullable=True)
+    emoji = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

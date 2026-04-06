@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 
 class UserCreate(BaseModel):
@@ -22,3 +23,12 @@ class WordCreate(BaseModel):
     word: str
     translation: str
     example: str | None = None
+
+class FolderCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    emoji: Optional[str] = None
+
+class ModuleCreate(BaseModel):
+    name: str
+    folder_id: int

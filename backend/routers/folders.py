@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import models, database, auth
+from backend.schemas import FolderCreate
 
 router = APIRouter(prefix="/folders", tags=["Folders"])
 
@@ -24,7 +25,7 @@ def get_folders(
 # CREATE folder
 @router.post("/")
 def create_folder(
-    name: str,
+    data: FolderCreate,
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
@@ -33,7 +34,9 @@ def create_folder(
         raise HTTPException(status_code=400, detail="Select language first")
 
     folder = models.Folder(
-        name=name,
+        name=data.name,
+        description=data.description,
+        emoji=data.emoji,
         user_id=current_user.id,
         language_id=current_user.active_language_id
     )
