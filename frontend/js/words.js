@@ -57,6 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const openFolderModal = document.getElementById("open-folder-modal");
 
+    const searchInput = document.getElementById("search-input");
+
     let deleteCallback = null;
 
     let currentFolderId = null;
@@ -66,13 +68,41 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentModules = [];
 
     let sortValue = "new";
+    let currentView = "folders";
 
-    const searchInput = document.getElementById("search-input");
+    function showFoldersView() {
+        currentView = "folders";
+        foldersView.style.display = "block";
+        modulesView.style.display = "none";
+        wordsView.style.display = "none";
+        currentFolderId = null;
+        currentModuleId = null;
+        updateTopButton();
+    }
+
+    function showModulesView(folderId, folderName = "") {
+        currentView = "modules";
+        currentFolderId = folderId;
+        foldersView.style.display = "none";
+        modulesView.style.display = "block";
+        wordsView.style.display = "none";
+        folderTitle.textContent = folderName;
+        updateTopButton();
+    }
+
+    function showWordsView(module) {
+        currentView = "words";
+        currentModuleId = module.id;
+        foldersView.style.display = "none";
+        modulesView.style.display = "none";
+        wordsView.style.display = "block";
+        moduleTitle.textContent = module.name;
+    }
 
     function updateTopButton() {
         if (!openFolderModal) return;
 
-        if (currentFolderId) {
+        if (currentView === "modules" && currentFolderId) {
             openFolderModal.textContent = "+ Create Module";
             openFolderModal.onclick = () => {
                 moduleModal.style.display = "flex";
@@ -92,33 +122,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     confirmDeleteBtn.onclick = async () => {
-        if (deleteCallback) await deleteCallback();
+        if (deleteCallback) {
+            await deleteCallback();
+        }
         deleteModal.style.display = "none";
+        deleteCallback = null;
     };
 
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.onclick = () => {
-            deleteModal.style.display = "none";
-        };
-    }
+    cancelDeleteBtn.onclick = () => {
+        deleteModal.style.display = "none";
+        deleteCallback = null;
+    };
 
     deleteModal.onclick = (e) => {
         if (e.target === deleteModal) {
             deleteModal.style.display = "none";
+            deleteCallback = null;
         }
     };
 
-    if (closeFolderModal) {
-        closeFolderModal.onclick = () => {
-            folderModal.style.display = "none";
-        };
-    }
+    closeFolderModal.onclick = () => {
+        folderModal.style.display = "none";
+    };
 
-    if (closeModuleModal) {
-        closeModuleModal.onclick = () => {
-            moduleModal.style.display = "none";
-        };
-    }
+    closeModuleModal.onclick = () => {
+        moduleModal.style.display = "none";
+    };
 
     folderModal.onclick = (e) => {
         if (e.target === folderModal) {
@@ -136,7 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.key === "Escape") {
             folderModal.style.display = "none";
             moduleModal.style.display = "none";
-            if (deleteModal) deleteModal.style.display = "none";
+            deleteModal.style.display = "none";
+            deleteCallback = null;
         }
     });
 
@@ -161,8 +191,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 items.classList.add("select-hide");
                 selected.classList.remove("active");
 
-                if (currentFolderId) renderModules();
-                else renderFolders();
+                if (currentView === "modules") {
+                    renderModules();
+                } else if (currentView === "folders") {
+                    renderFolders();
+                }
             };
         });
     }
@@ -189,16 +222,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return filtered;
     }
 
-    async function loadFolders() {
+    async function loadFolders(force = false) {
+        if (currentView !== "folders" && !force) return;
+
         const res = await fetch(BASE_URL + "/folders/", {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         currentFolders = await res.json();
-        renderFolders();
+
+        if (currentView === "folders" || force) {
+            renderFolders();
+        }
     }
 
     function renderFolders() {
+        if (currentView !== "folders") return;
+
         foldersContainer.innerHTML = "";
 
         const folders = applyFilters(currentFolders);
@@ -219,13 +259,21 @@ document.addEventListener("DOMContentLoaded", () => {
             card.querySelector(".delete-btn").onclick = (e) => {
                 e.stopPropagation();
 
+                const cardEl = e.target.closest(".folder-card");
+
                 openDeleteModal("Delete this folder?", async () => {
+                    cardEl.classList.add("delete-animation");
+
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
                     await fetch(`${BASE_URL}/folders/${folder.id}`, {
                         method: "DELETE",
                         headers: { Authorization: `Bearer ${token}` }
                     });
 
-                    loadFolders();
+                    history.pushState(null, "", "my-words.html");
+                    showFoldersView();
+                    await loadFolders(true);
                 });
             };
 
@@ -273,19 +321,28 @@ document.addEventListener("DOMContentLoaded", () => {
         folderDescription.value = "";
         folderEmoji.value = "";
 
-        loadFolders();
+        if (currentView === "folders") {
+            await loadFolders(true);
+        }
     };
 
     async function loadModules(folderId) {
+        if (!folderId) return;
+
         const res = await fetch(`${BASE_URL}/modules/${folderId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         currentModules = await res.json();
-        renderModules();
+
+        if (currentView === "modules") {
+            renderModules();
+        }
     }
 
     function renderModules() {
+        if (currentView !== "modules") return;
+
         modulesContainer.innerHTML = "";
 
         const modules = applyFilters(currentModules);
@@ -302,13 +359,22 @@ document.addEventListener("DOMContentLoaded", () => {
             card.querySelector(".delete-btn").onclick = (e) => {
                 e.stopPropagation();
 
+                const cardEl = e.target.closest(".module-card");
+
                 openDeleteModal("Delete this module?", async () => {
+                    cardEl.classList.add("delete-animation");
+
+                    await new Promise(resolve => setTimeout(resolve, 300));
+
                     await fetch(`${BASE_URL}/modules/${module.id}`, {
                         method: "DELETE",
                         headers: { Authorization: `Bearer ${token}` }
                     });
 
-                    loadModules(currentFolderId);
+                    if (currentFolderId) {
+                        showModulesView(currentFolderId, folderTitle.textContent);
+                        await loadModules(currentFolderId);
+                    }
                 });
             };
 
@@ -334,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createModuleBtn.onclick = async () => {
         const name = moduleInput.value.trim();
+
         if (!name || !currentFolderId) return;
 
         await fetch(`${BASE_URL}/modules/?name=${name}&folder_id=${currentFolderId}`, {
@@ -344,41 +411,20 @@ document.addEventListener("DOMContentLoaded", () => {
         moduleModal.style.display = "none";
         moduleInput.value = "";
 
-        loadModules(currentFolderId);
+        if (currentFolderId) {
+            showModulesView(currentFolderId, folderTitle.textContent);
+            await loadModules(currentFolderId);
+        }
     };
 
     async function openFolder(folder) {
-        currentFolderId = folder.id;
-
-        foldersView.style.display = "none";
-        modulesView.style.display = "block";
-
-        folderTitle.textContent = folder.name;
-
-        updateTopButton();
-        loadModules(folder.id);
+        showModulesView(folder.id, folder.name);
+        await loadModules(folder.id);
     }
 
-    window.openFolderFromSidebar = async function(folderId) {
-        const res = await fetch(BASE_URL + "/folders/", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        const folders = await res.json();
-        const folder = folders.find(f => f.id == folderId);
-
-        if (folder) openFolder(folder);
-    };
-
     async function openModule(module) {
-        currentModuleId = module.id;
-
-        modulesView.style.display = "none";
-        wordsView.style.display = "block";
-
-        moduleTitle.textContent = module.name;
-
-        loadWords();
+        showWordsView(module);
+        await loadWords();
     }
 
     async function loadWords() {
@@ -415,7 +461,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const user = await getUser();
 
-        await fetch(BASE_URL + "/words/", {
+        await fetch(`${BASE_URL}/words/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -430,38 +476,42 @@ document.addEventListener("DOMContentLoaded", () => {
             })
         });
 
-        loadWords();
+        await loadWords();
     };
 
-    backToFoldersBtn.onclick = () => {
-        modulesView.style.display = "none";
-        foldersView.style.display = "block";
-        currentFolderId = null;
-
-        updateTopButton();
+    backToFoldersBtn.onclick = async () => {
+        history.pushState(null, "", "my-words.html");
+        showFoldersView();
+        await loadFolders(true);
     };
 
-    backToModulesBtn.onclick = () => {
-        wordsView.style.display = "none";
-        modulesView.style.display = "block";
+    backToModulesBtn.onclick = async () => {
+        if (currentFolderId) {
+            showModulesView(currentFolderId, folderTitle.textContent);
+            await loadModules(currentFolderId);
+        }
     };
 
     if (searchInput) {
         searchInput.addEventListener("input", () => {
-            if (currentFolderId) renderModules();
-            else renderFolders();
+            if (currentView === "modules") renderModules();
+            else if (currentView === "folders") renderFolders();
         });
     }
 
     (async () => {
-        await loadFolders();
-        updateTopButton();
+        showFoldersView();
+        await loadFolders(true);
 
         const params = new URLSearchParams(window.location.search);
         const folderId = params.get("folder");
 
         if (folderId) {
-            openFolderFromSidebar(folderId);
+            const exists = currentFolders.some(f => f.id == folderId);
+            if (exists) {
+                const folder = currentFolders.find(f => f.id == folderId);
+                await openFolder(folder);
+            }
         }
     })();
 
