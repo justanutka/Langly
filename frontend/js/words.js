@@ -47,11 +47,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const folderModal = document.getElementById("folder-modal");
     const moduleModal = document.getElementById("module-modal");
 
-    const openFolderModal = document.getElementById("open-folder-modal");
     const closeFolderModal = document.getElementById("close-folder-modal");
     const closeModuleModal = document.getElementById("close-module-modal");
 
-    const searchInput = document.getElementById("search-input");
+    const deleteModal = document.getElementById("delete-modal");
+    const confirmDeleteBtn = document.getElementById("confirm-delete");
+    const cancelDeleteBtn = document.getElementById("cancel-delete");
+    const deleteText = document.getElementById("delete-text");
+
+    const openFolderModal = document.getElementById("open-folder-modal");
+
+    let deleteCallback = null;
 
     let currentFolderId = null;
     let currentModuleId = null;
@@ -60,6 +66,79 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentModules = [];
 
     let sortValue = "new";
+
+    const searchInput = document.getElementById("search-input");
+
+    function updateTopButton() {
+        if (!openFolderModal) return;
+
+        if (currentFolderId) {
+            openFolderModal.textContent = "+ Create Module";
+            openFolderModal.onclick = () => {
+                moduleModal.style.display = "flex";
+            };
+        } else {
+            openFolderModal.textContent = "+ Create Folder";
+            openFolderModal.onclick = () => {
+                folderModal.style.display = "flex";
+            };
+        }
+    }
+
+    function openDeleteModal(text, callback) {
+        deleteText.textContent = text;
+        deleteCallback = callback;
+        deleteModal.style.display = "flex";
+    }
+
+    confirmDeleteBtn.onclick = async () => {
+        if (deleteCallback) await deleteCallback();
+        deleteModal.style.display = "none";
+    };
+
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.onclick = () => {
+            deleteModal.style.display = "none";
+        };
+    }
+
+    deleteModal.onclick = (e) => {
+        if (e.target === deleteModal) {
+            deleteModal.style.display = "none";
+        }
+    };
+
+    if (closeFolderModal) {
+        closeFolderModal.onclick = () => {
+            folderModal.style.display = "none";
+        };
+    }
+
+    if (closeModuleModal) {
+        closeModuleModal.onclick = () => {
+            moduleModal.style.display = "none";
+        };
+    }
+
+    folderModal.onclick = (e) => {
+        if (e.target === folderModal) {
+            folderModal.style.display = "none";
+        }
+    };
+
+    moduleModal.onclick = (e) => {
+        if (e.target === moduleModal) {
+            moduleModal.style.display = "none";
+        }
+    };
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            folderModal.style.display = "none";
+            moduleModal.style.display = "none";
+            if (deleteModal) deleteModal.style.display = "none";
+        }
+    });
 
     const dropdown = document.getElementById("sort-dropdown");
     if (dropdown) {
@@ -72,9 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         items.querySelectorAll("div").forEach(item => {
-
             item.onclick = () => {
-
                 selected.textContent = item.textContent;
                 sortValue = item.dataset.value;
 
@@ -82,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 item.classList.add("selected");
 
                 items.classList.add("select-hide");
+                selected.classList.remove("active");
 
                 if (currentFolderId) renderModules();
                 else renderFolders();
@@ -96,22 +174,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return await res.json();
     }
 
-    if (openFolderModal) openFolderModal.onclick = () => folderModal.style.display = "flex";
-    if (closeFolderModal) closeFolderModal.onclick = () => folderModal.style.display = "none";
-    if (closeModuleModal) closeModuleModal.onclick = () => moduleModal.style.display = "none";
-
     function applyFilters(list) {
         const search = searchInput?.value.toLowerCase() || "";
-        const sort = sortValue;
 
         let filtered = list.filter(item =>
             item.name.toLowerCase().includes(search)
         );
 
-        if (sort === "az") filtered.sort((a,b)=>a.name.localeCompare(b.name));
-        if (sort === "za") filtered.sort((a,b)=>b.name.localeCompare(a.name));
-        if (sort === "new") filtered.sort((a,b)=>b.id - a.id);
-        if (sort === "old") filtered.sort((a,b)=>a.id - b.id);
+        if (sortValue === "az") filtered.sort((a, b) => a.name.localeCompare(b.name));
+        if (sortValue === "za") filtered.sort((a, b) => b.name.localeCompare(a.name));
+        if (sortValue === "new") filtered.sort((a, b) => b.id - a.id);
+        if (sortValue === "old") filtered.sort((a, b) => a.id - b.id);
 
         return filtered;
     }
@@ -126,13 +199,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderFolders() {
-
         foldersContainer.innerHTML = "";
 
         const folders = applyFilters(currentFolders);
 
         folders.forEach(folder => {
-
             const card = document.createElement("div");
             card.className = "folder-card";
 
@@ -140,9 +211,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="folder-top">
                     <div class="folder-emoji">${folder.emoji || "📁"}</div>
                     <div class="folder-title">${folder.name}</div>
+                    <button class="delete-btn">🗑</button>
                 </div>
                 <div class="folder-description">${folder.description || ""}</div>
             `;
+
+            card.querySelector(".delete-btn").onclick = (e) => {
+                e.stopPropagation();
+
+                openDeleteModal("Delete this folder?", async () => {
+                    await fetch(`${BASE_URL}/folders/${folder.id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                    loadFolders();
+                });
+            };
 
             card.onclick = () => {
                 history.pushState(null, "", `?folder=${folder.id}`);
@@ -168,7 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     createFolderBtn.onclick = async () => {
-
         const name = folderInput.value.trim();
         const description = folderDescription.value.trim();
         const emoji = folderEmoji.value.trim();
@@ -193,7 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     async function loadModules(folderId) {
-
         const res = await fetch(`${BASE_URL}/modules/${folderId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -203,19 +286,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderModules() {
-
         modulesContainer.innerHTML = "";
 
         const modules = applyFilters(currentModules);
 
         modules.forEach(module => {
-
             const card = document.createElement("div");
             card.className = "module-card";
 
             card.innerHTML = `
                 <div class="module-name">${module.name}</div>
+                <button class="delete-btn">🗑</button>
             `;
+
+            card.querySelector(".delete-btn").onclick = (e) => {
+                e.stopPropagation();
+
+                openDeleteModal("Delete this module?", async () => {
+                    await fetch(`${BASE_URL}/modules/${module.id}`, {
+                        method: "DELETE",
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                    loadModules(currentFolderId);
+                });
+            };
 
             card.onclick = () => openModule(module);
 
@@ -238,7 +333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     createModuleBtn.onclick = async () => {
-
         const name = moduleInput.value.trim();
         if (!name || !currentFolderId) return;
 
@@ -254,7 +348,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     async function openFolder(folder) {
-
         currentFolderId = folder.id;
 
         foldersView.style.display = "none";
@@ -262,11 +355,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         folderTitle.textContent = folder.name;
 
+        updateTopButton();
         loadModules(folder.id);
     }
 
     window.openFolderFromSidebar = async function(folderId) {
-
         const res = await fetch(BASE_URL + "/folders/", {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -275,10 +368,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const folder = folders.find(f => f.id == folderId);
 
         if (folder) openFolder(folder);
-    }
+    };
 
     async function openModule(module) {
-
         currentModuleId = module.id;
 
         modulesView.style.display = "none";
@@ -290,7 +382,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function loadWords() {
-
         const user = await getUser();
 
         const res = await fetch(
@@ -304,7 +395,6 @@ document.addEventListener("DOMContentLoaded", () => {
         wordsList.innerHTML = "";
 
         filtered.forEach(word => {
-
             const item = document.createElement("div");
             item.className = "word-item";
 
@@ -318,7 +408,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     saveWordBtn.onclick = async () => {
-
         const word = wordInput.value.trim();
         const translation = translationInput.value.trim();
 
@@ -348,6 +437,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "none";
         foldersView.style.display = "block";
         currentFolderId = null;
+
+        updateTopButton();
     };
 
     backToModulesBtn.onclick = () => {
@@ -364,6 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     (async () => {
         await loadFolders();
+        updateTopButton();
 
         const params = new URLSearchParams(window.location.search);
         const folderId = params.get("folder");

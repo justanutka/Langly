@@ -22,269 +22,216 @@
 
 <body>
 
-    <!-- ===================== TOP BAR ===================== -->
+<header class="top-bar">
+    <div class="brand" id="logo">Langly</div>
+    <button id="logout-btn" class="logout-btn">Log out</button>
+</header>
 
-    <header class="top-bar">
+<div class="app-layout">
 
-        <div class="brand" id="logo">
-            Langly
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+        <div class="words-header-center">
+
+            <h1>My Words</h1>
+
+            <p class="subtitle">
+                Organize and study your vocabulary
+            </p>
+
+            <button
+                class="btn-main create-folder-top"
+                id="open-folder-modal"
+            >
+                + Create Folder
+            </button>
+
         </div>
 
-        <button id="logout-btn" class="logout-btn">
-            Log out
-        </button>
+        <div class="filters-bar">
 
-    </header>
+            <input
+                type="text"
+                id="search-input"
+                placeholder="Search..."
+            >
 
+            <div class="custom-select" id="sort-dropdown">
 
-    <div class="app-layout">
+                <div class="select-selected">
+                    Newest first
+                </div>
 
-        <!-- ===================== SIDEBAR ===================== -->
-
-        <div id="sidebar-container"></div>
-
-
-        <!-- ===================== MAIN CONTENT ===================== -->
-
-        <main class="main-content">
-
-            <!-- HEADER -->
-
-            <div class="words-header-center">
-
-                <h1>My Words</h1>
-
-                <p class="subtitle">
-                    Organize and study your vocabulary
-                </p>
-
-                <button
-                    class="btn-main create-folder-top"
-                    id="open-folder-modal"
-                >
-                    + Create Folder
-                </button>
-
-            </div>
-
-            <div class="filters-bar">
-
-                <input
-                    type="text"
-                    id="search-input"
-                    placeholder="Search..."
-                >
-
-                <div class="custom-select" id="sort-dropdown">
-
-                    <div class="select-selected">
-                        Newest first
-                    </div>
-
-                    <div class="select-items select-hide">
-                        <div data-value="new">Newest first</div>
-                        <div data-value="old">Oldest first</div>
-                        <div data-value="az">A → Z</div>
-                        <div data-value="za">Z → A</div>
-                    </div>
-
+                <div class="select-items select-hide">
+                    <div data-value="new" class="selected">Newest first</div>
+                    <div data-value="old">Oldest first</div>
+                    <div data-value="az">A → Z</div>
+                    <div data-value="za">Z → A</div>
                 </div>
 
             </div>
 
+        </div>
 
-            <!-- ===================== FOLDERS VIEW ===================== -->
+        <div id="folders-view">
 
-            <div id="folders-view">
-
-                <div
-                    id="folders-grid"
-                    class="folders-grid"
-                >
-                    <!-- folders loaded by JS -->
-                </div>
-
+            <div id="folders-grid" class="folders-grid">
             </div>
 
+        </div>
 
-            <!-- ===================== MODULES VIEW ===================== -->
+        <div id="modules-view" style="display:none;">
 
-            <div id="modules-view" style="display:none;">
+            <button id="back-to-folders" class="back-btn">
+                ← Back to folders
+            </button>
 
-                <button
-                    id="back-to-folders"
-                    class="back-btn"
-                >
-                    ← Back to folders
-                </button>
+            <h2 id="folder-title"></h2>
 
-                <h2 id="folder-title"></h2>
-
-                <div
-                    id="modules-container"
-                    class="modules-grid"
-                >
-                    <!-- modules loaded by JS -->
-                </div>
-
+            <div id="modules-container" class="modules-grid">
             </div>
 
+        </div>
 
-            <!-- ===================== WORDS VIEW ===================== -->
+        <div id="words-view" style="display:none;">
 
-            <div id="words-view" style="display:none;">
+            <button id="back-to-modules" class="back-btn">
+                ← Back to modules
+            </button>
 
-                <button
-                    id="back-to-modules"
-                    class="back-btn"
-                >
-                    ← Back to modules
-                </button>
+            <h2 id="module-title"></h2>
 
-                <h2 id="module-title"></h2>
+            <div class="add-word-card">
 
+                <div class="add-word-row">
 
-                <!-- ADD WORD -->
+                    <input id="word-input" placeholder="Word">
 
-                <div class="add-word-card">
+                    <input id="translation-input" placeholder="Translation">
 
-                    <div class="add-word-row">
-
-                        <input
-                            id="word-input"
-                            placeholder="Word"
-                        >
-
-                        <input
-                            id="translation-input"
-                            placeholder="Translation"
-                        >
-
-                        <button
-                            id="save-word-btn"
-                            class="btn-main"
-                        >
-                            Add Word
-                        </button>
-
-                    </div>
-
-                    <div id="word-error" class="word-error"></div>
+                    <button id="save-word-btn" class="btn-main">
+                        Add Word
+                    </button>
 
                 </div>
 
-
-                <!-- WORDS LIST -->
-
-                <div
-                    id="words-list"
-                    class="words-list"
-                ></div>
+                <div id="word-error" class="word-error"></div>
 
             </div>
 
-        </main>
+            <div id="words-list" class="words-list"></div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<div class="modal-overlay" id="folder-modal">
+
+    <div class="modal">
+
+        <h2>Create Folder</h2>
+
+        <input
+            type="text"
+            id="folder-name-input"
+            placeholder="Folder name"
+        >
+
+        <input
+            type="text"
+            id="folder-description"
+            placeholder="Description (optional)"
+        >
+
+        <input
+            type="text"
+            id="folder-emoji"
+            placeholder="Emoji (📚 ✈️ 🎵)"
+        >
+
+        <div class="modal-buttons">
+
+            <button class="btn-main" id="create-folder-btn">
+                Create
+            </button>
+
+            <button class="btn-secondary" id="close-folder-modal">
+                Cancel
+            </button>
+
+        </div>
 
     </div>
 
+</div>
 
-    <!-- ===================== CREATE FOLDER MODAL ===================== -->
 
-    <div
-        class="modal-overlay"
-        id="folder-modal"
-    >
+<div class="modal-overlay" id="module-modal">
 
-        <div class="modal">
+    <div class="modal">
 
-            <h2>Create Folder</h2>
+        <h2>Create Module</h2>
 
-            <input
-                type="text"
-                id="folder-name-input"
-                placeholder="Folder name"
-            >
+        <input
+            type="text"
+            id="module-name-input"
+            placeholder="Module name"
+        >
 
-            <input
-                type="text"
-                id="folder-description"
-                placeholder="Description (optional)"
-            >
+        <div class="modal-buttons">
 
-            <input
-                type="text"
-                id="folder-emoji"
-                placeholder="Emoji (📚 ✈️ 🎵)"
-            >
+            <button class="btn-main" id="create-module-btn">
+                Create
+            </button>
 
-            <div class="modal-buttons">
+            <button class="btn-secondary" id="close-module-modal">
+                Cancel
+            </button>
 
-                <button
-                    class="btn-main"
-                    id="create-folder-btn"
-                >
-                    Create
-                </button>
+        </div>
 
-                <button
-                    class="btn-secondary"
-                    id="close-folder-modal"
-                >
-                    Cancel
-                </button>
+    </div>
 
-            </div>
+</div>
+
+<!-- delete icon -->
+<svg style="display:none;">
+    <symbol id="trash-icon" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v8h-2V9zm4 0h2v8h-2V9zM6 9h2v8H6V9z"/>
+    </symbol>
+</svg>
+
+<div class="modal-overlay" id="delete-modal">
+
+    <div class="modal">
+
+        <h2>Delete</h2>
+
+        <p id="delete-text">Are you sure?</p>
+
+        <div class="modal-buttons">
+
+            <button class="btn-danger" id="confirm-delete">
+                Delete
+            </button>
+
+            <button class="btn-secondary" id="cancel-delete">
+                Cancel
+            </button>
 
         </div>
 
     </div>
 
 
-    <!-- ===================== CREATE MODULE MODAL ===================== -->
-
-    <div
-        class="modal-overlay"
-        id="module-modal"
-    >
-
-        <div class="modal">
-
-            <h2>Create Module</h2>
-
-            <input
-                type="text"
-                id="module-name-input"
-                placeholder="Module name"
-            >
-
-            <div class="modal-buttons">
-
-                <button
-                    class="btn-main"
-                    id="create-module-btn"
-                >
-                    Create
-                </button>
-
-                <button
-                    class="btn-secondary"
-                    id="close-module-modal"
-                >
-                    Cancel
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- ===================== SCRIPTS ===================== -->
-
-    <script src="js/sidebar.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/words.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/app.js"></script>
+<script src="js/words.js"></script>
 
 </body>
 </html>

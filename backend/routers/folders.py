@@ -46,3 +46,25 @@ def create_folder(
     db.refresh(folder)
 
     return folder
+
+# DELETE folder
+@router.delete("/{folder_id}")
+def delete_folder(
+    folder_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+
+    folder = db.query(models.Folder).filter(
+        models.Folder.id == folder_id,
+        models.Folder.user_id == current_user.id
+    ).first()
+
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    db.delete(folder)
+    db.commit()
+
+    return {"message": "Folder deleted"}
+
