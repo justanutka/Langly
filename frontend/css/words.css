@@ -695,3 +695,47 @@ ERROR IN ADDING WORDS
         transform: translateY(0);
     }
 }
+
+/* =========================
+DELETE WORD
+========================= */
+.word-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.word-left {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.word-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+}
+
+.delete-word-btn {
+    border: none;
+    background: rgba(92, 107, 255, 0.12);
+    color: #5c6bff;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-word-btn:hover {
+    background: #5c6bff;
+    color: #ffffff;
+    transform: scale(1.05);
+}

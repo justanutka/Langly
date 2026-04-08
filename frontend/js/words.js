@@ -513,9 +513,31 @@ document.addEventListener("DOMContentLoaded", () => {
             item.className = "word-item";
 
             item.innerHTML = `
-                <div class="word-main">${word.word}</div>
-                <div class="word-translation">${word.translation}</div>
+                <div class="word-left">
+                    <div class="word-main">${word.word}</div>
+                </div>
+
+                <div class="word-right">
+                    <div class="word-translation">${word.translation}</div>
+                    <button class="delete-word-btn" type="button">🗑</button>
+                </div>
             `;
+
+            const deleteBtn = item.querySelector(".delete-word-btn");
+
+            deleteBtn.onclick = async () => {
+                openDeleteModal(`Delete word "${word.word}"?`, async () => {
+                    await fetch(`${BASE_URL}/words/${word.id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    await loadWords();
+                    hideWordMessage();
+                });
+            };
 
             wordsList.appendChild(item);
         });

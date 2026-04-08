@@ -253,3 +253,42 @@ def get_words(
     return db.query(models.Word).filter(
         models.Word.language_id == language_id
     ).all()
+
+# =========================
+# DELETE WORDS
+# =========================
+@router.delete("/{word_id}")
+def delete_word(
+    word_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    word = db.query(models.Word).filter(
+        models.Word.id == word_id
+    ).first()
+
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+
+    selected_language = db.query(models.UserLanguage).filter(
+        models.UserLanguage.user_id == current_user.id,
+        models.UserLanguage.language_id == word.language_id
+    ).first()
+
+    if not selected_language:
+        raise HTTPException(
+            status_code=400,
+            detail="You do not have access to this word"
+        )
+
+    review_state = db.query(models.ReviewState).filter(
+        models.ReviewState.word_id == word.id
+    ).first()
+
+    if review_state:
+        db.delete(review_state)
+
+    db.delete(word)
+    db.commit()
+
+    return {"message": "Word deleted successfully"}
