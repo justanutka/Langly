@@ -1,14 +1,6 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const isDashboard = document.getElementById("welcome-container");
-
-    if (isDashboard) {
-        await loadFullDashboard();
-    }
-
-    await loadSidebar();
-
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -16,10 +8,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    await checkLanguageSelected();
-    await loadUserEmail();
+    await loadSidebar();
+
+    const user = await getCurrentUserAndUpdateStreak();
+
+    if (!user) {
+        return;
+    }
+
+    if (!user.active_language_id) {
+        window.location.href = "choose-language.html";
+        return;
+    }
+
+    renderUserEmail(user);
+
+    const isDashboard = document.getElementById("welcome-container");
+
+    if (isDashboard) {
+        await loadFullDashboard();
+    }
+
     await loadFolders();
-    
+
     initSidebarToggle();
 
     const logoutBtn = document.getElementById("logout-btn");
@@ -33,70 +44,43 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-async function checkLanguageSelected() {
-
+async function getCurrentUserAndUpdateStreak() {
     const token = localStorage.getItem("token");
 
     try {
-
         const res = await fetch(BASE_URL + "/users/me", {
             headers: { "Authorization": `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error("Unauthorized");
-
-        const user = await res.json();
-
-        if (!user.active_language_id) {
-            window.location.href = "choose-language.html";
+        if (!res.ok) {
+            throw new Error("Unauthorized");
         }
 
-    } catch (error) {
+        const user = await res.json();
+        return user;
 
+    } catch (error) {
         localStorage.removeItem("token");
         window.location.href = "login.html";
-
+        return null;
     }
-
 }
 
 
-async function loadUserEmail() {
+function renderUserEmail(user) {
+    const emailElement = document.getElementById("user-email");
 
-    const token = localStorage.getItem("token");
-
-    try {
-
-        const res = await fetch(BASE_URL + "/users/me", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        const data = await res.json();
-
-        const emailElement = document.getElementById("user-email");
-
-        if (emailElement) {
-            emailElement.textContent = data.email;
-        }
-
-    } catch (error) {
-
-        localStorage.removeItem("token");
-        window.location.href = "login.html";
-
+    if (emailElement) {
+        emailElement.textContent = user.email;
     }
-
 }
 
 
 async function loadFullDashboard() {
-
     const token = localStorage.getItem("token");
 
     try {
-
         const [dashboardRes, statsRes, wordsRes] = await Promise.all([
-
             fetch(BASE_URL + "/study/dashboard", {
                 headers: { "Authorization": `Bearer ${token}` }
             }),
@@ -108,7 +92,6 @@ async function loadFullDashboard() {
             fetch(BASE_URL + "/study/daily-words-online", {
                 headers: { "Authorization": `Bearer ${token}` }
             })
-
         ]);
 
         if (!dashboardRes.ok || !statsRes.ok || !wordsRes.ok) {
@@ -124,11 +107,8 @@ async function loadFullDashboard() {
         renderTodayWords(words);
 
     } catch (error) {
-
         console.error("Dashboard load error:", error);
-
     }
-
 }
 
 
@@ -137,8 +117,7 @@ function renderWelcome(dashboard, stats) {
     if (!container) return;
 
     const xpNeededTotal = stats.xp_to_next_level + dashboard.xp;
-
-    let percent = xpNeededTotal > 0 ? (dashboard.xp / xpNeededTotal) * 100 : 0;
+    const percent = xpNeededTotal > 0 ? (dashboard.xp / xpNeededTotal) * 100 : 0;
 
     container.innerHTML = `
         <div class="welcome-card">
@@ -157,7 +136,6 @@ function renderWelcome(dashboard, stats) {
 
 
 function renderStats(stats) {
-
     const container = document.getElementById("stats-container");
     if (!container) return;
 
@@ -185,7 +163,6 @@ function renderStats(stats) {
 
 
 function renderTodayWords(words) {
-
     const container = document.getElementById("today-words-container");
     if (!container) return;
 
@@ -195,43 +172,34 @@ function renderTodayWords(words) {
     `;
 
     if (!words || words.length === 0) {
-
         wordsHTML += `
             <div class="empty-state">
                 🌍 No words available today.
             </div>
         `;
-
     } else {
-
         words.forEach(word => {
-
             wordsHTML += `
                 <div class="word-item">
                     <span>${word.word} — ${word.translation}</span>
                 </div>
             `;
-
         });
-
     }
 
     wordsHTML += `</div>`;
 
     container.innerHTML = wordsHTML;
-
 }
 
 
 async function loadFolders() {
-
     const token = localStorage.getItem("token");
     const container = document.getElementById("folders-container");
 
     if (!container) return;
 
     try {
-
         const res = await fetch(BASE_URL + "/folders", {
             headers: {
                 "Authorization": `Bearer ${token}`
@@ -241,13 +209,11 @@ async function loadFolders() {
         if (!res.ok) return;
 
         const folders = await res.json();
-
         const recentFolders = folders.slice(-4).reverse();
 
         container.innerHTML = "";
 
         recentFolders.forEach(folder => {
-
             const item = document.createElement("div");
             item.className = "folder-item";
 
@@ -257,47 +223,31 @@ async function loadFolders() {
             `;
 
             item.onclick = () => {
-
-                //if we are already on words page
                 if (window.location.pathname.includes("my-words.html")) {
-
                     if (typeof openFolderFromSidebar === "function") {
                         openFolderFromSidebar(folder.id);
                     }
-
                 } else {
-
-                    //go to words page and open the folder
                     window.location.href = `my-words.html?folder=${folder.id}`;
-
                 }
-
             };
 
             container.appendChild(item);
-
         });
 
     } catch (error) {
-
         console.error("Folders load error:", error);
-
     }
-
 }
 
 
 function initSidebarToggle() {
-
     const toggle = document.getElementById("sidebar-toggle");
     const sidebar = document.querySelector(".sidebar");
 
     if (!toggle || !sidebar) return;
 
     toggle.addEventListener("click", () => {
-
         sidebar.classList.toggle("collapsed");
-
     });
-
 }
