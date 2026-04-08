@@ -34,6 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const wordInput = document.getElementById("word-input");
     const translationInput = document.getElementById("translation-input");
 
+    const wordMessage = document.getElementById("word-message");
+    const wordMessageText = document.getElementById("word-message-text");
+    const wordMessageClose = document.getElementById("word-message-close");
+
     const createFolderBtn = document.getElementById("create-folder-btn");
     const createModuleBtn = document.getElementById("create-module-btn");
     const saveWordBtn = document.getElementById("save-word-btn");
@@ -70,6 +74,43 @@ document.addEventListener("DOMContentLoaded", () => {
     let sortValue = "new";
     let currentView = "folders";
 
+    function showWordMessage(text, type = "error") {
+        if (!wordMessage || !wordMessageText) return;
+
+        wordMessageText.textContent = text;
+        wordMessage.classList.remove("hidden", "error", "success");
+        wordMessage.classList.add(type);
+    }
+
+    function hideWordMessage() {
+        if (!wordMessage || !wordMessageText) return;
+
+        wordMessageText.textContent = "";
+        wordMessage.classList.add("hidden");
+        wordMessage.classList.remove("error", "success");
+    }
+
+    function saveWordsState() {
+        sessionStorage.setItem("langlyWordsView", currentView || "folders");
+        sessionStorage.setItem("langlyCurrentFolderId", currentFolderId ?? "");
+        sessionStorage.setItem("langlyCurrentModuleId", currentModuleId ?? "");
+        sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
+        sessionStorage.setItem("langlyCurrentModuleTitle", moduleTitle?.textContent || "");
+    }
+
+    function clearModuleState() {
+        sessionStorage.setItem("langlyCurrentModuleId", "");
+        sessionStorage.setItem("langlyCurrentModuleTitle", "");
+    }
+
+    function clearAllWordsState() {
+        sessionStorage.setItem("langlyWordsView", "folders");
+        sessionStorage.setItem("langlyCurrentFolderId", "");
+        sessionStorage.setItem("langlyCurrentModuleId", "");
+        sessionStorage.setItem("langlyCurrentFolderTitle", "");
+        sessionStorage.setItem("langlyCurrentModuleTitle", "");
+    }
+
     function showFoldersView() {
         currentView = "folders";
         foldersView.style.display = "block";
@@ -78,16 +119,20 @@ document.addEventListener("DOMContentLoaded", () => {
         currentFolderId = null;
         currentModuleId = null;
         updateTopButton();
+        clearAllWordsState();
     }
 
     function showModulesView(folderId, folderName = "") {
         currentView = "modules";
         currentFolderId = folderId;
+        currentModuleId = null;
         foldersView.style.display = "none";
         modulesView.style.display = "block";
         wordsView.style.display = "none";
         folderTitle.textContent = folderName;
         updateTopButton();
+        clearModuleState();
+        saveWordsState();
     }
 
     function showWordsView(module) {
@@ -97,6 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "none";
         wordsView.style.display = "block";
         moduleTitle.textContent = module.name;
+        hideWordMessage();
+        saveWordsState();
     }
 
     function updateTopButton() {
@@ -161,12 +208,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    if (wordMessageClose) {
+        wordMessageClose.onclick = () => {
+            hideWordMessage();
+        };
+    }
+
+    if (wordInput) {
+        wordInput.addEventListener("input", () => {
+            hideWordMessage();
+        });
+    }
+
+    if (translationInput) {
+        translationInput.addEventListener("input", () => {
+            hideWordMessage();
+        });
+    }
+
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
             folderModal.style.display = "none";
             moduleModal.style.display = "none";
             deleteModal.style.display = "none";
             deleteCallback = null;
+            hideWordMessage();
         }
     });
 
@@ -419,11 +485,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function openFolder(folder) {
         showModulesView(folder.id, folder.name);
+        saveWordsState();
         await loadModules(folder.id);
     }
 
     async function openModule(module) {
         showWordsView(module);
+        saveWordsState();
         await loadWords();
     }
 
@@ -457,26 +525,55 @@ document.addEventListener("DOMContentLoaded", () => {
         const word = wordInput.value.trim();
         const translation = translationInput.value.trim();
 
-        if (!word || !translation) return;
+        hideWordMessage();
 
-        const user = await getUser();
+        if (!word || !translation) {
+            showWordMessage("Please fill in both fields.", "error");
+            return;
+        }
 
-        await fetch(`${BASE_URL}/words/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                language_id: user.active_language_id,
-                module_id: currentModuleId,
-                word,
-                translation,
-                example: null
-            })
-        });
+        if (!currentModuleId) {
+            showWordMessage("Please open a module first.", "error");
+            return;
+        }
 
-        await loadWords();
+        saveWordsState();
+
+        try {
+            const user = await getUser();
+
+            const res = await fetch(`${BASE_URL}/words/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    language_id: user.active_language_id,
+                    module_id: currentModuleId,
+                    word,
+                    translation,
+                    example: null
+                })
+            });
+
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok) {
+                const errorText = data?.detail || "Something went wrong while adding the word.";
+                showWordMessage(errorText, "error");
+                return;
+            }
+
+            wordInput.value = "";
+            translationInput.value = "";
+
+            hideWordMessage();
+            await loadWords();
+        } catch (error) {
+            showWordMessage("Server connection error. Please try again.", "error");
+            console.error(error);
+        }
     };
 
     backToFoldersBtn.onclick = async () => {
@@ -500,19 +597,55 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     (async () => {
-        showFoldersView();
         await loadFolders(true);
 
         const params = new URLSearchParams(window.location.search);
-        const folderId = params.get("folder");
+        const folderIdFromUrl = params.get("folder");
 
-        if (folderId) {
-            const exists = currentFolders.some(f => f.id == folderId);
-            if (exists) {
-                const folder = currentFolders.find(f => f.id == folderId);
+        const savedView = sessionStorage.getItem("langlyWordsView");
+        const savedFolderId = sessionStorage.getItem("langlyCurrentFolderId");
+        const savedModuleId = sessionStorage.getItem("langlyCurrentModuleId");
+
+        if (folderIdFromUrl) {
+            const folder = currentFolders.find(f => f.id == folderIdFromUrl);
+
+            if (folder) {
                 await openFolder(folder);
+
+                if (savedModuleId) {
+                    const module = currentModules.find(m => m.id == savedModuleId);
+
+                    if (module) {
+                        await openModule(module);
+                        return;
+                    }
+                }
+
+                return;
             }
         }
+
+        if (savedFolderId) {
+            const savedFolder = currentFolders.find(f => f.id == savedFolderId);
+
+            if (savedFolder) {
+                await openFolder(savedFolder);
+
+                if (savedView === "words" && savedModuleId) {
+                    const savedModule = currentModules.find(m => m.id == savedModuleId);
+
+                    if (savedModule) {
+                        await openModule(savedModule);
+                        return;
+                    }
+                }
+
+                return;
+            }
+        }
+
+        showFoldersView();
+        await loadFolders(true);
     })();
 
 });
