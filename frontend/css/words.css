@@ -739,3 +739,10 @@ DELETE WORD
     color: #ffffff;
     transform: scale(1.05);
 }
+
+/* =========================
+SIDEBAR WIDTH ONLY ON MY WORDS
+========================= */
+#sidebar-container .sidebar.collapsed {
+    width: 110px;
+}
