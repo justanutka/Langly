@@ -73,6 +73,38 @@ document.addEventListener("DOMContentLoaded", () => {
     let sortValue = "new";
     let currentView = "folders";
 
+    function showToast(text) {
+        const toast = document.getElementById("toast");
+        const toastText = document.getElementById("toast-text");
+
+        if (!toast || !toastText) return;
+
+        toastText.textContent = text;
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("show"), 10);
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.classList.add("hidden"), 300);
+        }, 2500);
+    }
+
+    async function checkModuleHasWords(moduleId){
+        const token = localStorage.getItem("token");
+
+        const user = await getUser();
+
+        const res = await fetch(
+            `${BASE_URL}/words/?language_id=${user.active_language_id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const words = await res.json();
+
+        return words.some(w => w.module_id == moduleId);
+    }
+
     function showWordMessage(text, type = "error") {
         if (!wordMessage || !wordMessageText) return;
 
@@ -391,6 +423,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    createModuleBtn.onclick = async () => {
+        const name = moduleInput.value.trim();
+
+        if (!name || !currentFolderId) return;
+
+        await fetch(`${BASE_URL}/modules/?name=${name}&folder_id=${currentFolderId}`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        moduleModal.style.display = "none";
+        moduleInput.value = "";
+
+        if (currentFolderId) {
+            showModulesView(currentFolderId, folderTitle.textContent);
+            await loadModules(currentFolderId);
+        }
+    };
+
     async function loadModules(folderId) {
         if (!folderId) return;
 
@@ -422,102 +473,99 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderModules() {
-        if (currentView !== "modules") return;
+    if (currentView !== "modules") return;
 
-        modulesContainer.innerHTML = "";
+    modulesContainer.innerHTML = "";
 
-        const modules = applyFilters(currentModules);
+    const modules = applyFilters(currentModules);
 
-        modules.forEach(module => {
-            const card = document.createElement("div");
-            card.className = "module-card";
+    modules.forEach(module => {
+        const card = document.createElement("div");
+        card.className = "module-card";
 
-            card.innerHTML = `
-                <div class="module-top">
-                    <div class="module-name">${module.name}</div>
-                    <button class="delete-btn" type="button">🗑</button>
-                </div>
+        card.innerHTML = `
+            <div class="module-top">
+                <div class="module-name">${module.name}</div>
+                <button class="delete-btn" type="button">🗑</button>
+            </div>
 
-                <div class="module-actions">
-                    <button class="study-btn cards-btn" type="button">Cards</button>
-                    <button class="study-btn quiz-btn" type="button">Quiz</button>
-                </div>
-            `;
-
-            const deleteBtn = card.querySelector(".delete-btn");
-            const cardsBtn = card.querySelector(".cards-btn");
-            const quizBtn = card.querySelector(".quiz-btn");
-
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-
-                const cardEl = e.target.closest(".module-card");
-
-                openDeleteModal("Delete this module?", async () => {
-                    cardEl.classList.add("delete-animation");
-
-                    await new Promise(resolve => setTimeout(resolve, 300));
-
-                    await fetch(`${BASE_URL}/modules/${module.id}`, {
-                        method: "DELETE",
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-
-                    if (currentFolderId) {
-                        showModulesView(currentFolderId, folderTitle.textContent);
-                        await loadModules(currentFolderId);
-                    }
-                });
-            };
-
-            cardsBtn.onclick = (e) => {
-                e.stopPropagation();
-                goToFlashcards(module.id, module.name);
-            };
-
-            quizBtn.onclick = (e) => {
-                e.stopPropagation();
-                goToQuiz(module.id);
-            };
-
-            card.onclick = () => openModule(module);
-
-            modulesContainer.appendChild(card);
-        });
-
-        const createCard = document.createElement("div");
-        createCard.className = "folder-create-card";
-
-        createCard.innerHTML = `
-            <div class="plus">+</div>
-            <div>Create module</div>
+            <div class="module-actions">
+                <button class="study-btn cards-btn" type="button">Cards</button>
+                <button class="study-btn quiz-btn" type="button">Quiz</button>
+            </div>
         `;
 
-        createCard.onclick = () => {
-            moduleModal.style.display = "flex";
+        const deleteBtn = card.querySelector(".delete-btn");
+        const cardsBtn = card.querySelector(".cards-btn");
+        const quizBtn = card.querySelector(".quiz-btn");
+
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+
+            const cardEl = e.target.closest(".module-card");
+
+            openDeleteModal("Delete this module?", async () => {
+                cardEl.classList.add("delete-animation");
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                await fetch(`${BASE_URL}/modules/${module.id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (currentFolderId) {
+                    showModulesView(currentFolderId, folderTitle.textContent);
+                    await loadModules(currentFolderId);
+                }
+            });
         };
 
-        modulesContainer.appendChild(createCard);
-    }
+        cardsBtn.onclick = async (e) => {
+            e.stopPropagation();
 
-    createModuleBtn.onclick = async () => {
-        const name = moduleInput.value.trim();
+            const hasWords = await checkModuleHasWords(module.id);
 
-        if (!name || !currentFolderId) return;
+            if (!hasWords) {
+                showToast("This module has no words yet");
+                return;
+            }
 
-        await fetch(`${BASE_URL}/modules/?name=${name}&folder_id=${currentFolderId}`, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` }
-        });
+            goToFlashcards(module.id, module.name);
+        };
 
-        moduleModal.style.display = "none";
-        moduleInput.value = "";
+        quizBtn.onclick = async (e) => {
+            e.stopPropagation();
 
-        if (currentFolderId) {
-            showModulesView(currentFolderId, folderTitle.textContent);
-            await loadModules(currentFolderId);
-        }
+            const hasWords = await checkModuleHasWords(module.id);
+
+            if (!hasWords) {
+                showToast("Add words before starting quiz");
+                return;
+            }
+
+            goToQuiz(module.id);
+        };
+
+        card.onclick = () => openModule(module);
+
+        modulesContainer.appendChild(card);
+    });
+
+    const createCard = document.createElement("div");
+    createCard.className = "folder-create-card";
+
+    createCard.innerHTML = `
+        <div class="plus">+</div>
+        <div>Create module</div>
+    `;
+
+    createCard.onclick = () => {
+        moduleModal.style.display = "flex";
     };
+
+    modulesContainer.appendChild(createCard);
+}
 
     async function openFolder(folder) {
         showModulesView(folder.id, folder.name);
