@@ -82,6 +82,7 @@ FOLDER CARD
   flex-direction:column;
   justify-content:space-between;
   height:140px;
+  overflow:hidden;
 }
 
 .folder-card:hover{
@@ -98,6 +99,7 @@ FOLDER TOP
   display:flex;
   align-items:center;
   gap:10px;
+  min-width:0;
 }
 
 .folder-emoji{
@@ -107,12 +109,25 @@ FOLDER TOP
 .folder-title{
   font-weight:600;
   font-size:16px;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .folder-description{
   font-size:13px;
   color:var(--text-muted);
   margin-top:4px;
+
+  overflow:hidden;
+  display:-webkit-box;
+
+  -webkit-line-clamp:2;
+  line-clamp:2;
+
+  -webkit-box-orient:vertical;
+  word-break:break-word;
 }
 
 
