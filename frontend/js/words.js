@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     const logo = document.getElementById("logo");
 
     if (logo) {
@@ -317,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="folder-top">
                     <div class="folder-emoji">${folder.emoji || "📁"}</div>
                     <div class="folder-title">${folder.name}</div>
-                    <button class="delete-btn">🗑</button>
+                    <button class="delete-btn" type="button">🗑</button>
                 </div>
                 <div class="folder-description">${folder.description || ""}</div>
             `;
@@ -406,6 +405,22 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function goToFlashcards(moduleId, moduleName) {
+        sessionStorage.setItem("langlyCurrentFolderId", currentFolderId ?? "");
+        sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
+        sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
+        sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
+
+        window.location.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
+    }
+
+    function goToQuiz(moduleId) {
+        sessionStorage.setItem("langlyCurrentFolderId", currentFolderId ?? "");
+        sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
+        sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
+        window.location.href = `quiz.html?module=${moduleId}`;
+    }
+
     function renderModules() {
         if (currentView !== "modules") return;
 
@@ -418,11 +433,22 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = "module-card";
 
             card.innerHTML = `
-                <div class="module-name">${module.name}</div>
-                <button class="delete-btn">🗑</button>
+                <div class="module-top">
+                    <div class="module-name">${module.name}</div>
+                    <button class="delete-btn" type="button">🗑</button>
+                </div>
+
+                <div class="module-actions">
+                    <button class="study-btn cards-btn" type="button">Cards</button>
+                    <button class="study-btn quiz-btn" type="button">Quiz</button>
+                </div>
             `;
 
-            card.querySelector(".delete-btn").onclick = (e) => {
+            const deleteBtn = card.querySelector(".delete-btn");
+            const cardsBtn = card.querySelector(".cards-btn");
+            const quizBtn = card.querySelector(".quiz-btn");
+
+            deleteBtn.onclick = (e) => {
                 e.stopPropagation();
 
                 const cardEl = e.target.closest(".module-card");
@@ -442,6 +468,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         await loadModules(currentFolderId);
                     }
                 });
+            };
+
+            cardsBtn.onclick = (e) => {
+                e.stopPropagation();
+                goToFlashcards(module.id, module.name);
+            };
+
+            quizBtn.onclick = (e) => {
+                e.stopPropagation();
+                goToQuiz(module.id);
             };
 
             card.onclick = () => openModule(module);
@@ -669,5 +705,4 @@ document.addEventListener("DOMContentLoaded", () => {
         showFoldersView();
         await loadFolders(true);
     })();
-
 });

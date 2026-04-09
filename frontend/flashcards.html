@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Flashcards – Langly</title>
+
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/flashcards.css">
+</head>
+
+<body>
+
+<header class="top-bar">
+    <div class="brand" onclick="location.href='dashboard.html'">Langly</div>
+</header>
+
+<div class="app-layout">
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content flashcards-page">
+
+        <!-- HEADER -->
+        <div class="flashcards-header">
+
+            <button class="back-btn" onclick="goBack()">← Back</button>
+
+            <div class="flashcards-info">
+                <h2 id="module-name">Module</h2>
+                <span id="progress">0 / 0</span>
+            </div>
+
+        </div>
+
+        <!-- CARD -->
+        <div class="flashcard-wrapper">
+
+            <div id="flashcard" class="flashcard">
+
+                <div class="flashcard-inner">
+
+                    <div class="flashcard-front">
+                        <span id="word-text"></span>
+                    </div>
+
+                    <div class="flashcard-back">
+                        <span id="translation-text"></span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <p class="flip-hint">Click card to flip</p>
+
+        <!-- CONTROLS -->
+        <div class="flashcard-controls">
+            <button id="prev-btn">←</button>
+            <button id="next-btn">→</button>
+        </div>
+
+    </main>
+
+</div>
+
+<script src="js/sidebar.js"></script>
+<script src="js/flashcards.js"></script>
+
+</body>
+</html>
