@@ -292,3 +292,23 @@ def delete_word(
     db.commit()
 
     return {"message": "Word deleted successfully"}
+
+@router.get("/module/{module_id}")
+def get_words_by_module(
+    module_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    module = db.query(models.Module).join(models.Folder).filter(
+        models.Module.id == module_id,
+        models.Folder.user_id == current_user.id
+    ).first()
+
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    words = db.query(models.Word).filter(
+        models.Word.module_id == module_id
+    ).all()
+
+    return words

@@ -465,11 +465,12 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
     }
 
-    function goToQuiz(moduleId) {
+    function goToQuiz(moduleId, moduleName) {
         sessionStorage.setItem("langlyCurrentFolderId", currentFolderId ?? "");
         sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
         sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
-        window.location.href = `quiz.html?module=${moduleId}`;
+        sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
+        window.location.href = `quiz.html?module=${moduleId}&name=${encodeURIComponent(moduleName || "")}`;
     }
 
     function renderModules() {
@@ -544,7 +545,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            goToQuiz(module.id);
+            goToQuiz(module.id, module.name);
         };
 
         card.onclick = () => openModule(module);

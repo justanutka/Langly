@@ -69,7 +69,6 @@ def get_daily_words_online(
             except Exception:
                 study_word = word
 
-        # Переводим в родной язык
         if native_lang != "en":
             try:
                 google_res = requests.get(
