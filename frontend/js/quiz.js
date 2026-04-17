@@ -1,3 +1,5 @@
+const BASE_URL = "http://127.0.0.1:8000";
+
 document.addEventListener("DOMContentLoaded", () => {
     const logo = document.getElementById("logo");
     const logoutBtn = document.getElementById("logout-btn");
@@ -49,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (backBtn) {
         backBtn.addEventListener("click", () => {
+            clearSavedResultState();
             const folderId = sessionStorage.getItem("langlyCurrentFolderId");
             if (folderId) {
                 window.location.href = `my-words.html?folder=${folderId}`;
@@ -73,6 +76,86 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentQuestionIndex = 0;
     let score = 0;
     let mistakes = [];
+    let answersToSave = [];
+    let quizSaved = false;
+    let earnedXp = 0;
+    let isFinishingQuiz = false;
+
+    function getResultStorageKey() {
+        return `langlyQuizResult_${moduleId}`;
+    }
+
+    function saveResultState() {
+        const total = questions.length;
+        const percent = total ? Math.round((score / total) * 100) : 0;
+
+        sessionStorage.setItem(
+            getResultStorageKey(),
+            JSON.stringify({
+                moduleId,
+                moduleName,
+                score,
+                total,
+                percent,
+                earnedXp,
+                quizSaved,
+                mistakes
+            })
+        );
+    }
+
+    function clearSavedResultState() {
+        sessionStorage.removeItem(getResultStorageKey());
+    }
+
+    function restoreSavedResultState() {
+        const raw = sessionStorage.getItem(getResultStorageKey());
+        if (!raw) return false;
+
+        try {
+            const data = JSON.parse(raw);
+
+            if (!data || String(data.moduleId) !== String(moduleId)) {
+                return false;
+            }
+
+            let summaryText = `You answered ${data.score} out of ${data.total} questions correctly.`;
+
+            if (data.quizSaved) {
+                summaryText += ` You earned ${data.earnedXp || 0} XP.`;
+            }
+
+            resultSummary.textContent = summaryText;
+            resultCorrect.textContent = data.score;
+            resultTotal.textContent = data.total;
+            resultPercent.textContent = `${data.percent}%`;
+
+            mistakesList.innerHTML = "";
+
+            if (Array.isArray(data.mistakes) && data.mistakes.length > 0) {
+                mistakesBlock.style.display = "block";
+
+                data.mistakes.forEach(mistake => {
+                    const item = document.createElement("div");
+                    item.className = "mistake-item";
+                    item.innerHTML = `
+                        <div class="mistake-word">${mistake.word}</div>
+                        <div class="mistake-line">Your answer: ${mistake.userAnswer}</div>
+                        <div class="mistake-line">Correct answer: ${mistake.correctAnswer}</div>
+                    `;
+                    mistakesList.appendChild(item);
+                });
+            } else {
+                mistakesBlock.style.display = "none";
+            }
+
+            showView("result");
+            return true;
+        } catch (error) {
+            console.error("Failed to restore quiz result:", error);
+            return false;
+        }
+    }
 
     function normalizeText(text) {
         return (text || "")
@@ -110,6 +193,10 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadModuleWords() {
         if (!moduleId) {
             showView("empty");
+            return;
+        }
+
+        if (restoreSavedResultState()) {
             return;
         }
 
@@ -231,11 +318,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function goToNextQuestion() {
+    function recordAnswer(question, userAnswer, isCorrect, correctAnswerOverride = null) {
+        answersToSave.push({
+            word_id: question.word.id,
+            question_type: question.type,
+            user_answer: userAnswer,
+            correct_answer: correctAnswerOverride || question.correctAnswer,
+            is_correct: isCorrect
+        });
+    }
+
+    async function goToNextQuestion() {
+        if (isFinishingQuiz) return;
+
         currentQuestionIndex++;
 
         if (currentQuestionIndex >= questions.length) {
-            showResults();
+            isFinishingQuiz = true;
+
+            setTimeout(async () => {
+                await showResults();
+                isFinishingQuiz = false;
+            }, 120);
+
             return;
         }
 
@@ -279,12 +384,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     scoreLabel.textContent = `Score: ${score}`;
                 }
 
+                recordAnswer(question, selectedAnswer, isCorrect);
+
                 const nextRow = document.createElement("div");
                 nextRow.className = "next-row";
                 nextRow.innerHTML = `<button class="btn-main" type="button">Next</button>`;
                 questionContainer.appendChild(nextRow);
 
-                nextRow.querySelector("button").addEventListener("click", goToNextQuestion);
+                nextRow.querySelector("button").addEventListener("click", goToNextQuestion, { once: true });
             }, { once: true });
         });
     }
@@ -307,6 +414,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const checkBtn = document.getElementById("check-answer-btn");
 
         function submitAnswer() {
+            if (checkBtn.disabled) return;
+
             const userAnswer = input.value.trim();
             if (!userAnswer) return;
 
@@ -325,6 +434,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 recordMistake(question.word, userAnswer, question.correctAnswer);
             }
 
+            recordAnswer(question, userAnswer, isCorrect);
+
             checkBtn.disabled = true;
             input.disabled = true;
 
@@ -335,13 +446,14 @@ document.addEventListener("DOMContentLoaded", () => {
             questionContainer.appendChild(feedback);
             questionContainer.appendChild(nextRow);
 
-            nextRow.querySelector("button").addEventListener("click", goToNextQuestion);
+            nextRow.querySelector("button").addEventListener("click", goToNextQuestion, { once: true });
         }
 
         checkBtn.addEventListener("click", submitAnswer);
 
         input.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
+                e.preventDefault();
                 submitAnswer();
             }
         });
@@ -385,12 +497,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     scoreLabel.textContent = `Score: ${score}`;
                 }
 
+                recordAnswer(
+                    question,
+                    selectedAnswer,
+                    isCorrect,
+                    `${question.word.word} → ${question.word.translation}`
+                );
+
                 const nextRow = document.createElement("div");
                 nextRow.className = "next-row";
                 nextRow.innerHTML = `<button class="btn-main" type="button">Next</button>`;
                 questionContainer.appendChild(nextRow);
 
-                nextRow.querySelector("button").addEventListener("click", goToNextQuestion);
+                nextRow.querySelector("button").addEventListener("click", goToNextQuestion, { once: true });
             }, { once: true });
         });
     }
@@ -414,15 +533,56 @@ document.addEventListener("DOMContentLoaded", () => {
         renderTrueFalse(question);
     }
 
-    function showResults() {
-        showView("result");
+    async function saveQuizAttempt() {
+        if (quizSaved || !moduleId || !selectedMode || !questions.length) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/quiz/attempt`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    module_id: Number(moduleId),
+                    quiz_type: selectedMode,
+                    score: score,
+                    total_questions: questions.length,
+                    answers: answersToSave
+                })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => null);
+                console.error("Quiz save error:", errorData);
+                return;
+            }
+
+            const data = await res.json();
+            earnedXp = data.xp_earned || 0;
+            quizSaved = true;
+        } catch (error) {
+            console.error("Failed to save quiz attempt:", error);
+        }
+    }
+
+    async function showResults() {
+        await saveQuizAttempt();
 
         const total = questions.length;
         const percent = total ? Math.round((score / total) * 100) : 0;
 
         progressFill.style.width = "100%";
 
-        resultSummary.textContent = `You answered ${score} out of ${total} questions correctly.`;
+        let summaryText = `You answered ${score} out of ${total} questions correctly.`;
+
+        if (quizSaved) {
+            summaryText += ` You earned ${earnedXp} XP.`;
+        }
+
+        resultSummary.textContent = summaryText;
         resultCorrect.textContent = score;
         resultTotal.textContent = total;
         resultPercent.textContent = `${percent}%`;
@@ -445,14 +605,23 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             mistakesBlock.style.display = "none";
         }
+
+        saveResultState();
+        showView("result");
     }
 
     function startQuiz(mode) {
+        clearSavedResultState();
+
         selectedMode = mode;
         questions = buildQuestions(mode);
         currentQuestionIndex = 0;
         score = 0;
         mistakes = [];
+        answersToSave = [];
+        quizSaved = false;
+        earnedXp = 0;
+        isFinishingQuiz = false;
 
         if (!questions.length) {
             showView("empty");
@@ -465,18 +634,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll(".mode-card").forEach(button => {
         button.addEventListener("click", () => {
+            if (isFinishingQuiz) return;
             const mode = button.dataset.mode;
             startQuiz(mode);
         });
     });
 
     restartBtn.addEventListener("click", () => {
+        if (isFinishingQuiz) return;
+
+        clearSavedResultState();
+
         if (selectedMode) {
             startQuiz(selectedMode);
         }
     });
 
     changeModeBtn.addEventListener("click", () => {
+        if (isFinishingQuiz) return;
+
+        clearSavedResultState();
         showView("start");
     });
 

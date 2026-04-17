@@ -27,6 +27,7 @@ class User(Base):
     native_language = relationship("Language", foreign_keys=[native_language_id])
 
     achievements = relationship("Achievement", backref="user")
+    quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete")
     user_languages = relationship("UserLanguage", back_populates="user",cascade="all, delete")
     
     
@@ -69,6 +70,7 @@ class Word(Base):
 
     language = relationship("Language", back_populates="words")
     review_state = relationship("ReviewState", back_populates="word", uselist=False)
+    quiz_answers = relationship("QuizAnswer", back_populates="word")
 
     __table_args__ = (
         UniqueConstraint('language_id', 'word', name='unique_word_per_language'),
@@ -126,3 +128,38 @@ class Module(Base):
 
     folder = relationship("Folder", back_populates="modules")
     words = relationship("Word")
+    quiz_attempts = relationship("QuizAttempt", back_populates="module", cascade="all, delete")
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
+
+    quiz_type = Column(String, nullable=False)
+    score = Column(Integer, nullable=False, default=0)
+    total_questions = Column(Integer, nullable=False, default=0)
+    xp_earned = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="quiz_attempts")
+    module = relationship("Module", back_populates="quiz_attempts")
+    answers = relationship("QuizAnswer", back_populates="attempt", cascade="all, delete")
+
+
+class QuizAnswer(Base):
+    __tablename__ = "quiz_answers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    attempt_id = Column(Integer, ForeignKey("quiz_attempts.id"), nullable=False)
+    word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
+
+    question_type = Column(String, nullable=False)
+    user_answer = Column(String, nullable=True)
+    correct_answer = Column(String, nullable=True)
+    is_correct = Column(Boolean, default=False)
+
+    attempt = relationship("QuizAttempt", back_populates="answers")
+    word = relationship("Word", back_populates="quiz_answers")

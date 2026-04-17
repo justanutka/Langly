@@ -9,6 +9,7 @@ from .routers import words
 from .routers import study
 from .routers import folders
 from .routers import modules
+from .routers import quiz
 
 
 app = FastAPI(title="Langly API")
@@ -33,3 +34,4 @@ app.include_router(words.router)
 app.include_router(study.router)
 app.include_router(folders.router)
 app.include_router(modules.router)
+app.include_router(quiz.router)
