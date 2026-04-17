@@ -836,3 +836,32 @@ TOAST (ERROR POPUP)
 .toast.hidden{
   display:none;
 }
+
+/* =========================
+MASTERED BUTTON
+========================= */
+.master-word-btn{
+    border:none;
+    background:rgba(76, 175, 80, 0.12);
+    color:#2e7d32;
+    cursor:pointer;
+    font-size:13px;
+    line-height:1;
+    padding:10px 12px;
+    border-radius:10px;
+    transition:background 0.2s ease, transform 0.2s ease, color 0.2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    white-space:nowrap;
+}
+
+.master-word-btn:hover{
+    background:rgba(76, 175, 80, 0.22);
+    transform:scale(1.03);
+}
+
+.master-word-btn.active{
+    background:#4caf50;
+    color:#ffffff;
+}

@@ -62,6 +62,8 @@ class Word(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     word = Column(String, nullable=False)
+    is_mastered = Column(Boolean, default=False)
+    mastered_at = Column(DateTime, nullable=True)
     translation = Column(String, nullable=False)
     example = Column(String, nullable=True)
 

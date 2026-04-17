@@ -604,11 +604,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <div class="word-right">
                     <div class="word-translation">${word.translation}</div>
+                    <button class="master-word-btn ${word.is_mastered ? "active" : ""}" type="button">
+                        ${word.is_mastered ? "✓ Mastered" : "Mark mastered"}
+                    </button>
                     <button class="delete-word-btn" type="button">🗑</button>
                 </div>
             `;
 
             const deleteBtn = item.querySelector(".delete-word-btn");
+            const masterBtn = item.querySelector(".master-word-btn");
+
+            masterBtn.onclick = async (e) => {
+                e.stopPropagation();
+
+                try {
+                    const newValue = !word.is_mastered;
+
+                    const res = await fetch(`${BASE_URL}/words/${word.id}/mastered`, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            is_mastered: newValue
+                        })
+                    });
+
+                    if (!res.ok) {
+                        showToast("Could not update mastered status");
+                        return;
+                    }
+
+                    await loadWords();
+                } catch (error) {
+                    console.error(error);
+                    showToast("Server error while updating word");
+                }
+            };
 
             deleteBtn.onclick = async () => {
                 openDeleteModal(`Delete word "${word.word}"?`, async () => {

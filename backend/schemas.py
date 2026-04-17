@@ -72,3 +72,6 @@ class QuizAttemptOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+class WordMasteredUpdate(BaseModel):
+    is_mastered: bool

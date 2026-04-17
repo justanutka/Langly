@@ -4,6 +4,8 @@ from datetime import datetime, date
 from .. import models, database, auth
 import requests
 import random
+from sqlalchemy import or_, func
+
 
 router = APIRouter(prefix="/study", tags=["Study"])
 
@@ -116,20 +118,47 @@ def get_dashboard(
 # STATS
 # =========================
 @router.get("/stats")
-def get_study_stats(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    total_words = db.query(models.Word).filter(models.Word.language_id == current_user.active_language_id).count()
+def get_study_stats(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    if not current_user.active_language_id:
+        return {
+            "level": current_user.level,
+            "xp": current_user.xp,
+            "xp_to_next_level": int(100 * (current_user.level ** 1.5)) - current_user.xp,
+            "streak": current_user.streak,
+            "freeze_days": current_user.freeze_days,
+            "total_words": 0,
+            "mastered_words": 0,
+            "due_today": 0,
+            "progress_percent": 0
+        }
 
-    mastered_words = db.query(models.Word).join(models.ReviewState).filter(
-        models.Word.language_id == current_user.active_language_id,
-        models.ReviewState.repetition >= 5
+    total_words = db.query(models.Word).filter(
+        models.Word.language_id == current_user.active_language_id
     ).count()
 
-    due_today = db.query(models.Word).join(models.ReviewState).filter(
+    mastered_words = db.query(models.Word).outerjoin(
+        models.ReviewState,
+        models.Word.id == models.ReviewState.word_id
+    ).filter(
         models.Word.language_id == current_user.active_language_id,
-        models.ReviewState.next_review <= datetime.utcnow().isoformat()
+        or_(
+            models.Word.is_mastered == True,
+            models.ReviewState.repetition >= 5
+        )
+    ).distinct().count()
+
+    today = datetime.utcnow().date()
+
+    due_today = db.query(models.Word).filter(
+        models.Word.language_id == current_user.active_language_id,
+        models.Word.mastered_at.isnot(None),
+        func.date(models.Word.mastered_at) == today
     ).count()
 
-    progress_percent = (mastered_words / total_words) * 100 if total_words > 0 else 0
+    progress_percent = round((mastered_words / total_words) * 100) if total_words > 0 else 0
 
     xp_needed = int(100 * (current_user.level ** 1.5))
     xp_to_next_level = xp_needed - current_user.xp

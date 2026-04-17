@@ -2,6 +2,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
+from datetime import datetime
 
 router = APIRouter(prefix="/words", tags=["Words"])
 
@@ -312,3 +313,48 @@ def get_words_by_module(
     ).all()
 
     return words
+
+@router.patch("/{word_id}/mastered")
+def update_word_mastered(
+    word_id: int,
+    payload: schemas.WordMasteredUpdate,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    word = db.query(models.Word).filter(
+        models.Word.id == word_id
+    ).first()
+
+    if not word:
+        raise HTTPException(status_code=404, detail="Word not found")
+
+    selected_language = db.query(models.UserLanguage).filter(
+        models.UserLanguage.user_id == current_user.id,
+        models.UserLanguage.language_id == word.language_id
+    ).first()
+
+    if not selected_language:
+        raise HTTPException(
+            status_code=400,
+            detail="You do not have access to this word"
+        )
+
+    was_mastered = bool(word.is_mastered)
+    new_mastered = bool(payload.is_mastered)
+
+    word.is_mastered = new_mastered
+
+    if new_mastered and not was_mastered:
+        word.mastered_at = datetime.utcnow()
+    elif not new_mastered:
+        word.mastered_at = None
+
+    db.commit()
+    db.refresh(word)
+
+    return {
+        "message": "Word mastered status updated",
+        "word_id": word.id,
+        "is_mastered": word.is_mastered,
+        "mastered_at": word.mastered_at
+    }
