@@ -30,51 +30,71 @@
     <main class="main-content">
         <div class="quiz-page">
             <div class="quiz-shell">
-                <button id="back-btn" class="back-btn" type="button">← Back to module</button>
 
-                <div class="quiz-header">
-                    <div>
-                        <p class="quiz-kicker">Module quiz</p>
-                        <h1 id="quiz-module-title">Quiz</h1>
-                        <p class="quiz-subtitle">Choose a mode and test your vocabulary.</p>
-                    </div>
+                <div class="quiz-top-actions">
+                    <button id="back-btn" class="back-btn" type="button">← Back to module</button>
+
+                    <a
+                        id="go-flashcards-btn"
+                        class="go-flashcards-btn"
+                        href="#"
+                    >
+                        Go to flashcards →
+                    </a>
                 </div>
 
-                <div id="quiz-start-view" class="quiz-card">
-                    <h2 class="section-title">Choose quiz mode</h2>
-
-                    <div class="mode-grid">
-                        <button class="mode-card" data-mode="multiple" type="button">
-                            <span class="mode-title">Multiple choice</span>
-                            <span class="mode-desc">Pick the correct translation from 4 options.</span>
-                        </button>
-
-                        <button class="mode-card" data-mode="write" type="button">
-                            <span class="mode-title">Write answer</span>
-                            <span class="mode-desc">Type the correct translation yourself.</span>
-                        </button>
-
-                        <button class="mode-card" data-mode="truefalse" type="button">
-                            <span class="mode-title">True / False</span>
-                            <span class="mode-desc">Decide whether the shown pair is correct.</span>
-                        </button>
-
-                        <button class="mode-card" data-mode="mixed" type="button">
-                            <span class="mode-title">Mixed test</span>
-                            <span class="mode-desc">A mix of all available question types.</span>
-                        </button>
+                <section class="quiz-header">
+                    <div class="quiz-header-main">
+                        <p class="quiz-kicker">Module quiz</p>
+                        <h1 id="quiz-module-title">Quiz</h1>
+                        <p class="quiz-subtitle">
+                            Pick a mode and train your memory in the way that fits you best.
+                        </p>
                     </div>
 
-                    <div class="quiz-meta">
-                        <div class="meta-pill">
-                            <span>Questions:</span>
+                    <div class="quiz-header-stats">
+                        <div class="hero-pill hero-pill-blue">
+                            <span>Questions</span>
                             <strong id="question-count-label">0</strong>
                         </div>
 
-                        <div class="meta-pill">
-                            <span>Words in module:</span>
+                        <div class="hero-pill hero-pill-violet">
+                            <span>Words</span>
                             <strong id="word-count-label">0</strong>
                         </div>
+                    </div>
+                </section>
+
+                <div id="quiz-start-view" class="quiz-card">
+                    <div class="section-head">
+                        <h2 class="section-title">Choose quiz mode</h2>
+                        <p class="section-note">A few minutes now, stronger recall later.</p>
+                    </div>
+
+                    <div class="mode-grid">
+                        <button class="mode-card mode-card-multiple" data-mode="multiple" type="button">
+                            <span class="mode-badge">🔹 Multiple choice</span>
+                            <span class="mode-title">Pick the correct option</span>
+                            <span class="mode-desc">Choose the correct translation from 4 possible answers.</span>
+                        </button>
+
+                        <button class="mode-card mode-card-write" data-mode="write" type="button">
+                            <span class="mode-badge">✍️ Write answer</span>
+                            <span class="mode-title">Type it yourself</span>
+                            <span class="mode-desc">Write the correct translation without prompts.</span>
+                        </button>
+
+                        <button class="mode-card mode-card-truefalse" data-mode="truefalse" type="button">
+                            <span class="mode-badge">✅ True / False</span>
+                            <span class="mode-title">Decide quickly</span>
+                            <span class="mode-desc">Check whether the shown word pair is correct.</span>
+                        </button>
+
+                        <button class="mode-card mode-card-mixed" data-mode="mixed" type="button">
+                            <span class="mode-badge">✨ Mixed test</span>
+                            <span class="mode-title">A bit of everything</span>
+                            <span class="mode-desc">Mix all available question types in one session.</span>
+                        </button>
                     </div>
                 </div>
 
@@ -141,5 +161,21 @@
 
 <script src="js/sidebar.js"></script>
 <script src="js/quiz.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const moduleId = params.get("module");
+    const moduleName =
+        params.get("name") ||
+        sessionStorage.getItem("langlyCurrentModuleTitle") ||
+        "Module";
+
+    const flashcardsBtn = document.getElementById("go-flashcards-btn");
+
+    if (flashcardsBtn && moduleId) {
+        flashcardsBtn.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
+    }
+});
+</script>
 </body>
 </html>
