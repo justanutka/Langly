@@ -844,7 +844,7 @@ MASTERED BUTTON
     border:none;
     background:rgba(76, 175, 80, 0.12);
     color:#2e7d32;
-    cursor:pointer;
+    cursor:pointer; 
     font-size:13px;
     line-height:1;
     padding:10px 12px;

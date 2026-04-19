@@ -33,9 +33,7 @@
 
     </nav>
 
-
     <div class="sidebar-divider"></div>
-
 
     <div class="sidebar-section">
 
@@ -46,17 +44,13 @@
         <div id="folders-container"></div>
 
         <div class="sidebar-item add" id="add-folder-btn">
-
             <span class="icon">+</span>
             <span class="label">New folder</span>
-
         </div>
 
     </div>
 
-
     <div class="sidebar-divider"></div>
-
 
     <div class="sidebar-section">
 
@@ -64,25 +58,39 @@
             Start studying
         </div>
 
-        <div class="sidebar-item">
+        <div class="sidebar-item" id="sidebar-cards-btn">
             <span class="icon">🧠</span>
             <span class="label">Cards</span>
         </div>
 
-        <div class="sidebar-item">
+        <div class="sidebar-item" id="sidebar-quiz-btn">
             <span class="icon">❓</span>
             <span class="label">Quiz</span>
         </div>
 
     </div>
 
-
     <div class="sidebar-footer">
-
         Logged in as:
-
         <div id="user-email"></div>
-
     </div>
 
 </aside>
+
+<div class="study-picker-overlay" id="study-picker-modal">
+    <div class="study-picker-modal">
+        <div class="study-picker-header">
+            <h3 id="study-picker-title">Choose module</h3>
+            <button type="button" class="study-picker-close" id="study-picker-close">×</button>
+        </div>
+
+        <input
+            type="text"
+            id="study-picker-search"
+            class="study-picker-search"
+            placeholder="Search module..."
+        >
+
+        <div id="study-picker-content" class="study-picker-content"></div>
+    </div>
+</div>
