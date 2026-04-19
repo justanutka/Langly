@@ -24,115 +24,122 @@
     <button id="logout-btn" class="logout-btn" type="button">Log out</button>
 </header>
 
-<div class="quiz-page">
-    <div class="quiz-shell">
-        <button id="back-btn" class="back-btn" type="button">← Back to module</button>
+<div class="app-layout">
+    <div id="sidebar-container"></div>
 
-        <div class="quiz-header">
-            <div>
-                <p class="quiz-kicker">Module quiz</p>
-                <h1 id="quiz-module-title">Quiz</h1>
-                <p class="quiz-subtitle">Choose a mode and test your vocabulary.</p>
+    <main class="main-content">
+        <div class="quiz-page">
+            <div class="quiz-shell">
+                <button id="back-btn" class="back-btn" type="button">← Back to module</button>
+
+                <div class="quiz-header">
+                    <div>
+                        <p class="quiz-kicker">Module quiz</p>
+                        <h1 id="quiz-module-title">Quiz</h1>
+                        <p class="quiz-subtitle">Choose a mode and test your vocabulary.</p>
+                    </div>
+                </div>
+
+                <div id="quiz-start-view" class="quiz-card">
+                    <h2 class="section-title">Choose quiz mode</h2>
+
+                    <div class="mode-grid">
+                        <button class="mode-card" data-mode="multiple" type="button">
+                            <span class="mode-title">Multiple choice</span>
+                            <span class="mode-desc">Pick the correct translation from 4 options.</span>
+                        </button>
+
+                        <button class="mode-card" data-mode="write" type="button">
+                            <span class="mode-title">Write answer</span>
+                            <span class="mode-desc">Type the correct translation yourself.</span>
+                        </button>
+
+                        <button class="mode-card" data-mode="truefalse" type="button">
+                            <span class="mode-title">True / False</span>
+                            <span class="mode-desc">Decide whether the shown pair is correct.</span>
+                        </button>
+
+                        <button class="mode-card" data-mode="mixed" type="button">
+                            <span class="mode-title">Mixed test</span>
+                            <span class="mode-desc">A mix of all available question types.</span>
+                        </button>
+                    </div>
+
+                    <div class="quiz-meta">
+                        <div class="meta-pill">
+                            <span>Questions:</span>
+                            <strong id="question-count-label">0</strong>
+                        </div>
+
+                        <div class="meta-pill">
+                            <span>Words in module:</span>
+                            <strong id="word-count-label">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-play-view" class="quiz-card" style="display:none;">
+                    <div class="progress-top">
+                        <div class="progress-text">
+                            <span id="progress-label">Question 1 / 10</span>
+                            <span id="score-label">Score: 0</span>
+                        </div>
+
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="question-container"></div>
+                </div>
+
+                <div id="quiz-result-view" class="quiz-card" style="display:none;">
+                    <div class="result-top">
+                        <div class="result-emoji">🎉</div>
+                        <h2>Your result</h2>
+                        <p id="result-summary" class="result-summary"></p>
+                    </div>
+
+                    <div class="result-stats">
+                        <div class="result-stat">
+                            <span>Correct</span>
+                            <strong id="result-correct">0</strong>
+                        </div>
+
+                        <div class="result-stat">
+                            <span>Total</span>
+                            <strong id="result-total">0</strong>
+                        </div>
+
+                        <div class="result-stat">
+                            <span>Accuracy</span>
+                            <strong id="result-percent">0%</strong>
+                        </div>
+                    </div>
+
+                    <div id="mistakes-block" class="mistakes-block" style="display:none;">
+                        <h3>Mistakes</h3>
+                        <div id="mistakes-list" class="mistakes-list"></div>
+                    </div>
+
+                    <div class="result-actions">
+                        <button id="restart-btn" class="btn-main" type="button">Try again</button>
+                        <button id="change-mode-btn" class="btn-secondary" type="button">Choose another mode</button>
+                    </div>
+                </div>
+
+                <div id="quiz-empty-view" class="quiz-card" style="display:none;">
+                    <h2 class="section-title">Not enough words</h2>
+                    <p class="empty-text">
+                        Add at least 2 words to this module before starting a quiz.
+                    </p>
+                </div>
             </div>
         </div>
-
-        <div id="quiz-start-view" class="quiz-card">
-            <h2 class="section-title">Choose quiz mode</h2>
-
-            <div class="mode-grid">
-                <button class="mode-card" data-mode="multiple" type="button">
-                    <span class="mode-title">Multiple choice</span>
-                    <span class="mode-desc">Pick the correct translation from 4 options.</span>
-                </button>
-
-                <button class="mode-card" data-mode="write" type="button">
-                    <span class="mode-title">Write answer</span>
-                    <span class="mode-desc">Type the correct translation yourself.</span>
-                </button>
-
-                <button class="mode-card" data-mode="truefalse" type="button">
-                    <span class="mode-title">True / False</span>
-                    <span class="mode-desc">Decide whether the shown pair is correct.</span>
-                </button>
-
-                <button class="mode-card" data-mode="mixed" type="button">
-                    <span class="mode-title">Mixed test</span>
-                    <span class="mode-desc">A mix of all available question types.</span>
-                </button>
-            </div>
-
-            <div class="quiz-meta">
-                <div class="meta-pill">
-                    <span>Questions:</span>
-                    <strong id="question-count-label">0</strong>
-                </div>
-
-                <div class="meta-pill">
-                    <span>Words in module:</span>
-                    <strong id="word-count-label">0</strong>
-                </div>
-            </div>
-        </div>
-
-        <div id="quiz-play-view" class="quiz-card" style="display:none;">
-            <div class="progress-top">
-                <div class="progress-text">
-                    <span id="progress-label">Question 1 / 10</span>
-                    <span id="score-label">Score: 0</span>
-                </div>
-
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill"></div>
-                </div>
-            </div>
-
-            <div id="question-container"></div>
-        </div>
-
-        <div id="quiz-result-view" class="quiz-card" style="display:none;">
-            <div class="result-top">
-                <div class="result-emoji">🎉</div>
-                <h2>Your result</h2>
-                <p id="result-summary" class="result-summary"></p>
-            </div>
-
-            <div class="result-stats">
-                <div class="result-stat">
-                    <span>Correct</span>
-                    <strong id="result-correct">0</strong>
-                </div>
-
-                <div class="result-stat">
-                    <span>Total</span>
-                    <strong id="result-total">0</strong>
-                </div>
-
-                <div class="result-stat">
-                    <span>Accuracy</span>
-                    <strong id="result-percent">0%</strong>
-                </div>
-            </div>
-
-            <div id="mistakes-block" class="mistakes-block" style="display:none;">
-                <h3>Mistakes</h3>
-                <div id="mistakes-list" class="mistakes-list"></div>
-            </div>
-
-            <div class="result-actions">
-                <button id="restart-btn" class="btn-main" type="button">Try again</button>
-                <button id="change-mode-btn" class="btn-secondary" type="button">Choose another mode</button>
-            </div>
-        </div>
-
-        <div id="quiz-empty-view" class="quiz-card" style="display:none;">
-            <h2 class="section-title">Not enough words</h2>
-            <p class="empty-text">
-                Add at least 2 words to this module before starting a quiz.
-            </p>
-        </div>
-    </div>
+    </main>
 </div>
 
+<script src="js/sidebar.js"></script>
 <script src="js/quiz.js"></script>
 </body>
 </html>

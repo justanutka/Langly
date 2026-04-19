@@ -8,63 +8,60 @@
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/app.css">
     <link rel="stylesheet" href="css/flashcards.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600&display=swap"
+        rel="stylesheet"
+    >
 </head>
 
 <body>
 
 <header class="top-bar">
-    <div class="brand" onclick="location.href='dashboard.html'">Langly</div>
+    <div class="brand" id="logo">Langly</div>
+    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
 </header>
 
 <div class="app-layout">
-
     <div id="sidebar-container"></div>
 
-    <main class="main-content flashcards-page">
+    <main class="main-content">
+        <div class="flashcards-page">
 
-        <!-- HEADER -->
-        <div class="flashcards-header">
+            <div class="flashcards-header">
+                <button class="back-btn" onclick="goBack()">← Back</button>
 
-            <button class="back-btn" onclick="goBack()">← Back</button>
-
-            <div class="flashcards-info">
-                <h2 id="module-name">Module</h2>
-                <span id="progress">0 / 0</span>
-            </div>
-
-        </div>
-
-        <!-- CARD -->
-        <div class="flashcard-wrapper">
-
-            <div id="flashcard" class="flashcard">
-
-                <div class="flashcard-inner">
-
-                    <div class="flashcard-front">
-                        <span id="word-text"></span>
-                    </div>
-
-                    <div class="flashcard-back">
-                        <span id="translation-text"></span>
-                    </div>
-
+                <div class="flashcards-info">
+                    <h2 id="module-name">Module</h2>
+                    <span id="progress">0 / 0</span>
                 </div>
+            </div>
 
+            <div class="flashcard-wrapper">
+                <div id="flashcard" class="flashcard">
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <span id="word-text"></span>
+                        </div>
+
+                        <div class="flashcard-back">
+                            <span id="translation-text"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="flip-hint">Click card to flip</p>
+
+            <div class="flashcard-controls">
+                <button id="prev-btn" type="button">←</button>
+                <button id="next-btn" type="button">→</button>
             </div>
 
         </div>
-
-        <p class="flip-hint">Click card to flip</p>
-
-        <!-- CONTROLS -->
-        <div class="flashcard-controls">
-            <button id="prev-btn">←</button>
-            <button id="next-btn">→</button>
-        </div>
-
     </main>
-
 </div>
 
 <script src="js/sidebar.js"></script>

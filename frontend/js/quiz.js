@@ -1,6 +1,17 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    if (typeof loadSidebar === "function") {
+        await loadSidebar();
+    }
+
     const logo = document.getElementById("logo");
     const logoutBtn = document.getElementById("logout-btn");
     const backBtn = document.getElementById("back-btn");
@@ -28,13 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const restartBtn = document.getElementById("restart-btn");
     const changeModeBtn = document.getElementById("change-mode-btn");
-
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        window.location.href = "login.html";
-        return;
-    }
 
     if (logo) {
         logo.addEventListener("click", () => {

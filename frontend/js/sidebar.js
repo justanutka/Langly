@@ -1,3 +1,5 @@
+const SIDEBAR_BASE_URL = "http://127.0.0.1:8000";
+
 async function loadSidebar() {
     const container = document.getElementById("sidebar-container");
     if (!container) return;
@@ -9,8 +11,8 @@ async function loadSidebar() {
 
     initSidebar();
     initNewFolderButton();
-    initSidebarToggle();
     initStudyPicker();
+    await loadSidebarUserData();
 }
 
 /* SIDEBAR TOGGLE */
@@ -43,6 +45,78 @@ function initNewFolderButton() {
             window.location.href = "my-words.html?create=true";
         }
     });
+}
+
+async function loadSidebarUserData() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+        const userRes = await fetch(`${SIDEBAR_BASE_URL}/users/me`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (userRes.ok) {
+            const user = await userRes.json();
+            const emailElement = document.getElementById("user-email");
+
+            if (emailElement) {
+                emailElement.textContent = user.email || "";
+            }
+        }
+    } catch (error) {
+        console.error("Sidebar user load error:", error);
+    }
+
+    await loadSidebarFolders();
+}
+
+async function loadSidebarFolders() {
+    const token = localStorage.getItem("token");
+    const container = document.getElementById("folders-container");
+
+    if (!token || !container) return;
+
+    try {
+        const res = await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) return;
+
+        const folders = await res.json();
+        const recentFolders = folders.slice(-4).reverse();
+
+        container.innerHTML = "";
+
+        recentFolders.forEach(folder => {
+            const item = document.createElement("div");
+            item.className = "folder-item";
+
+            item.innerHTML = `
+                <span class="icon">${folder.emoji || "📁"}</span>
+                <span class="folder-name">${folder.name}</span>
+            `;
+
+            item.addEventListener("click", () => {
+                if (window.location.pathname.includes("my-words.html")) {
+                    window.location.href = `my-words.html?folder=${folder.id}`;
+                } else {
+                    sessionStorage.setItem("langlyCurrentFolderId", folder.id ?? "");
+                    sessionStorage.setItem("langlyCurrentFolderTitle", folder.name || "");
+                    window.location.href = `my-words.html?folder=${folder.id}`;
+                }
+            });
+
+            container.appendChild(item);
+        });
+    } catch (error) {
+        console.error("Sidebar folders load error:", error);
+    }
 }
 
 function initStudyPicker() {
@@ -84,14 +158,22 @@ function initStudyPicker() {
     });
 
     searchInput.addEventListener("input", () => {
-        renderStudyPickerContent(currentData, currentMode, content, searchInput.value.trim().toLowerCase());
+        renderStudyPickerContent(
+            currentData,
+            currentMode,
+            content,
+            searchInput.value.trim().toLowerCase()
+        );
     });
 
     async function openStudyPicker(mode) {
         currentMode = mode;
         currentData = [];
 
-        title.textContent = mode === "cards" ? "Choose module for cards" : "Choose module for quiz";
+        title.textContent = mode === "cards"
+            ? "Choose module for cards"
+            : "Choose module for quiz";
+
         searchInput.value = "";
         content.innerHTML = `<div class="study-picker-loading">Loading...</div>`;
         modal.style.display = "flex";
@@ -103,7 +185,7 @@ function initStudyPicker() {
                 return;
             }
 
-            const foldersRes = await fetch(`${BASE_URL}/folders/`, {
+            const foldersRes = await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -123,7 +205,7 @@ function initStudyPicker() {
 
             const modulesByFolder = await Promise.all(
                 folders.map(async (folder) => {
-                    const modulesRes = await fetch(`${BASE_URL}/modules/${folder.id}`, {
+                    const modulesRes = await fetch(`${SIDEBAR_BASE_URL}/modules/${folder.id}`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -219,7 +301,7 @@ function renderStudyPickerContent(data, mode, content, searchTerm = "") {
 
 async function checkModuleHasWords(moduleId, token) {
     try {
-        const res = await fetch(`${BASE_URL}/words/module/${moduleId}`, {
+        const res = await fetch(`${SIDEBAR_BASE_URL}/words/module/${moduleId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

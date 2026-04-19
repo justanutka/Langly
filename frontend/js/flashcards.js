@@ -5,11 +5,29 @@ let currentIndex = 0;
 let viewedCards = new Set();
 
 document.addEventListener("DOMContentLoaded", async () => {
-
     const token = localStorage.getItem("token");
     if (!token) {
         window.location.href = "login.html";
         return;
+    }
+
+    if (typeof loadSidebar === "function") {
+        await loadSidebar();
+    }
+
+    const logo = document.getElementById("logo");
+    if (logo) {
+        logo.addEventListener("click", () => {
+            window.location.href = "dashboard.html";
+        });
+    }
+
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("token");
+            window.location.href = "index.html";
+        });
     }
 
     const params = new URLSearchParams(window.location.search);
@@ -40,7 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    // ✅ НАЗВАНИЕ МОДУЛЯ (FIX)
     let moduleName = moduleNameFromUrl;
 
     if (!moduleName) {
@@ -72,14 +89,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentIndex = (currentIndex - 1 + words.length) % words.length;
         updateCard();
     };
-
 });
 
-function renderCard(){
+function renderCard() {
     updateCard();
 }
 
-function updateCard(){
+function updateCard() {
     const card = document.getElementById("flashcard");
 
     card.classList.remove("flipped");
@@ -90,12 +106,12 @@ function updateCard(){
     updateProgress();
 }
 
-function updateProgress(){
+function updateProgress() {
     document.getElementById("progress").innerText =
         `${viewedCards.size} / ${words.length}`;
 }
 
-function goBack(){
+function goBack() {
     const folderId = sessionStorage.getItem("langlyCurrentFolderId");
     window.location.href = `my-words.html?folder=${folderId}`;
 }
