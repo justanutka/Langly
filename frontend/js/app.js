@@ -29,10 +29,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadFullDashboard();
     }
 
-    await loadFolders();
-
-    initSidebarToggle();
-
     const logoutBtn = document.getElementById("logout-btn");
 
     if (logoutBtn) {
@@ -238,16 +234,4 @@ async function loadFolders() {
     } catch (error) {
         console.error("Folders load error:", error);
     }
-}
-
-
-function initSidebarToggle() {
-    const toggle = document.getElementById("sidebar-toggle");
-    const sidebar = document.querySelector(".sidebar");
-
-    if (!toggle || !sidebar) return;
-
-    toggle.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-    });
 }

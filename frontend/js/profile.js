@@ -32,7 +32,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const user = await meRes.json();
 
     document.getElementById("profile-email").textContent = user.email;
-    document.getElementById("user-email").textContent = user.email;
+
+    const sidebarEmail = document.getElementById("user-email");
+    if (sidebarEmail) sidebarEmail.textContent = user.email;
     document.getElementById("profile-level").textContent = ` ${user.level}`;
     document.getElementById("profile-xp").textContent = `${user.xp}`;
       document.getElementById("profile-streak").textContent = ` ${user.streak} 🔥`;

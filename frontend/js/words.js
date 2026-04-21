@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+
     const foldersView = document.getElementById("folders-view");
     const modulesView = document.getElementById("modules-view");
     const wordsView = document.getElementById("words-view");
@@ -351,12 +352,14 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = "folder-card";
 
             card.innerHTML = `
-                <div class="folder-top">
+                <button class="delete-btn" type="button">🗑</button>
+
+                <div class="folder-body">
                     <div class="folder-emoji">${folder.emoji || "📁"}</div>
                     <div class="folder-title">${folder.name}</div>
-                    <button class="delete-btn" type="button">🗑</button>
+                    <div class="folder-divider"></div>
+                    <div class="folder-description">${folder.description || ""}</div>
                 </div>
-                <div class="folder-description">${folder.description || ""}</div>
             `;
 
             card.querySelector(".delete-btn").onclick = (e) => {
@@ -491,14 +494,23 @@ document.addEventListener("DOMContentLoaded", () => {
         card.className = "module-card";
 
         card.innerHTML = `
-            <div class="module-top">
+            <button class="delete-btn" type="button" aria-label="Delete module">🗑</button>
+
+            <div class="module-body">
                 <div class="module-name">${module.name}</div>
-                <button class="delete-btn" type="button">🗑</button>
+                <div class="module-divider"></div>
             </div>
 
             <div class="module-actions">
-                <button class="study-btn cards-btn" type="button">Cards</button>
-                <button class="study-btn quiz-btn" type="button">Quiz</button>
+                <button class="study-btn cards-btn" type="button">
+                    <span class="study-emoji">🧠</span>
+                    <span>Cards</span>
+                </button>
+
+                <button class="study-btn quiz-btn" type="button">
+                    <span class="study-emoji">✨</span>
+                    <span>Quiz</span>
+                </button>
             </div>
         `;
 
