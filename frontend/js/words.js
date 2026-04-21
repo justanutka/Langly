@@ -200,11 +200,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     confirmDeleteBtn.onclick = async () => {
-        if (deleteCallback) {
-            await deleteCallback();
+        try {
+            if (deleteCallback) {
+                await deleteCallback();
+            }
+        } catch (error) {
+            console.error("Delete error:", error);
+            showToast("Could not delete item");
+        } finally {
+            deleteModal.style.display = "none";
+            deleteCallback = null;
         }
-        deleteModal.style.display = "none";
-        deleteCallback = null;
     };
 
     cancelDeleteBtn.onclick = () => {
@@ -500,27 +506,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const cardsBtn = card.querySelector(".cards-btn");
         const quizBtn = card.querySelector(".quiz-btn");
 
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
+       deleteBtn.onclick = (e) => {
+        e.stopPropagation();
 
-            const cardEl = e.target.closest(".module-card");
+        const cardEl = e.target.closest(".module-card");
 
-            openDeleteModal("Delete this module?", async () => {
-                cardEl.classList.add("delete-animation");
-
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                await fetch(`${BASE_URL}/modules/${module.id}`, {
-                    method: "DELETE",
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                if (currentFolderId) {
-                    showModulesView(currentFolderId, folderTitle.textContent);
-                    await loadModules(currentFolderId);
-                }
+        openDeleteModal("Delete this module?", async () => {
+            const res = await fetch(`${BASE_URL}/modules/${module.id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` }
             });
-        };
+
+            if (!res.ok) {
+                showToast("Could not delete module");
+                return;
+            }
+
+            cardEl.classList.add("delete-animation");
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            if (currentFolderId) {
+                showModulesView(currentFolderId, folderTitle.textContent);
+                await loadModules(currentFolderId);
+            }
+        });
+    };
 
         cardsBtn.onclick = async (e) => {
             e.stopPropagation();

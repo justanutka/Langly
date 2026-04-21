@@ -43,7 +43,6 @@ def delete_module(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-
     module = db.query(models.Module).join(models.Folder).filter(
         models.Module.id == module_id,
         models.Folder.user_id == current_user.id
@@ -51,6 +50,20 @@ def delete_module(
 
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
+
+    quiz_attempts = db.query(models.QuizAttempt).filter(
+        models.QuizAttempt.module_id == module.id
+    ).all()
+
+    for attempt in quiz_attempts:
+        quiz_answers = db.query(models.QuizAnswer).filter(
+            models.QuizAnswer.attempt_id == attempt.id
+        ).all()
+
+        for answer in quiz_answers:
+            db.delete(answer)
+
+        db.delete(attempt)
 
     db.delete(module)
     db.commit()
