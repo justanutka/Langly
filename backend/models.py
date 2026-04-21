@@ -72,7 +72,7 @@ class Word(Base):
 
     language = relationship("Language", back_populates="words")
     review_state = relationship("ReviewState", back_populates="word", uselist=False)
-    quiz_answers = relationship("QuizAnswer", back_populates="word")
+    quiz_answers = relationship("QuizAnswer", back_populates="word", cascade="all, delete")
 
     __table_args__ = (
         UniqueConstraint('language_id', 'word', name='unique_word_per_language'),

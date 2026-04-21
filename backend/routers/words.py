@@ -289,6 +289,13 @@ def delete_word(
     if review_state:
         db.delete(review_state)
 
+    quiz_answers = db.query(models.QuizAnswer).filter(
+        models.QuizAnswer.word_id == word.id
+    ).all()
+
+    for answer in quiz_answers:
+        db.delete(answer)
+
     db.delete(word)
     db.commit()
 

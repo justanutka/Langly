@@ -645,12 +645,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             deleteBtn.onclick = async () => {
                 openDeleteModal(`Delete word "${word.word}"?`, async () => {
-                    await fetch(`${BASE_URL}/words/${word.id}`, {
+                    const res = await fetch(`${BASE_URL}/words/${word.id}`, {
                         method: "DELETE",
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
                     });
+
+                    if (!res.ok) {
+                        showToast("Could not delete word");
+                        return;
+                    }
 
                     await loadWords();
                     hideWordMessage();
