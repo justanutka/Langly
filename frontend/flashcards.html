@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap"
         rel="stylesheet"
     >
 </head>
@@ -30,34 +30,91 @@
     <main class="main-content">
         <div class="flashcards-page">
 
-            <div class="flashcards-header">
-                <button class="back-btn" onclick="goBack()">← Back</button>
+            <div class="flashcards-top">
+                <button class="back-btn" onclick="goBack()" type="button">
+                    <span>←</span>
+                    Back
+                </button>
 
-                <div class="flashcards-info">
+                <div class="flashcards-title">
+                    <span>Study cards</span>
                     <h2 id="module-name">Module</h2>
-                    <span id="progress">0 / 0</span>
                 </div>
             </div>
 
-            <div class="flashcard-wrapper">
-                <div id="flashcard" class="flashcard">
-                    <div class="flashcard-inner">
-                        <div class="flashcard-front">
-                            <span id="word-text"></span>
-                        </div>
+            <div class="flashcards-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">🧠</div>
+                    <div>
+                        <p>Cards viewed</p>
+                        <strong id="progress">0 / 0</strong>
+                    </div>
+                </div>
 
-                        <div class="flashcard-back">
-                            <span id="translation-text"></span>
-                        </div>
+                <div class="stat-item">
+                    <div class="stat-icon accent">✨</div>
+                    <div>
+                        <p>Mode</p>
+                        <strong>Flip & remember</strong>
                     </div>
                 </div>
             </div>
 
-            <p class="flip-hint">Click card to flip</p>
+            <div class="progress-line">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
 
-            <div class="flashcard-controls">
-                <button id="prev-btn" type="button">←</button>
-                <button id="next-btn" type="button">→</button>
+            <div class="flashcards-content">
+
+                <section class="card-zone">
+                    <div class="flashcard-wrapper">
+                        <div id="flashcard" class="flashcard">
+                            <div class="flashcard-inner">
+
+                                <div class="flashcard-front">
+                                    <div class="card-badge">Word</div>
+                                    <span id="word-text"></span>
+                                    <p>Click to reveal translation</p>
+                                </div>
+
+                                <div class="flashcard-back">
+                                    <div class="card-badge">Translation</div>
+                                    <span id="translation-text"></span>
+                                    <p>Great, you viewed this card</p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flashcard-controls">
+                        <button id="prev-btn" class="control-btn" type="button">
+                            <span>←</span>
+                            Previous
+                        </button>
+
+                        <p class="flip-hint">Click card or press Enter/Space to flip</p>
+
+                        <button id="next-btn" class="control-btn primary" type="button">
+                            Next
+                            <span>→</span>
+                        </button>
+                    </div>
+                </section>
+
+                <aside class="study-notes">
+                    <div class="note-card main-note">
+                        <div class="note-icon">💡</div>
+                        <h3>Small study trick</h3>
+                        <p>Say the word out loud before flipping the card. It helps your brain remember faster.</p>
+                    </div>
+
+                    <div class="note-card mini-note">
+                        <div class="note-icon pink">⌨️</div>
+                        <p>Keyboard: ← Previous, → Next, Enter/Space Flip</p>
+                    </div>
+                </aside>
+
             </div>
 
         </div>

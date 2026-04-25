@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userRes = await fetch(BASE_URL + "/users/me", {
         headers: { Authorization: `Bearer ${token}` }
     });
+
     const user = await userRes.json();
 
     const res = await fetch(
@@ -70,25 +71,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCard();
 
     const card = document.getElementById("flashcard");
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
 
     card.addEventListener("click", () => {
-        card.classList.toggle("flipped");
-
-        if (card.classList.contains("flipped")) {
-            viewedCards.add(words[currentIndex].id);
-            updateProgress();
-        }
+        flipCard();
     });
 
-    document.getElementById("next-btn").onclick = () => {
-        currentIndex = (currentIndex + 1) % words.length;
-        updateCard();
-    };
+    nextBtn.addEventListener("click", () => {
+        showNextCard();
+    });
 
-    document.getElementById("prev-btn").onclick = () => {
-        currentIndex = (currentIndex - 1 + words.length) % words.length;
-        updateCard();
-    };
+    prevBtn.addEventListener("click", () => {
+        showPrevCard();
+    });
+
+    document.addEventListener("keydown", (event) => {
+        const activeElement = document.activeElement;
+        const isTyping =
+            activeElement &&
+            (
+                activeElement.tagName === "INPUT" ||
+                activeElement.tagName === "TEXTAREA" ||
+                activeElement.isContentEditable
+            );
+
+        if (isTyping) return;
+
+        if (event.key === "ArrowRight") {
+            event.preventDefault();
+            showNextCard();
+            return;
+        }
+
+        if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            showPrevCard();
+            return;
+        }
+
+        if (event.key === "Enter" || event.code === "Space") {
+            event.preventDefault();
+            flipCard();
+        }
+    });
 });
 
 function renderCard() {
@@ -106,12 +132,48 @@ function updateCard() {
     updateProgress();
 }
 
+function showNextCard() {
+    currentIndex = (currentIndex + 1) % words.length;
+    updateCard();
+}
+
+function showPrevCard() {
+    currentIndex = (currentIndex - 1 + words.length) % words.length;
+    updateCard();
+}
+
+function flipCard() {
+    const card = document.getElementById("flashcard");
+
+    card.classList.toggle("flipped");
+
+    if (card.classList.contains("flipped")) {
+        viewedCards.add(words[currentIndex].id);
+        updateProgress();
+    }
+}
+
 function updateProgress() {
-    document.getElementById("progress").innerText =
-        `${viewedCards.size} / ${words.length}`;
+    const progressElement = document.getElementById("progress");
+    const progressFill = document.getElementById("progress-fill");
+
+    progressElement.innerText = `${viewedCards.size} / ${words.length}`;
+
+    if (progressFill) {
+        const progressPercent = words.length > 0
+            ? (viewedCards.size / words.length) * 100
+            : 0;
+
+        progressFill.style.width = `${progressPercent}%`;
+    }
 }
 
 function goBack() {
     const folderId = sessionStorage.getItem("langlyCurrentFolderId");
-    window.location.href = `my-words.html?folder=${folderId}`;
+
+    if (folderId) {
+        window.location.href = `my-words.html?folder=${folderId}`;
+    } else {
+        window.location.href = "my-words.html";
+    }
 }
