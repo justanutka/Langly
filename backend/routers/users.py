@@ -33,14 +33,14 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     new_user = models.User(
         email=user.email,
         password_hash=hashed_password,
-        native_language_id=user.native_language_id  # 🔥 СОХРАНЯЕМ
+        native_language_id=user.native_language_id 
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
-    # 🔥 СРАЗУ создаём токен
+    #make token
     access_token = auth.create_access_token(
         data={"sub": new_user.email}
     )

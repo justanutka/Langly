@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-
+from datetime import datetime
 
 class UserCreate(BaseModel):
     email: str
@@ -75,3 +75,29 @@ class QuizAttemptOut(BaseModel):
 
 class WordMasteredUpdate(BaseModel):
     is_mastered: bool
+
+class NoteCreate(BaseModel):
+    title: str
+    content: str
+    color: str = "indigo"
+    is_important: bool = False
+
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    color: Optional[str] = None
+    is_important: Optional[bool] = None
+
+
+class NoteOut(BaseModel):
+    id: int
+    title: str
+    content: str
+    color: str
+    is_important: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

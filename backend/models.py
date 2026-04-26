@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -29,6 +29,7 @@ class User(Base):
     achievements = relationship("Achievement", backref="user")
     quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete")
     user_languages = relationship("UserLanguage", back_populates="user",cascade="all, delete")
+    notes = relationship("Note", back_populates="user", cascade="all, delete")
     
     
 class Language(Base):
@@ -165,3 +166,21 @@ class QuizAnswer(Base):
 
     attempt = relationship("QuizAttempt", back_populates="answers")
     word = relationship("Word", back_populates="quiz_answers")
+
+class Note(Base):
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+
+    color = Column(String, default="indigo")
+    is_important = Column(Boolean, default=False)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="notes")

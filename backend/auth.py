@@ -31,7 +31,7 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-#ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ ИЗ ТОКЕНА
+#for token
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(database.get_db)

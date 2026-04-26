@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Notes – Langly</title>
+
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/my-notes.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
+</head>
+
+<body>
+
+<header class="top-bar">
+    <div class="brand" id="logo">Langly</div>
+    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+</header>
+
+<div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="notes-page">
+
+            <div class="notes-header">
+                <div>
+                    <p class="notes-kicker">Language diary</p>
+                    <h1>My Notes</h1>
+                    <p class="notes-subtitle">
+                        Save grammar tips, useful phrases, mistakes and small ideas from your study sessions.
+                    </p>
+                </div>
+
+                <button class="btn-main" id="open-note-modal" type="button">
+                    + New note
+                </button>
+            </div>
+
+            <div class="notes-toolbar">
+                <input
+                    type="text"
+                    id="notes-search"
+                    placeholder="Search notes..."
+                >
+
+                <div class="notes-custom-select" id="notes-filter-dropdown">
+                    <div class="notes-select-selected">
+                        All notes
+                    </div>
+
+                    <div class="notes-select-items notes-select-hide">
+                        <div data-value="all" class="selected">All notes</div>
+                        <div data-value="important">Important only</div>
+                        <div data-value="indigo">Indigo</div>
+                        <div data-value="turquoise">Turquoise</div>
+                        <div data-value="pink">Pink</div>
+                        <div data-value="yellow">Yellow</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="notes-empty" class="notes-empty">
+                <div class="empty-icon">📝</div>
+                <h2>No notes yet</h2>
+                <p>Create your first note and keep your learning thoughts in one place.</p>
+            </div>
+
+            <div id="notes-grid" class="notes-grid"></div>
+
+        </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="note-modal">
+    <div class="note-modal">
+        <div class="note-modal-header">
+            <h2 id="note-modal-title">New note</h2>
+            <button id="close-note-modal" class="modal-close" type="button">×</button>
+        </div>
+
+        <input
+            type="text"
+            id="note-title-input"
+            placeholder="Note title"
+        >
+
+        <div class="editor-toolbar">
+            <span class="toolbar-label">Text highlight</span>
+
+            <button class="highlight-btn highlight-yellow" data-highlight="yellow" type="button">
+                Yellow
+            </button>
+
+            <button class="highlight-btn highlight-pink" data-highlight="pink" type="button">
+                Pink
+            </button>
+
+            <button class="highlight-btn highlight-turquoise" data-highlight="turquoise" type="button">
+                Turquoise
+            </button>
+
+            <button class="highlight-btn clear-highlight" data-highlight="clear" type="button">
+                Clear
+            </button>
+        </div>
+
+        <div
+            id="note-content-input"
+            class="note-editor"
+            contenteditable="true"
+            data-placeholder="Write your note here..."
+        ></div>
+
+        <div class="note-options">
+            <div>
+                <p class="option-label">Note color</p>
+
+                <div class="color-picker">
+                    <button class="color-dot active" data-color="indigo" type="button"></button>
+                    <button class="color-dot turquoise" data-color="turquoise" type="button"></button>
+                    <button class="color-dot pink" data-color="pink" type="button"></button>
+                    <button class="color-dot yellow" data-color="yellow" type="button"></button>
+                </div>
+            </div>
+
+            <label class="important-toggle">
+                <input type="checkbox" id="note-important-input">
+                <span>Mark as important</span>
+            </label>
+        </div>
+
+        <div id="note-message" class="note-message hidden"></div>
+
+        <div class="modal-actions">
+            <button class="btn-secondary" id="cancel-note-btn" type="button">
+                Cancel
+            </button>
+
+            <button class="btn-main" id="save-note-btn" type="button">
+                Save note
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="view-note-modal">
+    <div class="view-note-modal">
+        <div class="view-note-header">
+            <div>
+                <div id="view-note-important" class="view-important hidden">★ Important</div>
+                <h2 id="view-note-title"></h2>
+            </div>
+
+            <button id="close-view-note" class="modal-close" type="button">×</button>
+        </div>
+
+        <div id="view-note-content" class="view-note-content"></div>
+
+        <div id="view-note-date" class="view-note-date"></div>
+
+        <div class="modal-actions">
+            <button class="btn-secondary" id="close-view-note-bottom" type="button">
+                Close
+            </button>
+
+            <button class="btn-main" id="edit-view-note" type="button">
+                Edit
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="delete-note-modal">
+    <div class="delete-modal">
+        <h2>Delete note?</h2>
+        <p>This action cannot be undone.</p>
+
+        <div class="modal-actions">
+            <button class="btn-secondary" id="cancel-delete-note" type="button">
+                Cancel
+            </button>
+
+            <button class="btn-danger" id="confirm-delete-note" type="button">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast hidden">
+    <span id="toast-text"></span>
+</div>
+
+<script src="js/sidebar.js"></script>
+<script src="js/my-notes.js"></script>
+
+</body>
+</html>
