@@ -12,7 +12,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-#ДОБАВЛЯЕМ ЭТО (чтобы появилась кнопка Authorize)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 

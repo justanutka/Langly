@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
+from ..stats import get_or_create_user_language, xp_needed_for_level
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -89,57 +90,97 @@ def read_users_me(
 ):
     today = datetime.utcnow().date()
 
-    #if it's first entrance
-    if not current_user.last_study_date:
-        current_user.last_study_date = str(today)
-        current_user.streak = 1
+    if current_user.active_language_id:
+        user_language = get_or_create_user_language(
+            db, user_id=current_user.id, language_id=current_user.active_language_id
+        )
+
+        if not user_language.last_study_date:
+            user_language.last_study_date = str(today)
+            user_language.streak = 1
+        else:
+            last_date = datetime.strptime(user_language.last_study_date, "%Y-%m-%d").date()
+            diff_days = (today - last_date).days
+
+            if diff_days == 0:
+                pass
+            elif diff_days == 1:
+                user_language.streak += 1
+                user_language.last_study_date = str(today)
+
+                if user_language.streak > 0 and user_language.streak % 7 == 0:
+                    user_language.freeze_days += 1
+                    user_language.xp += 50
+
+                xp_needed = xp_needed_for_level(user_language.level)
+                while user_language.xp >= xp_needed:
+                    user_language.xp -= xp_needed
+                    user_language.level += 1
+                    xp_needed = xp_needed_for_level(user_language.level)
+
+            elif diff_days > 1:
+                if user_language.freeze_days > 0:
+                    user_language.freeze_days -= 1
+                    user_language.last_study_date = str(today)
+                else:
+                    user_language.streak = 1
+                    user_language.last_study_date = str(today)
+
+        db.commit()
+        db.refresh(current_user)
+        db.refresh(user_language)
+
+        level = user_language.level
+        xp = user_language.xp
+        streak = user_language.streak
+        freeze_days = user_language.freeze_days
 
     else:
-        last_date = datetime.strptime(
-            current_user.last_study_date, "%Y-%m-%d"
-        ).date()
-
-        diff_days = (today - last_date).days
-
-        if diff_days == 0:
-            pass
-
-        elif diff_days == 1:
-            #the next day
-            current_user.streak += 1
+        if not current_user.last_study_date:
             current_user.last_study_date = str(today)
+            current_user.streak = 1
+        else:
+            last_date = datetime.strptime(current_user.last_study_date, "%Y-%m-%d").date()
+            diff_days = (today - last_date).days
 
-            #BONUS EVERY 7 DAYS
-            if current_user.streak > 0 and current_user.streak % 7 == 0:
-                current_user.freeze_days += 1
-                current_user.xp += 50
-            
-            #LEVEL UP LOGIC
-            xp_needed = int(100 * (current_user.level ** 1.5))
-
-            while current_user.xp >= xp_needed:
-                current_user.xp -= xp_needed
-                current_user.level += 1
-                xp_needed = int(100 * (current_user.level ** 1.5))
-
-        elif diff_days > 1:
-            #if the day off
-            if current_user.freeze_days > 0:
-                current_user.freeze_days -= 1
-                current_user.last_study_date = str(today)
-            else:
-                current_user.streak = 1
+            if diff_days == 0:
+                pass
+            elif diff_days == 1:
+                current_user.streak += 1
                 current_user.last_study_date = str(today)
 
-    db.commit()
-    db.refresh(current_user)
+                if current_user.streak > 0 and current_user.streak % 7 == 0:
+                    current_user.freeze_days += 1
+                    current_user.xp += 50
+
+                xp_needed = xp_needed_for_level(current_user.level)
+                while current_user.xp >= xp_needed:
+                    current_user.xp -= xp_needed
+                    current_user.level += 1
+                    xp_needed = xp_needed_for_level(current_user.level)
+
+            elif diff_days > 1:
+                if current_user.freeze_days > 0:
+                    current_user.freeze_days -= 1
+                    current_user.last_study_date = str(today)
+                else:
+                    current_user.streak = 1
+                    current_user.last_study_date = str(today)
+
+        db.commit()
+        db.refresh(current_user)
+
+        level = current_user.level
+        xp = current_user.xp
+        streak = current_user.streak
+        freeze_days = current_user.freeze_days
 
     return {
         "email": current_user.email,
-        "level": current_user.level,
-        "xp": current_user.xp,
-        "streak": current_user.streak,
-        "freeze_days": current_user.freeze_days,
+        "level": level,
+        "xp": xp,
+        "streak": streak,
+        "freeze_days": freeze_days,
         "active_language_id": current_user.active_language_id,
         "active_language_name": current_user.active_language.name if current_user.active_language else None,
         "native_language_id": current_user.native_language_id,
@@ -172,21 +213,8 @@ def set_language(
     if not language:
         raise HTTPException(status_code=404, detail="Language not found")
 
-    # проверить есть ли уже язык у пользователя
-    user_lang = db.query(models.UserLanguage).filter(
-        models.UserLanguage.user_id == current_user.id,
-        models.UserLanguage.language_id == language_id
-    ).first()
+    get_or_create_user_language(db, user_id=current_user.id, language_id=language_id)
 
-    # если нет — добавить
-    if not user_lang:
-        user_lang = models.UserLanguage(
-            user_id=current_user.id,
-            language_id=language_id
-        )
-        db.add(user_lang)
-
-    # установить активный язык
     current_user.active_language_id = language_id
 
     db.commit()

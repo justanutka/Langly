@@ -111,6 +111,19 @@ async function changeLanguage() {
 
     if (!res.ok) throw new Error();
 
+    const meRes = await fetch(BASE_URL + "/users/me", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (meRes.ok) {
+      const user = await meRes.json();
+      document.getElementById("profile-level").textContent = ` ${user.level}`;
+      document.getElementById("profile-xp").textContent = `${user.xp}`;
+      document.getElementById("profile-streak").textContent = ` ${user.streak} ðŸ”¥`;
+    }
+
     messageBox.textContent = "Language updated successfully";
     messageBox.style.color = "green";
 

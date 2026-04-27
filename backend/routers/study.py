@@ -5,6 +5,7 @@ from .. import models, database, auth
 import requests
 import random
 from sqlalchemy import or_, func
+from ..stats import get_or_create_user_language, xp_needed_for_level
 
 
 router = APIRouter(prefix="/study", tags=["Study"])
@@ -105,8 +106,19 @@ def get_daily_words_online(
 # =========================
 @router.get("/dashboard")
 def get_dashboard(
-    current_user: models.User = Depends(auth.get_current_user)
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
 ):
+    if current_user.active_language_id:
+        user_language = get_or_create_user_language(
+            db, user_id=current_user.id, language_id=current_user.active_language_id
+        )
+        return {
+            "level": user_language.level,
+            "xp": user_language.xp,
+            "streak": user_language.streak,
+        }
+
     return {
         "level": current_user.level,
         "xp": current_user.xp,
@@ -126,7 +138,7 @@ def get_study_stats(
         return {
             "level": current_user.level,
             "xp": current_user.xp,
-            "xp_to_next_level": int(100 * (current_user.level ** 1.5)) - current_user.xp,
+            "xp_to_next_level": xp_needed_for_level(current_user.level) - current_user.xp,
             "streak": current_user.streak,
             "freeze_days": current_user.freeze_days,
             "total_words": 0,
@@ -134,6 +146,10 @@ def get_study_stats(
             "due_today": 0,
             "progress_percent": 0
         }
+
+    user_language = get_or_create_user_language(
+        db, user_id=current_user.id, language_id=current_user.active_language_id
+    )
 
     total_words = db.query(models.Word).filter(
         models.Word.language_id == current_user.active_language_id
@@ -160,15 +176,15 @@ def get_study_stats(
 
     progress_percent = round((mastered_words / total_words) * 100) if total_words > 0 else 0
 
-    xp_needed = int(100 * (current_user.level ** 1.5))
-    xp_to_next_level = xp_needed - current_user.xp
+    xp_needed = xp_needed_for_level(user_language.level)
+    xp_to_next_level = xp_needed - user_language.xp
 
     return {
-        "level": current_user.level,
-        "xp": current_user.xp,
+        "level": user_language.level,
+        "xp": user_language.xp,
         "xp_to_next_level": xp_to_next_level,
-        "streak": current_user.streak,
-        "freeze_days": current_user.freeze_days,
+        "streak": user_language.streak,
+        "freeze_days": user_language.freeze_days,
         "total_words": total_words,
         "mastered_words": mastered_words,
         "due_today": due_today,

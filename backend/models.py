@@ -54,9 +54,15 @@ class UserLanguage(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     language_id = Column(Integer, ForeignKey("languages.id"))
 
+    streak = Column(Integer, default=0)
+    last_study_date = Column(String, nullable=True)
+    level = Column(Integer, default=1)
+    xp = Column(Integer, default=0)
+    freeze_days = Column(Integer, default=1)
+
     user = relationship("User", back_populates="user_languages")
     language = relationship("Language", back_populates="users")
-
+    
 class Word(Base):
     __tablename__ = "words"
 
