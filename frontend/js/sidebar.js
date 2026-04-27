@@ -19,11 +19,23 @@ async function loadSidebar() {
 function initSidebar() {
     const toggle = document.getElementById("sidebar-toggle");
     const sidebar = document.querySelector(".sidebar");
+    const host = document.getElementById("sidebar-container");
 
-    if (!toggle || !sidebar) return;
+    if (!toggle || !sidebar || !host) return;
+
+    const isCollapsed = localStorage.getItem("langlySidebarCollapsed") === "1";
+    if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+        host.classList.add("is-collapsed");
+    }
 
     toggle.addEventListener("click", () => {
         sidebar.classList.toggle("collapsed");
+        host.classList.toggle("is-collapsed");
+        localStorage.setItem(
+            "langlySidebarCollapsed",
+            sidebar.classList.contains("collapsed") ? "1" : "0"
+        );
     });
 }
 
@@ -228,6 +240,15 @@ function initStudyPicker() {
             console.error(error);
             content.innerHTML = `<div class="study-picker-empty">Something went wrong.</div>`;
         }
+    }
+
+    // Prevent the "#" nav-item from jumping the page (it causes a visible "jerk")
+    const legacyCardsLink = document.querySelector('.sidebar-nav a.nav-item[href="#"]');
+    if (legacyCardsLink) {
+        legacyCardsLink.addEventListener("click", async (e) => {
+            e.preventDefault();
+            await openStudyPicker("cards");
+        });
     }
 }
 

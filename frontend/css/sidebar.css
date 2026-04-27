@@ -1,4 +1,25 @@
-/* SIDEBAR */
+
+:root {
+    --sidebar-width: calc(260px + 40px + 1px);
+    --sidebar-collapsed-width: calc(70px + 40px + 1px);
+}
+
+#sidebar-container {
+    flex: 0 0 var(--sidebar-width);
+    width: var(--sidebar-width);
+    align-self: stretch;
+    transition: width 0.28s cubic-bezier(.4,0,.2,1);
+}
+
+#sidebar-container.is-collapsed {
+    flex-basis: var(--sidebar-collapsed-width);
+    width: var(--sidebar-collapsed-width);
+}
+
+#sidebar-container:empty {
+    background: var(--sidebar-bg, rgba(255, 255, 255, 0.85));
+    border-right: 1px solid rgba(0,0,0,0.05);
+}
 
 .sidebar {
     box-sizing: content-box;
