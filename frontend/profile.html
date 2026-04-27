@@ -82,15 +82,23 @@
 
                 <h3>Language Settings</h3>
 
-                <label for="language-select">
-                    Active Language:
-                </label>
+                <div class="profile-language-row">
+                    <div class="profile-language-label">
+                        Active Language:
+                    </div>
 
-                <select id="language-select"></select>
+                    <div class="profile-custom-select" id="language-dropdown" data-value="">
+                        <div class="profile-select-selected">
+                            Select language
+                        </div>
 
-                <button class="primary-btn" onclick="changeLanguage()">
-                    Save Language
-                </button>
+                        <div class="profile-select-items profile-select-hide"></div>
+                    </div>
+
+                    <button class="primary-btn" onclick="changeLanguage()">
+                        Save Language
+                    </button>
+                </div>
 
                 <div id="language-message" class="form-message"></div>
 
