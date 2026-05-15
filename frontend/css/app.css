@@ -300,3 +300,55 @@ body::after {
   font-weight: 500;
 }
 
+/* SPEAK BUTTONS */
+.speak-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(77,101,255,0.16);
+  border-radius: 12px;
+  background: rgba(246,249,252,0.84);
+  color: var(--indigo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+  flex-shrink: 0;
+}
+
+.speak-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.speak-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(77,101,255,0.28);
+  box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+}
+
+.speak-btn--study {
+  background: rgba(77,101,255,0.08);
+}
+
+.speak-btn--translation {
+  background: rgba(60,201,200,0.08);
+  border-color: rgba(60,201,200,0.24);
+  color: #198c93;
+}
+
+.speak-btn--translation:hover:not(:disabled) {
+  border-color: rgba(60,201,200,0.38);
+}
+
+.speak-btn.is-speaking {
+  background: rgba(77,101,255,0.12);
+  border-color: rgba(77,101,255,0.34);
+}
+
+.speak-btn:disabled {
+  cursor: default;
+  opacity: 0.65;
+  box-shadow: none;
+}
+

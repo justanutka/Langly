@@ -311,6 +311,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return await res.json();
     }
 
+    function appendSpeechButton({ host, text, languageCode, label, className = "" }) {
+        if (!host || !window.langlySpeech?.createButton) return;
+
+        const button = window.langlySpeech.createButton({
+            text,
+            languageCode,
+            label,
+            className
+        });
+
+        host.appendChild(button);
+    }
+
     function applyFilters(list) {
         const search = searchInput?.value.toLowerCase() || "";
 
@@ -605,6 +618,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadWords() {
         const user = await getUser();
+        const activeLanguageCode = user?.active_language_code || "";
+        const nativeLanguageCode = user?.native_language_code || "";
 
         const res = await fetch(
             `${BASE_URL}/words/?language_id=${user.active_language_id}`,
@@ -622,11 +637,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             item.innerHTML = `
                 <div class="word-left">
-                    <div class="word-main">${word.word}</div>
+                    <div class="word-line word-line--study">
+                        <div class="word-main">${word.word}</div>
+                    </div>
                 </div>
 
                 <div class="word-right">
-                    <div class="word-translation">${word.translation}</div>
+                    <div class="word-line word-line--translation">
+                        <div class="word-translation">${word.translation}</div>
+                    </div>
                     <button class="master-word-btn ${word.is_mastered ? "active" : ""}" type="button">
                         ${word.is_mastered ? "✓ Mastered" : "Mark mastered"}
                     </button>
@@ -636,6 +655,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const deleteBtn = item.querySelector(".delete-word-btn");
             const masterBtn = item.querySelector(".master-word-btn");
+            const studyLine = item.querySelector(".word-line--study");
+            const translationLine = item.querySelector(".word-line--translation");
+
+            appendSpeechButton({
+                host: studyLine,
+                text: word.word,
+                languageCode: activeLanguageCode,
+                label: `Play pronunciation for ${word.word}`,
+                className: "speak-btn--study"
+            });
+
+            appendSpeechButton({
+                host: translationLine,
+                text: word.translation,
+                languageCode: nativeLanguageCode,
+                label: `Play pronunciation for ${word.translation}`,
+                className: "speak-btn--translation"
+            });
 
             masterBtn.onclick = async (e) => {
                 e.stopPropagation();

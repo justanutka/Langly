@@ -208,3 +208,157 @@ async function loadFolders() {
         console.error("Folders load error:", error);
     }
 }
+
+(function initLanglySpeech() {
+    const speechApi = window.speechSynthesis;
+    const supported = typeof window !== "undefined" && !!speechApi && typeof SpeechSynthesisUtterance !== "undefined";
+    let voicesReadyPromise = null;
+
+    function normalizeLanguageCode(code) {
+        return String(code || "")
+            .trim()
+            .replace(/_/g, "-")
+            .toLowerCase();
+    }
+
+    function getVoices() {
+        return supported ? speechApi.getVoices() : [];
+    }
+
+    function ensureVoicesReady() {
+        if (!supported) return Promise.resolve([]);
+        const existingVoices = getVoices();
+        if (existingVoices.length) return Promise.resolve(existingVoices);
+        if (voicesReadyPromise) return voicesReadyPromise;
+
+        voicesReadyPromise = new Promise((resolve) => {
+            let settled = false;
+
+            const finish = () => {
+                if (settled) return;
+                settled = true;
+                speechApi.removeEventListener("voiceschanged", handleVoicesChanged);
+                resolve(getVoices());
+            };
+
+            const handleVoicesChanged = () => finish();
+
+            speechApi.addEventListener("voiceschanged", handleVoicesChanged);
+            setTimeout(finish, 1200);
+        });
+
+        return voicesReadyPromise;
+    }
+
+    function findMatchingVoice(languageCode, voices) {
+        const normalizedCode = normalizeLanguageCode(languageCode);
+        if (!normalizedCode || !Array.isArray(voices) || !voices.length) return null;
+
+        const exactMatch = voices.find((voice) => normalizeLanguageCode(voice.lang) === normalizedCode);
+        if (exactMatch) return exactMatch;
+
+        const prefixMatch = voices.find((voice) => normalizeLanguageCode(voice.lang).startsWith(`${normalizedCode}-`));
+        if (prefixMatch) return prefixMatch;
+
+        const shortCode = normalizedCode.split("-")[0];
+        return voices.find((voice) => normalizeLanguageCode(voice.lang).split("-")[0] === shortCode) || null;
+    }
+
+    async function speakOnce({ text, languageCode }) {
+        const trimmedText = String(text || "").trim();
+
+        if (!supported || !trimmedText) {
+            return false;
+        }
+
+        const voices = await ensureVoicesReady();
+        const utterance = new SpeechSynthesisUtterance(trimmedText);
+        const normalizedCode = normalizeLanguageCode(languageCode);
+        const matchedVoice = findMatchingVoice(normalizedCode, voices);
+
+        if (normalizedCode) {
+            utterance.lang = normalizedCode;
+        }
+
+        if (matchedVoice) {
+            utterance.voice = matchedVoice;
+            utterance.lang = matchedVoice.lang;
+        }
+
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        return new Promise((resolve) => {
+            let finished = false;
+
+            const finalize = (success) => {
+                if (finished) return;
+                finished = true;
+                resolve(success);
+            };
+
+            utterance.addEventListener("end", () => finalize(true), { once: true });
+            utterance.addEventListener("error", () => finalize(false), { once: true });
+
+            speechApi.cancel();
+
+            try {
+                speechApi.speak(utterance);
+            } catch (error) {
+                console.error("Speech playback error:", error);
+                finalize(false);
+            }
+        });
+    }
+
+    function createButton({ text, languageCode, label = "Play pronunciation", className = "" }) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = ["speak-btn", className].filter(Boolean).join(" ");
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", supported ? label : "Speech is not supported in this browser");
+        button.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M11 5 6.7 8.5H3.5a1.5 1.5 0 0 0-1.5 1.5v4a1.5 1.5 0 0 0 1.5 1.5h3.2L11 19c.9.7 2.2.1 2.2-1.1V6.1C13.2 4.9 11.9 4.3 11 5Z" fill="currentColor"></path>
+                <path d="M16 9.2a1 1 0 0 1 1.4.1 4.2 4.2 0 0 1 0 5.4 1 1 0 1 1-1.5-1.3 2.2 2.2 0 0 0 0-2.8 1 1 0 0 1 .1-1.4Z" fill="currentColor"></path>
+                <path d="M18.8 6.5a1 1 0 0 1 1.4.1 8.1 8.1 0 0 1 0 10.8 1 1 0 0 1-1.5-1.3 6.1 6.1 0 0 0 0-8.2 1 1 0 0 1 .1-1.4Z" fill="currentColor"></path>
+            </svg>
+        `;
+
+        if (!supported || !String(text || "").trim()) {
+            button.disabled = true;
+            return button;
+        }
+
+        button.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (button.classList.contains("is-speaking")) {
+                return;
+            }
+
+            button.classList.add("is-speaking");
+            button.disabled = true;
+
+            try {
+                await speakOnce({ text, languageCode });
+            } finally {
+                window.setTimeout(() => {
+                    button.disabled = false;
+                    button.classList.remove("is-speaking");
+                }, 120);
+            }
+        });
+
+        return button;
+    }
+
+    window.langlySpeech = {
+        isSupported: () => supported,
+        normalizeLanguageCode,
+        speakOnce,
+        createButton
+    };
+})();

@@ -34,6 +34,19 @@ function setToast(container, text, type) {
   }
 }
 
+function appendSpeechButton({ host, text, languageCode, label, className = "" }) {
+  if (!host || !window.langlySpeech?.createButton) return;
+
+  const button = window.langlySpeech.createButton({
+    text,
+    languageCode,
+    label,
+    className
+  });
+
+  host.appendChild(button);
+}
+
 function renderMiniStats({ container, stats }) {
   const host = container.querySelector("#dash-mini-grid");
   if (!host) return;
@@ -416,9 +429,13 @@ function renderWordsList({ container, state }) {
 
     row.innerHTML = `
       <div class="discovery-left">
-        <div>
-          <span class="discovery-word">${escapeHtml(w)}</span>
-          <span class="discovery-translation"> ${"\u2014"} ${escapeHtml(t)}</span>
+        <div class="discovery-text-stack">
+          <div class="discovery-line discovery-line--study">
+            <span class="discovery-word">${escapeHtml(w)}</span>
+          </div>
+          <div class="discovery-line discovery-line--translation">
+            <span class="discovery-translation">${escapeHtml(t)}</span>
+          </div>
         </div>
         ${showBase ? `<div class="discovery-meta">Base: ${escapeHtml(base)}</div>` : ""}
       </div>
@@ -427,6 +444,25 @@ function renderWordsList({ container, state }) {
         <button class="mini-pill primary" data-action="save" type="button">Save</button>
       </div>
     `;
+
+    const studyLine = row.querySelector(".discovery-line--study");
+    const translationLine = row.querySelector(".discovery-line--translation");
+
+    appendSpeechButton({
+      host: studyLine,
+      text: w,
+      languageCode: state?.user?.active_language_code,
+      label: `Play pronunciation for ${w}`,
+      className: "speak-btn--study"
+    });
+
+    appendSpeechButton({
+      host: translationLine,
+      text: t,
+      languageCode: state?.user?.native_language_code,
+      label: `Play pronunciation for ${t}`,
+      className: "speak-btn--translation"
+    });
 
     const copyBtn = row.querySelector('[data-action="copy"]');
     if (copyBtn) {

@@ -760,12 +760,14 @@ DELETE WORD
   align-items:center;
   justify-content:space-between;
   gap:16px;
+  flex-wrap:wrap;
 }
 
 .word-left{
   display:flex;
   align-items:center;
   min-width:0;
+  flex:1 1 220px;
 }
 
 .word-right{
@@ -773,6 +775,51 @@ DELETE WORD
   align-items:center;
   gap:14px;
   margin-left:auto;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  flex:1 1 280px;
+}
+
+.word-line{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.word-line--study,
+.word-line--translation{
+  max-width:100%;
+}
+
+.word-main,
+.word-translation{
+  min-width:0;
+  word-break:break-word;
+}
+
+.word-main{
+  font-weight:700;
+  color:#1f2a44;
+}
+
+.word-translation{
+  color:#5b6b86;
+  text-align:right;
+}
+
+.speak-btn--study{
+  background:rgba(77,101,255,0.08);
+}
+
+.speak-btn--translation{
+  background:rgba(60,201,200,0.08);
+  border-color:rgba(60,201,200,0.24);
+  color:#198c93;
+}
+
+.speak-btn--translation:hover:not(:disabled){
+  border-color:rgba(60,201,200,0.38);
 }
 
 .delete-word-btn{
@@ -867,4 +914,19 @@ MASTERED BUTTON
 .master-word-btn.active{
   background:#4caf50;
   color:#ffffff;
+}
+
+@media(max-width:760px){
+  .word-item{
+    align-items:flex-start;
+  }
+
+  .word-right{
+    margin-left:0;
+    justify-content:flex-start;
+  }
+
+  .word-translation{
+    text-align:left;
+  }
 }

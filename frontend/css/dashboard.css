@@ -451,16 +451,32 @@
 
 .discovery-left {
   min-width: 0;
+  flex: 1 1 auto;
+}
+
+.discovery-text-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.discovery-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .discovery-word {
   font-weight: 800;
   color: var(--text-main);
+  word-break: break-word;
 }
 
 .discovery-translation {
   color: var(--text-muted);
   font-weight: 600;
+  word-break: break-word;
 }
 
 .discovery-meta {
@@ -553,5 +569,16 @@
 
   .dash-custom-select {
     min-width: 0;
+  }
+
+  .discovery-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .discovery-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }

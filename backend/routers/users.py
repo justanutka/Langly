@@ -183,8 +183,10 @@ def read_users_me(
         "freeze_days": freeze_days,
         "active_language_id": current_user.active_language_id,
         "active_language_name": current_user.active_language.name if current_user.active_language else None,
+        "active_language_code": current_user.active_language.code if current_user.active_language else None,
         "native_language_id": current_user.native_language_id,
-        "native_language_name": current_user.native_language.name if current_user.native_language else None
+        "native_language_name": current_user.native_language.name if current_user.native_language else None,
+        "native_language_code": current_user.native_language.code if current_user.native_language else None
     }
 
 
