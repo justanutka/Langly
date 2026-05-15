@@ -76,31 +76,25 @@ async function loadFullDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-        const [dashboardRes, statsRes, wordsRes] = await Promise.all([
+        const [dashboardRes, statsRes] = await Promise.all([
             fetch(BASE_URL + "/study/dashboard", {
                 headers: { "Authorization": `Bearer ${token}` }
             }),
 
             fetch(BASE_URL + "/study/stats", {
                 headers: { "Authorization": `Bearer ${token}` }
-            }),
-
-            fetch(BASE_URL + "/study/daily-words-online", {
-                headers: { "Authorization": `Bearer ${token}` }
             })
         ]);
 
-        if (!dashboardRes.ok || !statsRes.ok || !wordsRes.ok) {
+        if (!dashboardRes.ok || !statsRes.ok) {
             throw new Error("API error");
         }
 
         const dashboard = await dashboardRes.json();
         const stats = await statsRes.json();
-        const words = await wordsRes.json();
 
         renderWelcome(dashboard, stats);
         renderStats(stats);
-        renderTodayWords(words);
 
     } catch (error) {
         console.error("Dashboard load error:", error);
@@ -112,19 +106,29 @@ function renderWelcome(dashboard, stats) {
     const container = document.getElementById("welcome-container");
     if (!container) return;
 
-    const xpNeededTotal = stats.xp_to_next_level + dashboard.xp;
-    const percent = xpNeededTotal > 0 ? (dashboard.xp / xpNeededTotal) * 100 : 0;
+    const xpNeededTotal = Number(stats?.xp_to_next_level || 0) + Number(dashboard?.xp || 0);
+    const percent = xpNeededTotal > 0 ? (Number(dashboard?.xp || 0) / xpNeededTotal) * 100 : 0;
+
+    const dot = "•";
+    const fire = "\uD83D\uDD25";
 
     container.innerHTML = `
-        <div class="welcome-card">
-            <h1 style="color:#4C5BFF;">Welcome back 👋</h1>
-            <div class="level-row">
-                Level ${dashboard.level} • 
-                XP ${dashboard.xp} / ${xpNeededTotal} • 
-                🔥 Streak ${dashboard.streak}
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width:${percent}%"></div>
+        <div class="welcome-card focus-card">
+            <div class="focus-kicker">TODAY'S FOCUS</div>
+            <div class="focus-main">
+                <div class="focus-title">Learn a small set and mark what sticks.</div>
+                <div class="focus-meta">
+                    Level ${dashboard.level} ${dot}
+                    ${dashboard.xp} / ${xpNeededTotal} XP ${dot}
+                    ${fire} ${dashboard.streak} day streak
+                </div>
+                <div class="focus-progress-row">
+                    <div class="focus-progress-label">Level progress</div>
+                    <div class="focus-progress-percent">${Math.round(percent)}%</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width:${percent}%"></div>
+                </div>
             </div>
         </div>
     `;
@@ -158,37 +162,6 @@ function renderStats(stats) {
 }
 
 
-function renderTodayWords(words) {
-    const container = document.getElementById("today-words-container");
-    if (!container) return;
-
-    let wordsHTML = `
-        <div class="words-card">
-            <h3>Today's words</h3>
-    `;
-
-    if (!words || words.length === 0) {
-        wordsHTML += `
-            <div class="empty-state">
-                🌍 No words available today.
-            </div>
-        `;
-    } else {
-        words.forEach(word => {
-            wordsHTML += `
-                <div class="word-item">
-                    <span>${word.word} — ${word.translation}</span>
-                </div>
-            `;
-        });
-    }
-
-    wordsHTML += `</div>`;
-
-    container.innerHTML = wordsHTML;
-}
-
-
 async function loadFolders() {
     const token = localStorage.getItem("token");
     const container = document.getElementById("folders-container");
@@ -214,7 +187,7 @@ async function loadFolders() {
             item.className = "folder-item";
 
             item.innerHTML = `
-                <span class="icon">📁</span>
+                <span class="icon">\uD83D\uDCC1</span>
                 <span class="folder-name">${folder.name}</span>
             `;
 

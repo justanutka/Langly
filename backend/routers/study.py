@@ -10,6 +10,89 @@ from ..stats import get_or_create_user_language, xp_needed_for_level
 
 router = APIRouter(prefix="/study", tags=["Study"])
 
+WORD_BANK_EN = [
+    "ability", "access", "action", "advice", "answer", "apple", "area", "artist",
+    "balance", "basic", "beauty", "benefit", "book", "brain", "bridge", "budget",
+    "camera", "career", "chance", "change", "choice", "coffee", "comfort", "common",
+    "company", "concept", "context", "control", "culture", "design", "detail", "dream",
+    "effort", "energy", "engine", "example", "expert", "family", "feature", "focus",
+    "forest", "future", "garden", "goal", "growth", "habit", "health", "history",
+    "idea", "impact", "income", "industry", "interest", "journey", "knowledge", "language",
+    "lesson", "level", "library", "logic", "market", "memory", "method", "moment",
+    "music", "nature", "network", "option", "pattern", "people", "percent", "planet",
+    "practice", "problem", "process", "product", "project", "quality", "question", "reason",
+    "research", "resource", "result", "routine", "science", "skill", "solution", "space",
+    "success", "system", "teacher", "team", "time", "topic", "training", "value",
+    "vision", "voice", "weather", "window", "work", "world", "writing",
+    "adapt", "agree", "allow", "arrive", "build", "choose", "create",
+    "decide", "develop", "discover", "enjoy", "explain", "finish", "follow", "improve",
+    "learn", "listen", "manage", "notice", "organize", "remember", "repeat",
+    "share", "start", "study", "support", "travel", "understand", "use", "watch",
+    "bright", "calm", "clean", "clear", "daily", "easy", "fair",
+    "fresh", "gentle", "happy", "helpful", "kind", "modern", "natural", "simple",
+    "smart", "strong", "useful", "warm"
+]
+
+
+def _translate_google(text: str, source_lang: str, target_lang: str):
+    if not text or source_lang == target_lang:
+        return text
+
+    try:
+        google_res = requests.get(
+            "https://translate.googleapis.com/translate_a/single",
+            params={
+                "client": "gtx",
+                "sl": source_lang,
+                "tl": target_lang,
+                "dt": "t",
+                "q": text
+            },
+            timeout=5
+        )
+
+        if google_res.status_code == 200:
+            data = google_res.json()
+            return data[0][0][0]
+    except Exception:
+        return text
+
+    return text
+
+
+@router.get("/daily-words")
+def get_daily_words(
+    variant: int = 0,
+    count: int = 5,
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Stable daily words: deterministic per (user, date, variant)."""
+    if not current_user.active_language or not current_user.native_language:
+        return []
+
+    study_lang = current_user.active_language.code
+    native_lang = current_user.native_language.code
+
+    seed = f"{date.today().isoformat()}:{current_user.id}:{variant}"
+    rng = random.Random(seed)
+
+    count = max(1, min(20, int(count)))
+    count = min(count, len(WORD_BANK_EN))
+    base_words = rng.sample(WORD_BANK_EN, k=count) if count > 0 else []
+
+    result = []
+    for word in base_words:
+        study_word = _translate_google(word, "en", study_lang) if study_lang != "en" else word
+        native_translation = _translate_google(word, "en", native_lang) if native_lang != "en" else word
+
+        result.append({
+            "word": study_word,
+            "translation": native_translation,
+            "base_word": word
+        })
+
+    return result
+
 
 # =========================
 # DAILY WORDS (ACTIVE → NATIVE) — GOOGLE API VERSION

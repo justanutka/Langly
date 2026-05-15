@@ -1,6 +1,8 @@
 :root {
   --indigo: #4D65FF;
   --indigo-hover: #4558E6;
+  --accent-teal: #3CC9C8;
+  --accent-pink: #F472B6;
   --bg-page: #F6F9FC;
   --sidebar-bg: rgba(255,255,255,0.85);
   --text-main: #0F172A;
@@ -80,7 +82,8 @@ body::after {
 /* LAYOUT */
 .app-layout {
   display: flex;
-  height: calc(100vh - 64px);
+  min-height: calc(100vh - 64px);
+  align-items: stretch;
   position: relative;
   z-index: 2;
 }
@@ -95,6 +98,7 @@ body::after {
   flex-direction: column;
   justify-content: space-between;
   padding: 30px 20px;
+  min-height: calc(100vh - 64px);
 }
 
 .sidebar-header {
