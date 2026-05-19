@@ -13,9 +13,16 @@ router = APIRouter(prefix="/users", tags=["Users"])
 # =========================
 @router.post("/register")
 def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+    normalized_email = auth.normalize_email(user.email)
+
+    if not auth.is_email_valid(normalized_email):
+        raise HTTPException(status_code=400, detail=auth.EMAIL_RULE_MESSAGE)
+
+    if not auth.is_password_strong(user.password):
+        raise HTTPException(status_code=400, detail=auth.PASSWORD_RULE_MESSAGE)
 
     db_user = db.query(models.User).filter(
-        models.User.email == user.email
+        models.User.email == normalized_email
     ).first()
 
     if db_user:
@@ -32,7 +39,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     hashed_password = auth.hash_password(user.password)
 
     new_user = models.User(
-        email=user.email,
+        email=normalized_email,
         password_hash=hashed_password,
         native_language_id=user.native_language_id 
     )
@@ -60,9 +67,10 @@ def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(database.get_db)
 ):
+    normalized_email = auth.normalize_email(form_data.username)
 
     db_user = db.query(models.User).filter(
-        models.User.email == form_data.username
+        models.User.email == normalized_email
     ).first()
 
     if not db_user or not auth.verify_password(
@@ -78,6 +86,48 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+@router.post("/forgot-password")
+def forgot_password(
+    payload: schemas.ForgotPasswordRequest,
+    db: Session = Depends(database.get_db)
+):
+    normalized_email = auth.normalize_email(payload.email)
+
+    if not auth.is_email_valid(normalized_email):
+        raise HTTPException(status_code=400, detail=auth.EMAIL_RULE_MESSAGE)
+
+    db.query(models.User).filter(models.User.email == normalized_email).first()
+
+    return {"message": "If this email exists, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+def reset_password(
+    payload: schemas.ResetPasswordRequest,
+    db: Session = Depends(database.get_db)
+):
+    normalized_email = auth.normalize_email(payload.email)
+
+    if not auth.is_email_valid(normalized_email):
+        raise HTTPException(status_code=400, detail=auth.EMAIL_RULE_MESSAGE)
+
+    if payload.new_password != payload.confirm_new_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match.")
+
+    if not auth.is_password_strong(payload.new_password):
+        raise HTTPException(status_code=400, detail=auth.PASSWORD_RULE_MESSAGE)
+
+    user = db.query(models.User).filter(models.User.email == normalized_email).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    user.password_hash = auth.hash_password(payload.new_password)
+    db.commit()
+
+    return {"message": "Password has been reset successfully."}
 
 
 # =========================

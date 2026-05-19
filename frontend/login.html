@@ -31,7 +31,17 @@
         <input id="email" type="email" class="text-input" />
 
         <label class="field-label" style="margin-top: 14px;">Password</label>
-        <input id="password" type="password" class="text-input" />
+        <div class="password-wrap">
+          <input id="password" type="password" class="text-input" />
+          <button
+            class="password-toggle"
+            type="button"
+            id="password-toggle"
+            aria-label="Show password"
+          >
+            <span class="password-toggle-icon" aria-hidden="true"></span>
+          </button>
+        </div>
 
         <div class="forgot-row">
           <a href="forgot-password.html">Forgot password?</a>
@@ -58,6 +68,15 @@
   <script>
   const form = document.getElementById("login-form");
   const messageBox = document.getElementById("message");
+  const passwordInput = document.getElementById("password");
+  const passwordToggle = document.getElementById("password-toggle");
+
+  passwordToggle?.addEventListener("click", () => {
+    const shouldShow = passwordInput.type === "password";
+    passwordInput.type = shouldShow ? "text" : "password";
+    passwordToggle.classList.toggle("is-visible", shouldShow);
+    passwordToggle.setAttribute("aria-label", shouldShow ? "Hide password" : "Show password");
+  });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -65,7 +84,6 @@
     messageBox.textContent = "";
 
     const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
 
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
@@ -101,13 +119,19 @@
       //saving token
       localStorage.setItem("token", data.access_token);
 
-      messageBox.textContent = "Login successful!";
-      messageBox.style.color = "#16a34a";
+      const meRes = await fetch("http://127.0.0.1:8000/users/me", {
+        headers: {
+          "Authorization": `Bearer ${data.access_token}`
+        }
+      });
 
-      //dashboard
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 800);
+      const meData = meRes.ok ? await meRes.json() : null;
+
+      if (meData?.active_language_id) {
+        window.location.replace("dashboard.html");
+      } else {
+        window.location.replace("choose-language.html");
+      }
 
     } catch {
       messageBox.textContent = "Cannot connect to API.";

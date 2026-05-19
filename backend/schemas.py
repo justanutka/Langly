@@ -13,6 +13,16 @@ class UserLogin(BaseModel):
     password: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    new_password: str
+    confirm_new_password: str
+
+
 class LanguageCreate(BaseModel):
     name: str
     code: str

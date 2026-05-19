@@ -11,6 +11,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -19,6 +23,15 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: opacity 0.18s ease;
+}
+
+body.page-pending {
+  opacity: 0;
+}
+
+body.page-pending * {
+  transition: none !important;
 }
 
 /* HEADER */
@@ -94,7 +107,8 @@ form {
   width: 280px;
 }
 
-/* LABELS — одинаковый стиль */
+
+/* LABELS */
 label {
   display: block;
   font-size: 14px;
@@ -103,15 +117,112 @@ label {
 }
 
 /* INPUTS */
-input[type="email"],
-input[type="password"] {
-  width: 280px;
+.field input {
+  width: 100%;
   height: 56px;
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid var(--mint-border);
   background: #ffffff;
   font-size: 15px;
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.password-toggle:hover {
+  background: rgba(77, 101, 255, 0.08);
+  color: var(--indigo);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid rgba(77, 101, 255, 0.22);
+  outline-offset: 2px;
+}
+
+.password-toggle-icon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+
+.password-toggle-icon::before,
+.password-toggle-icon::after {
+  content: "";
+  position: absolute;
+}
+
+.password-toggle-icon::before {
+  inset: 3px 0 3px 0;
+  border: 1.8px solid currentColor;
+  border-radius: 50% / 62%;
+}
+
+.password-toggle-icon::after {
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.password-toggle.is-visible .password-toggle-icon::before,
+.password-toggle.is-visible .password-toggle-icon::after {
+  opacity: 0.52;
+}
+
+.password-toggle.is-visible .password-toggle-icon {
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 43%,
+      currentColor 43%,
+      currentColor 57%,
+      transparent 57%
+    );
+}
+
+.field-error {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #dc2626;
+  display: none;
+}
+
+.field-error:not(:empty) {
+  display: block;
+  margin-top: 6px;
+}
+
+.field input.input-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.15);
 }
 
 /* SELECT — ПОЛНОСТЬЮ как input */
@@ -132,12 +243,17 @@ input[type="password"] {
   background-size: 18px;
 }
 
-/* FOCUS для input и select */
-input:focus,
+/* FOCUS for input и select */
+.field input:focus,
 #native-language:focus {
   outline: none;
   border-color: var(--indigo);
   box-shadow: 0 0 0 1px rgba(77, 101, 255, 0.35);
+}
+
+.field input.input-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.22);
 }
 
 /* Checkbox */
@@ -168,11 +284,17 @@ input:focus,
   background: var(--indigo-hover);
 }
 
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 /* Messages */
 #message {
   margin-top: 8px;
   font-size: 13px;
   text-align: center;
+  min-height: 18px;
 }
 
 #message.error {
@@ -202,7 +324,7 @@ input:focus,
 ========================= */
 
 #native-language {
-  margin-bottom: 24px; /* увеличили расстояние */
+  margin-bottom: 24px;
 }
 
 /* =========================
@@ -245,7 +367,7 @@ input:focus,
 }
 
 /* =========================
-   OPTION TEXT STYLE (частично работает)
+   OPTION TEXT STYLE 
 ========================= */
 
 #native-language option {
@@ -285,7 +407,6 @@ input:focus,
   box-shadow: 0 0 0 1px rgba(77, 101, 255, 0.35);
 }
 
-/* стрелка */
 .arrow {
   width: 0;
   height: 0;
@@ -299,7 +420,7 @@ input:focus,
   transform: rotate(180deg);
 }
 
-/* dropdown список */
+/* dropdown  */
 .select-options {
   position: absolute;
   top: 62px;
@@ -322,7 +443,6 @@ input:focus,
   pointer-events: all;
 }
 
-/* отдельный пункт */
 .select-option {
   padding: 14px 16px;
   cursor: pointer;

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="css/signup.css">
 </head>
 
-<body>
+<body class="page-pending">
   <!-- HEADER -->
   <header class="top-bar">
     <a href="index.html" class="brand">Langly</a>
@@ -25,20 +25,45 @@
 
       <h1 class="auth-title">Create your account</h1>
 
-      <form id="signup-form">
+      <form id="signup-form" novalidate>
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" type="email" required />
+          <input id="email" type="email" inputmode="email" autocomplete="email" required />
+          <div class="field-error" id="email-error"></div>
         </div>
 
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" required />
+          <div class="password-wrap">
+            <input id="password" type="password" autocomplete="new-password" minlength="7" required />
+            <button
+              class="password-toggle"
+              type="button"
+              data-toggle-password
+              data-target="password"
+              aria-label="Show password"
+            >
+              <span class="password-toggle-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="field-error" id="password-error"></div>
         </div>
 
         <div class="field">
           <label for="confirm">Confirm password</label>
-          <input id="confirm" type="password" required />
+          <div class="password-wrap">
+            <input id="confirm" type="password" autocomplete="new-password" minlength="7" required />
+            <button
+              class="password-toggle"
+              type="button"
+              data-toggle-password
+              data-target="confirm"
+              aria-label="Show password"
+            >
+              <span class="password-toggle-icon" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="field-error" id="confirm-error"></div>
         </div>
 
         <div class="field">
@@ -46,7 +71,7 @@
 
           <div class="custom-select" id="native-select">
             <div class="select-trigger">
-              <span id="selected-value"></span>
+              <span id="selected-value">Select a language</span>
               <div class="arrow"></div>
             </div>
 

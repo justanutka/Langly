@@ -1,37 +1,37 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
 document.addEventListener("DOMContentLoaded", async () => {
-
+  const pageBody = document.body;
+  const languagesContainer = document.getElementById("languages-container");
   const token = localStorage.getItem("token");
 
-  // Если нет токена — отправляем на login
+  function setPageReady() {
+    pageBody.classList.remove("page-pending");
+  }
+
+  function redirectTo(url) {
+    pageBody.classList.add("page-pending");
+    window.location.replace(url);
+  }
+
   if (!token) {
-    window.location.href = "login.html";
+    redirectTo("login.html");
     return;
   }
 
-  // =========================
-  // SMART LOGO REDIRECT
-  // =========================
   const logo = document.getElementById("logo-link");
 
   if (logo) {
     logo.addEventListener("click", () => {
-      const token = localStorage.getItem("token");
-
-      if (token) {
-        window.location.href = "dashboard.html";
+      if (localStorage.getItem("token")) {
+        redirectTo("dashboard.html");
       } else {
-        window.location.href = "index.html";
+        redirectTo("index.html");
       }
     });
   }
 
-  // =========================
-  // LOAD LANGUAGES
-  // =========================
   try {
-
     const res = await fetch(BASE_URL + "/users/languages");
 
     if (!res.ok) {
@@ -39,25 +39,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const languages = await res.json();
-    const container = document.getElementById("languages-container");
 
-    if (!container) return;
+    if (!languagesContainer) {
+      setPageReady();
+      return;
+    }
 
-    languages.forEach(lang => {
+    languagesContainer.innerHTML = "";
 
+    if (!Array.isArray(languages) || !languages.length) {
+      languagesContainer.innerHTML = '<div class="language-loading">No languages available.</div>';
+      return;
+    }
+
+    languages.forEach((lang) => {
       const btn = document.createElement("button");
+      btn.type = "button";
       btn.textContent = lang.name;
       btn.classList.add("language-btn");
 
       btn.addEventListener("click", async () => {
+        const allButtons = languagesContainer.querySelectorAll(".language-btn");
+        const originalText = btn.textContent;
 
         try {
+          allButtons.forEach((button) => {
+            button.disabled = true;
+          });
+          btn.textContent = "Saving...";
+
           const setRes = await fetch(
             BASE_URL + "/users/set-language?language_id=" + lang.id,
             {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${token}`
+                Authorization: `Bearer ${token}`
               }
             }
           );
@@ -66,19 +82,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             throw new Error("Failed to set language");
           }
 
-          window.location.href = "dashboard.html";
-
+          redirectTo("dashboard.html");
         } catch (error) {
           console.error("Language selection error:", error);
+          btn.textContent = originalText;
+          allButtons.forEach((button) => {
+            button.disabled = false;
+          });
         }
-
       });
 
-      container.appendChild(btn);
+      languagesContainer.appendChild(btn);
     });
-
   } catch (error) {
     console.error("Error loading languages:", error);
+    if (languagesContainer) {
+      languagesContainer.innerHTML = '<div class="language-loading">Could not load languages.</div>';
+    }
+  } finally {
+    setPageReady();
   }
-
 });

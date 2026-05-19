@@ -1,41 +1,101 @@
 const BASE_URL = "http://127.0.0.1:8000";
 
+function initPageState() {
+    if (window.langlyPageState) {
+        return window.langlyPageState;
+    }
+
+    window.langlyPageState = {
+        redirecting: false,
+
+        markReady(flag) {
+            if (!document.body) return;
+            if (flag) {
+                document.body.dataset[flag] = "1";
+            }
+            this.revealIfReady();
+        },
+
+        revealIfReady() {
+            if (!document.body || this.redirecting) return;
+
+            const isDashboardPage = Boolean(document.getElementById("discovery-container"));
+            const appShellReady = document.body.dataset.appShellReady === "1";
+
+            if (isDashboardPage) {
+                const dashboardReady = document.body.dataset.dashboardReady === "1";
+                if (appShellReady && dashboardReady) {
+                    document.body.classList.remove("page-pending");
+                }
+                return;
+            }
+
+            if (appShellReady) {
+                document.body.classList.remove("page-pending");
+            }
+        },
+
+        redirectTo(url) {
+            this.redirecting = true;
+            if (document.body) {
+                document.body.classList.add("page-pending");
+            }
+            window.location.replace(url);
+        }
+    };
+
+    return window.langlyPageState;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+    const pageState = initPageState();
     const token = localStorage.getItem("token");
 
     if (!token) {
-        window.location.href = "login.html";
+        pageState.redirectTo("login.html");
         return;
     }
 
-    await loadSidebar();
+    let shouldReveal = true;
 
-    const user = await getCurrentUserAndUpdateStreak();
+    try {
+        await loadSidebar();
 
-    if (!user) {
-        return;
-    }
+        const user = await getCurrentUserAndUpdateStreak();
 
-    if (!user.active_language_id) {
-        window.location.href = "choose-language.html";
-        return;
-    }
+        if (!user) {
+            shouldReveal = false;
+            return;
+        }
 
-    renderUserEmail(user);
+        if (!user.active_language_id) {
+            shouldReveal = false;
+            pageState.redirectTo("choose-language.html");
+            return;
+        }
 
-    const isDashboard = document.getElementById("welcome-container");
+        renderUserEmail(user);
 
-    if (isDashboard) {
-        await loadFullDashboard();
-    }
+        const isDashboard = document.getElementById("welcome-container");
 
-    const logoutBtn = document.getElementById("logout-btn");
+        if (isDashboard) {
+            await loadFullDashboard();
+        }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("token");
-            window.location.href = "index.html";
-        });
+        const logoutBtn = document.getElementById("logout-btn");
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                localStorage.removeItem("token");
+                pageState.redirectTo("index.html");
+            });
+        }
+    } catch (error) {
+        console.error("App bootstrap error:", error);
+    } finally {
+        if (shouldReveal && !pageState.redirecting) {
+            pageState.markReady("appShellReady");
+        }
     }
 });
 
@@ -57,7 +117,7 @@ async function getCurrentUserAndUpdateStreak() {
 
     } catch (error) {
         localStorage.removeItem("token");
-        window.location.href = "login.html";
+        window.langlyPageState?.redirectTo("login.html");
         return null;
     }
 }

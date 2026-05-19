@@ -1,15 +1,22 @@
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("discovery-container");
-  if (!container) return;
+  if (!container) {
+    window.langlyPageState?.markReady("dashboardReady");
+    return;
+  }
 
   const logo = document.getElementById("logo");
   if (logo) {
     logo.addEventListener("click", () => {
-      window.location.href = "dashboard.html";
+      window.location.replace("dashboard.html");
     });
   }
 
-  initDiscovery(container).catch((e) => console.error("Discovery init error:", e));
+  initDiscovery(container)
+    .catch((e) => console.error("Discovery init error:", e))
+    .finally(() => {
+      window.langlyPageState?.markReady("dashboardReady");
+    });
 });
 
 function todayIso() {

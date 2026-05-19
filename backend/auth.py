@@ -9,6 +9,8 @@ from . import database, models
 SECRET_KEY = "supersecretkey"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
+PASSWORD_RULE_MESSAGE = "Password must be at least 7 characters long and contain at least one letter and one digit."
+EMAIL_RULE_MESSAGE = "Email must contain @."
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -21,6 +23,29 @@ def hash_password(password: str):
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def normalize_email(email: str) -> str:
+    return str(email or "").strip().lower()
+
+
+def is_email_valid(email: str) -> bool:
+    normalized = normalize_email(email)
+    if "@" not in normalized:
+        return False
+
+    local_part, _, domain_part = normalized.partition("@")
+    return bool(local_part and domain_part)
+
+
+def is_password_strong(password: str) -> bool:
+    normalized = str(password or "")
+    if len(normalized) < 7:
+        return False
+
+    has_letter = any(char.isalpha() for char in normalized)
+    has_digit = any(char.isdigit() for char in normalized)
+    return has_letter and has_digit
 
 
 def create_access_token(data: dict):

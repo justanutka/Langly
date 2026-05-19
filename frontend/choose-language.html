@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/choose-language.css">
 </head>
-<body>
+<body class="page-pending">
   <header class="top-bar">
     <div class="top-bar-content">
       <div class="logo" id="logo-link">Langly</div>
@@ -16,11 +16,13 @@
 <div class="center-container">
 
   <div class="card">
-    <h1>Choose your language 🌍</h1>
+    <h1>Choose your study language 🌍</h1>
 
     <p>You can change it later in your profile settings.</p>
 
-    <div id="languages-container"></div>
+    <div id="languages-container">
+      <div class="language-loading">Loading languages...</div>
+    </div>
 
   </div>
 
