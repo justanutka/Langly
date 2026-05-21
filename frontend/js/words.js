@@ -499,7 +499,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
         sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
 
-        window.location.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
+        document.body?.classList.add("page-pending");
+        window.setTimeout(() => {
+            window.location.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
+        }, 120);
     }
 
     function goToQuiz(moduleId, moduleName) {
@@ -507,7 +510,10 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
         sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
         sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
-        window.location.href = `quiz.html?module=${moduleId}&name=${encodeURIComponent(moduleName || "")}`;
+        document.body?.classList.add("page-pending");
+        window.setTimeout(() => {
+            window.location.href = `quiz.html?module=${moduleId}&name=${encodeURIComponent(moduleName || "")}`;
+        }, 120);
     }
 
     function renderModules() {
@@ -845,37 +851,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     (async () => {
-        await loadFolders(true);
+        try {
+            await loadFolders(true);
 
-        if (await consumePendingSidebarFolder()) {
-            return;
-        }
-
-        const params = new URLSearchParams(window.location.search);
-        const folderIdFromUrl = params.get("folder");
-
-        const savedModuleId = sessionStorage.getItem("langlyCurrentModuleId");
-
-        if (folderIdFromUrl) {
-            const folder = currentFolders.find(f => f.id == folderIdFromUrl);
-
-            if (folder) {
-                await openFolder(folder);
-
-                if (savedModuleId) {
-                    const module = currentModules.find(m => m.id == savedModuleId);
-
-                    if (module) {
-                        await openModule(module);
-                        return;
-                    }
-                }
-
+            if (await consumePendingSidebarFolder()) {
                 return;
             }
-        }
 
-        showFoldersView();
-        await loadFolders(true);
+            const params = new URLSearchParams(window.location.search);
+            const folderIdFromUrl = params.get("folder");
+
+            const savedModuleId = sessionStorage.getItem("langlyCurrentModuleId");
+
+            if (folderIdFromUrl) {
+                const folder = currentFolders.find(f => f.id == folderIdFromUrl);
+
+                if (folder) {
+                    await openFolder(folder);
+
+                    if (savedModuleId) {
+                        const module = currentModules.find(m => m.id == savedModuleId);
+
+                        if (module) {
+                            await openModule(module);
+                            return;
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+            showFoldersView();
+            await loadFolders(true);
+        } finally {
+            window.langlyPageState?.markReady("wordsReady");
+        }
     })();
 });

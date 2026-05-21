@@ -153,6 +153,7 @@ function initStudyPicker() {
 
     let currentMode = null;
     let currentData = [];
+    let closeTimer = null;
 
     cardsBtn.addEventListener("click", async () => {
         await openStudyPicker("cards");
@@ -162,19 +163,39 @@ function initStudyPicker() {
         await openStudyPicker("quiz");
     });
 
+    function openStudyPickerModal() {
+        window.clearTimeout(closeTimer);
+        modal.classList.add("is-open");
+    }
+
+    function closeStudyPickerModal({ reset = true } = {}) {
+        modal.classList.remove("is-open");
+
+        if (!reset) return;
+
+        closeTimer = window.setTimeout(() => {
+            if (modal.classList.contains("is-open")) return;
+            content.innerHTML = "";
+            searchInput.value = "";
+            currentData = [];
+        }, 220);
+    }
+
+    function navigateWithFade(url) {
+        closeStudyPickerModal({ reset: false });
+        document.body?.classList.add("page-pending");
+        window.setTimeout(() => {
+            window.location.href = url;
+        }, 140);
+    }
+
     closeBtn.addEventListener("click", () => {
-        modal.style.display = "none";
-        content.innerHTML = "";
-        searchInput.value = "";
-        currentData = [];
+        closeStudyPickerModal();
     });
 
     modal.addEventListener("click", (e) => {
         if (e.target === modal) {
-            modal.style.display = "none";
-            content.innerHTML = "";
-            searchInput.value = "";
-            currentData = [];
+            closeStudyPickerModal();
         }
     });
 
@@ -183,7 +204,8 @@ function initStudyPicker() {
             currentData,
             currentMode,
             content,
-            searchInput.value.trim().toLowerCase()
+            searchInput.value.trim().toLowerCase(),
+            navigateWithFade
         );
     });
 
@@ -197,7 +219,7 @@ function initStudyPicker() {
 
         searchInput.value = "";
         content.innerHTML = `<div class="study-picker-loading">Loading...</div>`;
-        modal.style.display = "flex";
+        openStudyPickerModal();
 
         try {
             const token = localStorage.getItem("token");
@@ -244,7 +266,7 @@ function initStudyPicker() {
                 return;
             }
 
-            renderStudyPickerContent(currentData, currentMode, content, "");
+            renderStudyPickerContent(currentData, currentMode, content, "", navigateWithFade);
         } catch (error) {
             console.error(error);
             content.innerHTML = `<div class="study-picker-empty">Something went wrong.</div>`;
@@ -261,7 +283,7 @@ function initStudyPicker() {
     }
 }
 
-function renderStudyPickerContent(data, mode, content, searchTerm = "") {
+function renderStudyPickerContent(data, mode, content, searchTerm = "", navigate = null) {
     content.innerHTML = "";
 
     const filteredFolders = data
@@ -314,9 +336,19 @@ function renderStudyPickerContent(data, mode, content, searchTerm = "") {
                 sessionStorage.setItem("langlyCurrentModuleTitle", module.name || "");
 
                 if (mode === "cards") {
-                    window.location.href = `flashcards.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
+                    const url = `flashcards.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
+                    if (typeof navigate === "function") {
+                        navigate(url);
+                    } else {
+                        window.location.href = url;
+                    }
                 } else {
-                    window.location.href = `quiz.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
+                    const url = `quiz.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
+                    if (typeof navigate === "function") {
+                        navigate(url);
+                    } else {
+                        window.location.href = url;
+                    }
                 }
             });
 

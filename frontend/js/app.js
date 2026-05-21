@@ -20,11 +20,20 @@ function initPageState() {
             if (!document.body || this.redirecting) return;
 
             const isDashboardPage = Boolean(document.getElementById("discovery-container"));
+            const isLibraryPage = Boolean(document.getElementById("folders-view"));
             const appShellReady = document.body.dataset.appShellReady === "1";
 
             if (isDashboardPage) {
                 const dashboardReady = document.body.dataset.dashboardReady === "1";
                 if (appShellReady && dashboardReady) {
+                    document.body.classList.remove("page-pending");
+                }
+                return;
+            }
+
+            if (isLibraryPage) {
+                const wordsReady = document.body.dataset.wordsReady === "1";
+                if (appShellReady && wordsReady) {
                     document.body.classList.remove("page-pending");
                 }
                 return;

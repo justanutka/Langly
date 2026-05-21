@@ -24,17 +24,17 @@ body::before{
 }
 
 .app-layout{
-  min-height:calc(100vh - 70px);
+  min-height:calc(100vh - 64px);
   background:transparent !important;
 }
 
 .main-content{
-  min-height:calc(100vh - 70px);
+  min-height:calc(100vh - 64px);
   background:transparent !important;
 }
 
 .flashcards-page{
-  min-height:calc(100vh - 84px);
+  min-height:calc(100vh - 64px);
   padding:18px 56px 50px;
   background:transparent !important;
   border:none !important;

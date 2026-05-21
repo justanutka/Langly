@@ -41,7 +41,7 @@ body::before{
 }
 
 .quiz-page{
-  min-height:calc(100vh - 72px);
+  min-height:calc(100vh - 64px);
   padding:16px 24px 48px;
   background:transparent !important;
   border-radius:0;
