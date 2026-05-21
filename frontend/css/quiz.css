@@ -231,6 +231,11 @@ body::before{
 .quiz-stage{
   position:relative;
   min-height:420px;
+  visibility:hidden;
+}
+
+.quiz-stage.quiz-stage--ready{
+  visibility:visible;
 }
 
 .quiz-card{

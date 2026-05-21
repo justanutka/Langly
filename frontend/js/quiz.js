@@ -8,18 +8,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    if (typeof loadSidebar === "function") {
-        await loadSidebar();
-    }
-
     const params = new URLSearchParams(window.location.search);
     const moduleId = params.get("module");
     const moduleName =
         params.get("name") ||
         sessionStorage.getItem("langlyCurrentModuleTitle") ||
         "Quiz";
+    const moduleTitleEl = document.getElementById("quiz-module-title");
+
+    if (moduleTitleEl) {
+        moduleTitleEl.textContent = moduleName;
+    }
+
+    if (typeof loadSidebar === "function") {
+        await loadSidebar();
+    }
 
     const quizShell = document.querySelector(".quiz-shell");
+    const quizStage = document.getElementById("quiz-stage");
     const logo = document.getElementById("logo");
     const logoutBtn = document.getElementById("logout-btn");
     const backBtn = document.getElementById("back-btn");
@@ -30,7 +36,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const emptyView = document.getElementById("quiz-empty-view");
     const quizViews = [startView, playView, resultView, emptyView].filter(Boolean);
 
-    const moduleTitleEl = document.getElementById("quiz-module-title");
     const wordCountLabel = document.getElementById("word-count-label");
     const countSelect = document.getElementById("quiz-count-select");
     const countSelectSelected = countSelect?.querySelector(".quiz-select-selected");
@@ -59,6 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentView = "start";
     let persistentShellMinHeight = "";
     let persistentResultMinHeight = "";
+    let activeResultSaveId = 0;
     const RESULT_EMOJI = "\uD83C\uDF89";
 
     function getResultStorageKey() {
@@ -150,13 +156,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function showView(viewName, options = {}) {
         if (viewName === "result" && currentView === "play") {
-            if (playView) {
-                playView.classList.add("quiz-play-view--result");
-                playView.setAttribute("aria-hidden", "false");
-            }
+            stabilizeShellHeight(() => {
+                if (playView) {
+                    playView.classList.add("quiz-play-view--result");
+                    playView.setAttribute("aria-hidden", "false");
+                }
 
-            currentView = viewName;
-            updateBackButton();
+                currentView = viewName;
+                quizStage?.classList.add("quiz-stage--ready");
+                updateBackButton();
+            }, options);
             return;
         }
 
@@ -176,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             currentView = viewName;
+            quizStage?.classList.add("quiz-stage--ready");
             updateBackButton();
         }, options);
     }
@@ -217,6 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function resetActiveQuizState() {
+        activeResultSaveId++;
         clearPersistentHeightLocks();
         questions = [];
         currentQuestionIndex = 0;
@@ -313,6 +324,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (isFinishingQuiz) return;
             showStartScreen();
         });
+    }
+
+    function updateRenderedResultSummary(scoreValue, totalValue, saved, xpValue) {
+        const summary = questionContainer.querySelector(".result-summary");
+        if (!summary) return;
+
+        summary.textContent = buildResultSummary(scoreValue, totalValue, saved, xpValue);
     }
 
     function restoreSavedResultState() {
@@ -854,10 +872,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderTrueFalse(question);
     }
 
-    async function saveQuizAttempt() {
-        if (quizSaved || !moduleId || !selectedMode || !questions.length) {
-            return;
+    async function saveQuizAttempt(payload = null) {
+        if (!payload && (quizSaved || !moduleId || !selectedMode || !questions.length)) {
+            return null;
         }
+
+        const attemptPayload = payload || {
+            module_id: Number(moduleId),
+            quiz_type: selectedMode,
+            score,
+            total_questions: questions.length,
+            answers: answersToSave
+        };
 
         try {
             const res = await fetch(`${BASE_URL}/quiz/attempt`, {
@@ -866,43 +892,50 @@ document.addEventListener("DOMContentLoaded", async () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    module_id: Number(moduleId),
-                    quiz_type: selectedMode,
-                    score,
-                    total_questions: questions.length,
-                    answers: answersToSave
-                })
+                body: JSON.stringify(attemptPayload)
             });
 
             if (!res.ok) {
                 const errorData = await res.json().catch(() => null);
                 console.error("Quiz save error:", errorData);
-                return;
+                return null;
             }
 
             const data = await res.json();
-            earnedXp = data.xp_earned || 0;
-            quizSaved = true;
+            return data.xp_earned || 0;
         } catch (error) {
             console.error("Failed to save quiz attempt:", error);
+            return null;
         }
     }
 
     async function showResults() {
-        await saveQuizAttempt();
-
         const total = questions.length;
         const percent = total ? Math.round((score / total) * 100) : 0;
+        const shellHeight = quizShell?.getBoundingClientRect().height || 0;
         const playHeight = playView?.getBoundingClientRect().height || 0;
+        const resultSaveId = ++activeResultSaveId;
+        const finishedMode = selectedMode;
+        const attemptPayload = {
+            module_id: Number(moduleId),
+            quiz_type: finishedMode,
+            score,
+            total_questions: total,
+            answers: answersToSave.map((answer) => ({ ...answer }))
+        };
 
         progressFill.style.transition = "none";
         progressFill.style.width = "100%";
 
         saveResultState();
+        if (shellHeight > 0) {
+            persistentShellMinHeight = `${Math.ceil(shellHeight)}px`;
+            quizShell.style.minHeight = persistentShellMinHeight;
+        }
+
         if (playHeight > 0) {
-            persistentShellMinHeight = `${Math.ceil(playHeight)}px`;
             persistentResultMinHeight = `${Math.ceil(playHeight)}px`;
+            playView.style.minHeight = persistentResultMinHeight;
         }
 
         renderResultContent({
@@ -920,6 +953,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             freezeTo: playView
         });
         syncHistory("result", "replace");
+
+        saveQuizAttempt(attemptPayload).then((xpValue) => {
+            if (activeResultSaveId !== resultSaveId || currentView !== "result" || selectedMode !== finishedMode) {
+                return;
+            }
+
+            if (xpValue === null) {
+                return;
+            }
+
+            earnedXp = xpValue;
+            quizSaved = true;
+            updateRenderedResultSummary(score, total, quizSaved, earnedXp);
+            saveResultState();
+        });
     }
 
     function startQuiz(mode) {
@@ -1008,8 +1056,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             restoreSavedResultState();
         }
     });
-
-    moduleTitleEl.textContent = moduleName;
 
     document.querySelectorAll(".mode-card").forEach((button) => {
         button.addEventListener("click", () => {
