@@ -115,11 +115,20 @@ async function loadSidebarFolders() {
             `;
 
             item.addEventListener("click", () => {
-                if (window.location.pathname.includes("my-words.html")) {
-                    window.location.href = `my-words.html?folder=${folder.id}`;
+                const isLibraryPage = window.location.pathname.includes("my-words.html") ||
+                    Boolean(document.getElementById("folders-view"));
+
+                if (isLibraryPage) {
+                    if (typeof window.openFolderFromSidebar === "function") {
+                        window.openFolderFromSidebar(folder);
+                    } else {
+                        window.langlyPendingSidebarFolder = folder;
+                        window.history.pushState(null, "", `?folder=${folder.id}`);
+                    }
                 } else {
                     sessionStorage.setItem("langlyCurrentFolderId", folder.id ?? "");
                     sessionStorage.setItem("langlyCurrentFolderTitle", folder.name || "");
+                    document.body?.classList.add("page-pending");
                     window.location.href = `my-words.html?folder=${folder.id}`;
                 }
             });

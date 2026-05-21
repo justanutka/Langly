@@ -625,6 +625,34 @@ document.addEventListener("DOMContentLoaded", () => {
         await loadModules(folder.id);
     }
 
+    window.openFolderFromSidebar = async (folderOrId) => {
+        const folderId = typeof folderOrId === "object" ? folderOrId?.id : folderOrId;
+        const knownFolder = currentFolders.find(candidate => String(candidate.id) === String(folderId));
+        const folder = knownFolder || (typeof folderOrId === "object" ? folderOrId : null);
+
+        if (!folder) {
+            await loadFolders(true);
+        }
+
+        const resolvedFolder = folder || currentFolders.find(candidate => String(candidate.id) === String(folderId));
+
+        if (!resolvedFolder) {
+            return;
+        }
+
+        history.pushState(null, "", `?folder=${resolvedFolder.id}`);
+        await openFolder(resolvedFolder);
+    };
+
+    async function consumePendingSidebarFolder() {
+        const pendingFolder = window.langlyPendingSidebarFolder;
+        if (!pendingFolder) return false;
+
+        window.langlyPendingSidebarFolder = null;
+        await window.openFolderFromSidebar(pendingFolder);
+        return true;
+    }
+
     async function openModule(module) {
         showWordsView(module);
         saveWordsState();
@@ -818,6 +846,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     (async () => {
         await loadFolders(true);
+
+        if (await consumePendingSidebarFolder()) {
+            return;
+        }
 
         const params = new URLSearchParams(window.location.search);
         const folderIdFromUrl = params.get("folder");

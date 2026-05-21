@@ -252,11 +252,18 @@ async function loadFolders() {
             `;
 
             item.onclick = () => {
-                if (window.location.pathname.includes("my-words.html")) {
+                const isLibraryPage = window.location.pathname.includes("my-words.html") ||
+                    Boolean(document.getElementById("folders-view"));
+
+                if (isLibraryPage) {
                     if (typeof openFolderFromSidebar === "function") {
-                        openFolderFromSidebar(folder.id);
+                        openFolderFromSidebar(folder);
+                    } else {
+                        window.langlyPendingSidebarFolder = folder;
+                        window.history.pushState(null, "", `?folder=${folder.id}`);
                     }
                 } else {
+                    document.body?.classList.add("page-pending");
                     window.location.href = `my-words.html?folder=${folder.id}`;
                 }
             };
