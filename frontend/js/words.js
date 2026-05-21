@@ -47,6 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const folderTitle = document.getElementById("folder-title");
     const moduleTitle = document.getElementById("module-title");
+    const pageTitle = document.getElementById("words-page-title");
+    const pageSubtitle = document.getElementById("words-page-subtitle");
 
     const folderModal = document.getElementById("folder-modal");
     const moduleModal = document.getElementById("module-modal");
@@ -143,6 +145,16 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("langlyCurrentModuleTitle", "");
     }
 
+    function updatePageHeader(title, subtitle) {
+        if (pageTitle) {
+            pageTitle.textContent = title;
+        }
+
+        if (pageSubtitle) {
+            pageSubtitle.textContent = subtitle;
+        }
+    }
+
     function showFoldersView() {
         currentView = "folders";
         foldersView.style.display = "block";
@@ -150,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
         wordsView.style.display = "none";
         currentFolderId = null;
         currentModuleId = null;
+        updatePageHeader("My Folders", "Organize and study your vocabulary");
         updateTopButton();
         clearAllWordsState();
     }
@@ -162,6 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "block";
         wordsView.style.display = "none";
         folderTitle.textContent = folderName;
+        updatePageHeader("My Modules", "Choose a module to add words, review cards, or start a quiz.");
         updateTopButton();
         clearModuleState();
         saveWordsState();
@@ -174,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "none";
         wordsView.style.display = "block";
         moduleTitle.textContent = module.name;
+        updatePageHeader("My Words", "Add and review words in this module.");
         hideWordMessage();
         saveWordsState();
     }
@@ -807,8 +822,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
         const folderIdFromUrl = params.get("folder");
 
-        const savedView = sessionStorage.getItem("langlyWordsView");
-        const savedFolderId = sessionStorage.getItem("langlyCurrentFolderId");
         const savedModuleId = sessionStorage.getItem("langlyCurrentModuleId");
 
         if (folderIdFromUrl) {
@@ -822,25 +835,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (module) {
                         await openModule(module);
-                        return;
-                    }
-                }
-
-                return;
-            }
-        }
-
-        if (savedFolderId) {
-            const savedFolder = currentFolders.find(f => f.id == savedFolderId);
-
-            if (savedFolder) {
-                await openFolder(savedFolder);
-
-                if (savedView === "words" && savedModuleId) {
-                    const savedModule = currentModules.find(m => m.id == savedModuleId);
-
-                    if (savedModule) {
-                        await openModule(savedModule);
                         return;
                     }
                 }
