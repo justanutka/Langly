@@ -154,7 +154,7 @@ async function initDiscovery(container) {
           <div class="dash-action-badge">1</div>
           <div class="dash-action-title">Build a deck</div>
           <div class="dash-action-desc">Keep folders small so every module feels finishable.</div>
-          <a class="dash-action-link" href="my-words.html">Open words</a>
+          <a class="dash-action-link" href="my-words.html">Open library</a>
         </div>
         <div class="dash-action-card">
           <div class="dash-action-badge">2</div>
