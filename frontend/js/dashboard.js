@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("discovery-container");
   if (!container) {
-    window.langlyPageState?.markReady("dashboardReady");
     return;
   }
 
@@ -13,10 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   initDiscovery(container)
-    .catch((e) => console.error("Discovery init error:", e))
-    .finally(() => {
-      window.langlyPageState?.markReady("dashboardReady");
-    });
+    .catch((e) => console.error("Discovery init error:", e));
 });
 
 function todayIso() {

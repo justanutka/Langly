@@ -10,6 +10,7 @@ async function loadSidebar() {
     container.innerHTML = html;
 
     initSidebar();
+    initSidebarPageTransitions();
     initNewFolderButton();
     initStudyPicker();
     await loadSidebarUserData();
@@ -36,6 +37,32 @@ function initSidebar() {
             "langlySidebarCollapsed",
             sidebar.classList.contains("collapsed") ? "1" : "0"
         );
+    });
+}
+
+function initSidebarPageTransitions() {
+    const links = document.querySelectorAll(".sidebar-nav .nav-item[href]");
+
+    links.forEach((link) => {
+        link.addEventListener("click", (event) => {
+            const href = link.getAttribute("href");
+            if (!href || href.startsWith("#")) return;
+
+            const targetUrl = new URL(href, window.location.href);
+            const currentUrl = new URL(window.location.href);
+
+            if (targetUrl.pathname === currentUrl.pathname && targetUrl.search === currentUrl.search) {
+                event.preventDefault();
+                return;
+            }
+
+            event.preventDefault();
+            document.body?.classList.add("page-transitioning");
+
+            window.setTimeout(() => {
+                window.location.href = targetUrl.href;
+            }, 140);
+        });
     });
 }
 
@@ -128,7 +155,7 @@ async function loadSidebarFolders() {
                 } else {
                     sessionStorage.setItem("langlyCurrentFolderId", folder.id ?? "");
                     sessionStorage.setItem("langlyCurrentFolderTitle", folder.name || "");
-                    document.body?.classList.add("page-pending");
+                    document.body?.classList.add("page-transitioning");
                     window.location.href = `my-words.html?folder=${folder.id}`;
                 }
             });
@@ -183,7 +210,7 @@ function initStudyPicker() {
 
     function navigateWithFade(url) {
         closeStudyPickerModal({ reset: false });
-        document.body?.classList.add("page-pending");
+        document.body?.classList.add("page-transitioning");
         window.setTimeout(() => {
             window.location.href = url;
         }, 140);

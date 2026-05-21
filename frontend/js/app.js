@@ -23,11 +23,8 @@ function initPageState() {
             const isLibraryPage = Boolean(document.getElementById("folders-view"));
             const appShellReady = document.body.dataset.appShellReady === "1";
 
-            if (isDashboardPage) {
-                const dashboardReady = document.body.dataset.dashboardReady === "1";
-                if (appShellReady && dashboardReady) {
-                    document.body.classList.remove("page-pending");
-                }
+            if (isDashboardPage && appShellReady) {
+                document.body.classList.remove("page-pending");
                 return;
             }
 
@@ -47,7 +44,7 @@ function initPageState() {
         redirectTo(url) {
             this.redirecting = true;
             if (document.body) {
-                document.body.classList.add("page-pending");
+                document.body.classList.add("page-transitioning");
             }
             window.location.replace(url);
         }
@@ -272,7 +269,7 @@ async function loadFolders() {
                         window.history.pushState(null, "", `?folder=${folder.id}`);
                     }
                 } else {
-                    document.body?.classList.add("page-pending");
+                    document.body?.classList.add("page-transitioning");
                     window.location.href = `my-words.html?folder=${folder.id}`;
                 }
             };

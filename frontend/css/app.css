@@ -19,14 +19,14 @@ body {
   font-family: "Inter", sans-serif;
   background: var(--bg-page);
   overflow-x: hidden;
-  transition: opacity 0.18s ease;
+  transition: opacity 0.14s ease;
 }
 
-body.page-pending {
-  opacity: 0;
+body.page-transitioning {
+  opacity: 0.08;
 }
 
-body.page-pending * {
+body.page-transitioning * {
   transition: none !important;
 }
 

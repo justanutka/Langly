@@ -16,27 +16,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    if (typeof loadSidebar === "function") {
-        await loadSidebar();
-    }
+    try {
+        if (typeof loadSidebar === "function") {
+            await loadSidebar();
+        }
 
-    const logo = document.getElementById("logo");
-    if (logo) {
-        logo.addEventListener("click", () => {
-            window.location.href = "dashboard.html";
-        });
-    }
+        const logo = document.getElementById("logo");
+        if (logo) {
+            logo.addEventListener("click", () => {
+                document.body?.classList.add("page-transitioning");
+                window.setTimeout(() => {
+                    window.location.href = "dashboard.html";
+                }, 140);
+            });
+        }
 
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("token");
-            window.location.href = "index.html";
-        });
-    }
+        const logoutBtn = document.getElementById("logout-btn");
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => {
+                localStorage.removeItem("token");
+                document.body?.classList.add("page-transitioning");
+                window.setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 140);
+            });
+        }
 
-    initNotesPage();
-    await loadNotes();
+        initNotesPage();
+        await loadNotes();
+    } finally {
+        document.body.classList.remove("page-pending");
+    }
 });
 
 function initNotesPage() {

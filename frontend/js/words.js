@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
         sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
 
-        document.body?.classList.add("page-pending");
+        document.body?.classList.add("page-transitioning");
         window.setTimeout(() => {
             window.location.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
         }, 120);
@@ -510,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
         sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
         sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
-        document.body?.classList.add("page-pending");
+        document.body?.classList.add("page-transitioning");
         window.setTimeout(() => {
             window.location.href = `quiz.html?module=${moduleId}&name=${encodeURIComponent(moduleName || "")}`;
         }, 120);
