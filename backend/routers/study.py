@@ -133,7 +133,6 @@ def get_daily_words_online(
         study_word = word
         native_translation = word
 
-        # Если язык обучения не английский — переводим слово в study язык
         if study_lang != "en":
             try:
                 google_res = requests.get(

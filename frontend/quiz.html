@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz – Langly</title>
+    <title>Quiz - Langly</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,9 +53,12 @@
                     </div>
 
                     <div class="quiz-header-stats">
-                        <div class="hero-pill hero-pill-blue">
-                            <span>Questions</span>
-                            <strong id="question-count-label">0</strong>
+                        <div class="quiz-count-panel">
+                            <div class="quiz-count-label">Questions in quiz</div>
+                            <div class="quiz-custom-select quiz-custom-select--compact" id="quiz-count-select" data-value="">
+                                <div class="quiz-select-selected">Select amount</div>
+                                <div class="quiz-select-items quiz-select-hide"></div>
+                            </div>
                         </div>
 
                         <div class="hero-pill hero-pill-violet">
@@ -65,7 +68,8 @@
                     </div>
                 </section>
 
-                <div id="quiz-start-view" class="quiz-card">
+                <div id="quiz-stage" class="quiz-stage">
+                <div id="quiz-start-view" class="quiz-card quiz-card--active">
                     <div class="section-head">
                         <h2 class="section-title">Choose quiz mode</h2>
                         <p class="section-note">A few minutes now, stronger recall later.</p>
@@ -98,7 +102,7 @@
                     </div>
                 </div>
 
-                <div id="quiz-play-view" class="quiz-card" style="display:none;">
+                <div id="quiz-play-view" class="quiz-card">
                     <div class="progress-top">
                         <div class="progress-text">
                             <span id="progress-label">Question 1 / 10</span>
@@ -113,7 +117,7 @@
                     <div id="question-container"></div>
                 </div>
 
-                <div id="quiz-result-view" class="quiz-card" style="display:none;">
+                <div id="quiz-result-view" class="quiz-card">
                     <div class="result-top">
                         <div class="result-emoji">🎉</div>
                         <h2>Your result</h2>
@@ -148,11 +152,12 @@
                     </div>
                 </div>
 
-                <div id="quiz-empty-view" class="quiz-card" style="display:none;">
+                <div id="quiz-empty-view" class="quiz-card">
                     <h2 class="section-title">Not enough words</h2>
                     <p class="empty-text">
                         Add at least 2 words to this module before starting a quiz.
                     </p>
+                </div>
                 </div>
             </div>
         </div>

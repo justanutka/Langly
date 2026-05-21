@@ -12,6 +12,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadSidebar();
     }
 
+    const params = new URLSearchParams(window.location.search);
+    const moduleId = params.get("module");
+    const moduleName =
+        params.get("name") ||
+        sessionStorage.getItem("langlyCurrentModuleTitle") ||
+        "Quiz";
+
+    const quizShell = document.querySelector(".quiz-shell");
     const logo = document.getElementById("logo");
     const logoutBtn = document.getElementById("logout-btn");
     const backBtn = document.getElementById("back-btn");
@@ -20,62 +28,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const playView = document.getElementById("quiz-play-view");
     const resultView = document.getElementById("quiz-result-view");
     const emptyView = document.getElementById("quiz-empty-view");
+    const quizViews = [startView, playView, resultView, emptyView].filter(Boolean);
 
     const moduleTitleEl = document.getElementById("quiz-module-title");
-    const questionCountLabel = document.getElementById("question-count-label");
     const wordCountLabel = document.getElementById("word-count-label");
+    const countSelect = document.getElementById("quiz-count-select");
+    const countSelectSelected = countSelect?.querySelector(".quiz-select-selected");
+    const countSelectItems = countSelect?.querySelector(".quiz-select-items");
+    const countHint = document.getElementById("quiz-count-hint");
 
     const progressLabel = document.getElementById("progress-label");
     const scoreLabel = document.getElementById("score-label");
     const progressFill = document.getElementById("progress-fill");
     const questionContainer = document.getElementById("question-container");
 
-    const resultSummary = document.getElementById("result-summary");
-    const resultCorrect = document.getElementById("result-correct");
-    const resultTotal = document.getElementById("result-total");
-    const resultPercent = document.getElementById("result-percent");
-    const mistakesBlock = document.getElementById("mistakes-block");
-    const mistakesList = document.getElementById("mistakes-list");
-
     const restartBtn = document.getElementById("restart-btn");
     const changeModeBtn = document.getElementById("change-mode-btn");
 
-    if (logo) {
-        logo.addEventListener("click", () => {
-            window.location.href = "dashboard.html";
-        });
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("token");
-            window.location.href = "index.html";
-        });
-    }
-
-    if (backBtn) {
-        backBtn.addEventListener("click", () => {
-            clearSavedResultState();
-            const folderId = sessionStorage.getItem("langlyCurrentFolderId");
-            if (folderId) {
-                window.location.href = `my-words.html?folder=${folderId}`;
-            } else {
-                window.location.href = "my-words.html";
-            }
-        });
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const moduleId = params.get("module");
-    const moduleName =
-        params.get("name") ||
-        sessionStorage.getItem("langlyCurrentModuleTitle") ||
-        "Quiz";
-
-    moduleTitleEl.textContent = moduleName;
-
     let moduleWords = [];
     let selectedMode = null;
+    let selectedQuestionCount = 0;
     let questions = [];
     let currentQuestionIndex = 0;
     let score = 0;
@@ -84,9 +56,139 @@ document.addEventListener("DOMContentLoaded", async () => {
     let quizSaved = false;
     let earnedXp = 0;
     let isFinishingQuiz = false;
+    let currentView = "start";
+    let persistentShellMinHeight = "";
+    let persistentResultMinHeight = "";
+    const RESULT_EMOJI = "\uD83C\uDF89";
 
     function getResultStorageKey() {
         return `langlyQuizResult_${moduleId}`;
+    }
+
+    function getHistoryState(view) {
+        return {
+            langlyQuizPage: true,
+            moduleId: String(moduleId || ""),
+            view
+        };
+    }
+
+    function updateBackButton() {
+        if (!backBtn) return;
+
+        if (currentView === "play" || currentView === "result") {
+            backBtn.textContent = "← Back to quiz modes";
+            return;
+        }
+
+        backBtn.textContent = "← Back to module";
+    }
+
+    function stabilizeShellHeight(callback, { scrollToTop = false, freezeFrom = null, freezeTo = null } = {}) {
+        const previousMinHeight = quizShell?.style.minHeight || "";
+        const currentHeight = quizShell?.getBoundingClientRect().height || 0;
+        const previousTargetMinHeight = freezeTo?.style.minHeight || "";
+        const fromHeight = freezeFrom?.getBoundingClientRect().height || 0;
+        const scrollBefore = window.scrollY;
+        const shellTopBefore = quizShell?.getBoundingClientRect().top || 0;
+
+        if (quizShell && currentHeight > 0) {
+            quizShell.style.minHeight = `${Math.ceil(currentHeight)}px`;
+        }
+
+        callback();
+
+        if (freezeTo && fromHeight > 0) {
+            freezeTo.style.minHeight = `${Math.ceil(fromHeight)}px`;
+        }
+
+        if (scrollToTop && quizShell) {
+            const shellTop = quizShell.getBoundingClientRect().top + window.scrollY - 12;
+            window.scrollTo({
+                top: Math.max(0, shellTop),
+                behavior: "auto"
+            });
+        }
+
+        if (!scrollToTop) {
+            window.requestAnimationFrame(() => {
+                const shellTopAfter = quizShell?.getBoundingClientRect().top || 0;
+                const delta = shellTopAfter - shellTopBefore;
+                window.scrollTo({
+                    top: Math.max(0, scrollBefore + delta),
+                    behavior: "auto"
+                });
+            });
+        }
+
+        window.setTimeout(() => {
+            if (quizShell) {
+                quizShell.style.minHeight = persistentShellMinHeight || previousMinHeight;
+            }
+            if (freezeTo) {
+                freezeTo.style.minHeight = persistentResultMinHeight || previousTargetMinHeight;
+            }
+        }, 320);
+    }
+
+    function clearPersistentHeightLocks() {
+        persistentShellMinHeight = "";
+        persistentResultMinHeight = "";
+
+        if (quizShell) {
+            quizShell.style.minHeight = "";
+        }
+
+        if (playView) {
+            playView.style.minHeight = "";
+        }
+
+        if (resultView) {
+            resultView.style.minHeight = "";
+        }
+    }
+
+    function showView(viewName, options = {}) {
+        if (viewName === "result" && currentView === "play") {
+            if (playView) {
+                playView.classList.add("quiz-play-view--result");
+                playView.setAttribute("aria-hidden", "false");
+            }
+
+            currentView = viewName;
+            updateBackButton();
+            return;
+        }
+
+        stabilizeShellHeight(() => {
+            const activeViewId = viewName === "result"
+                ? "quiz-play-view"
+                : `quiz-${viewName}-view`;
+
+            quizViews.forEach((view) => {
+                const isActive = view.id === activeViewId;
+                view.classList.toggle("quiz-card--active", isActive);
+                view.setAttribute("aria-hidden", isActive ? "false" : "true");
+            });
+
+            if (playView) {
+                playView.classList.toggle("quiz-play-view--result", viewName === "result");
+            }
+
+            currentView = viewName;
+            updateBackButton();
+        }, options);
+    }
+
+    function syncHistory(view, mode = "replace") {
+        const state = getHistoryState(view);
+
+        if (mode === "push") {
+            window.history.pushState(state, "", window.location.href);
+            return;
+        }
+
+        window.history.replaceState(state, "", window.location.href);
     }
 
     function saveResultState() {
@@ -103,13 +205,114 @@ document.addEventListener("DOMContentLoaded", async () => {
                 percent,
                 earnedXp,
                 quizSaved,
-                mistakes
+                mistakes,
+                selectedMode,
+                selectedQuestionCount
             })
         );
     }
 
     function clearSavedResultState() {
         sessionStorage.removeItem(getResultStorageKey());
+    }
+
+    function resetActiveQuizState() {
+        clearPersistentHeightLocks();
+        questions = [];
+        currentQuestionIndex = 0;
+        score = 0;
+        mistakes = [];
+        answersToSave = [];
+        quizSaved = false;
+        earnedXp = 0;
+        isFinishingQuiz = false;
+        playView?.classList.remove("quiz-play-view--result");
+        questionContainer.innerHTML = "";
+        progressFill.style.transition = "";
+        progressFill.style.width = "0%";
+        progressLabel.textContent = "Question 0 / 0";
+        scoreLabel.textContent = "Score: 0";
+    }
+
+    function buildResultSummary(scoreValue, totalValue, saved, xpValue) {
+        let summaryText = `You answered ${scoreValue} out of ${totalValue} questions correctly.`;
+
+        if (saved) {
+            summaryText += ` You earned ${xpValue || 0} XP.`;
+        }
+
+        return summaryText;
+    }
+
+    function renderResultContent({
+        scoreValue,
+        totalValue,
+        percentValue,
+        mistakesValue = [],
+        saved = false,
+        xpValue = 0
+    }) {
+        const summaryText = buildResultSummary(scoreValue, totalValue, saved, xpValue);
+        const hasMistakes = Array.isArray(mistakesValue) && mistakesValue.length > 0;
+        const mistakesMarkup = hasMistakes
+            ? `
+                <div class="mistakes-block">
+                    <h3>Mistakes</h3>
+                    <div class="mistakes-list">
+                        ${mistakesValue.map((mistake) => `
+                            <div class="mistake-item">
+                                <div class="mistake-word">${mistake.word}</div>
+                                <div class="mistake-line">Your answer: ${mistake.userAnswer}</div>
+                                <div class="mistake-line">Correct answer: ${mistake.correctAnswer}</div>
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+            `
+            : "";
+
+        questionContainer.innerHTML = `
+            <div class="result-top">
+                <div class="result-emoji">${RESULT_EMOJI}</div>
+                <h2>Your result</h2>
+                <p class="result-summary">${summaryText}</p>
+            </div>
+
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span>Correct</span>
+                    <strong>${scoreValue}</strong>
+                </div>
+
+                <div class="result-stat">
+                    <span>Total</span>
+                    <strong>${totalValue}</strong>
+                </div>
+
+                <div class="result-stat">
+                    <span>Accuracy</span>
+                    <strong>${percentValue}%</strong>
+                </div>
+            </div>
+
+            ${mistakesMarkup}
+
+            <div class="result-actions">
+                <button id="quiz-result-restart" class="btn-main" type="button">Try again</button>
+                <button id="quiz-result-change-mode" class="btn-secondary" type="button">Choose another mode</button>
+            </div>
+        `;
+
+        questionContainer.querySelector("#quiz-result-restart")?.addEventListener("click", () => {
+            if (isFinishingQuiz || !selectedMode) return;
+            clearSavedResultState();
+            startQuiz(selectedMode);
+        });
+
+        questionContainer.querySelector("#quiz-result-change-mode")?.addEventListener("click", () => {
+            if (isFinishingQuiz) return;
+            showStartScreen();
+        });
     }
 
     function restoreSavedResultState() {
@@ -123,37 +326,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return false;
             }
 
-            let summaryText = `You answered ${data.score} out of ${data.total} questions correctly.`;
+            selectedMode = data.selectedMode || selectedMode;
 
-            if (data.quizSaved) {
-                summaryText += ` You earned ${data.earnedXp || 0} XP.`;
+            if (data.selectedQuestionCount) {
+                selectedQuestionCount = Number(data.selectedQuestionCount) || selectedQuestionCount;
+                initQuestionCountSelect(moduleWords.length);
             }
 
-            resultSummary.textContent = summaryText;
-            resultCorrect.textContent = data.score;
-            resultTotal.textContent = data.total;
-            resultPercent.textContent = `${data.percent}%`;
+            renderResultContent({
+                scoreValue: data.score,
+                totalValue: data.total,
+                percentValue: data.percent,
+                mistakesValue: Array.isArray(data.mistakes) ? data.mistakes : [],
+                saved: Boolean(data.quizSaved),
+                xpValue: data.earnedXp || 0
+            });
 
-            mistakesList.innerHTML = "";
-
-            if (Array.isArray(data.mistakes) && data.mistakes.length > 0) {
-                mistakesBlock.style.display = "block";
-
-                data.mistakes.forEach(mistake => {
-                    const item = document.createElement("div");
-                    item.className = "mistake-item";
-                    item.innerHTML = `
-                        <div class="mistake-word">${mistake.word}</div>
-                        <div class="mistake-line">Your answer: ${mistake.userAnswer}</div>
-                        <div class="mistake-line">Correct answer: ${mistake.correctAnswer}</div>
-                    `;
-                    mistakesList.appendChild(item);
-                });
-            } else {
-                mistakesBlock.style.display = "none";
-            }
-
-            showView("result");
+            showView("result", { scrollToTop: false });
+            syncHistory("result", "replace");
             return true;
         } catch (error) {
             console.error("Failed to restore quiz result:", error);
@@ -162,7 +352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function normalizeText(text) {
-        return (text || "")
+        return String(text || "")
             .trim()
             .toLowerCase()
             .replace(/\s+/g, " ");
@@ -183,24 +373,149 @@ document.addEventListener("DOMContentLoaded", async () => {
         return shuffle(words).slice(0, count);
     }
 
-    function getQuestionCount(words) {
-        return Math.min(10, words.length);
+    function getQuestionCountOptions(wordsLength) {
+        if (wordsLength < 2) return [];
+
+        if (wordsLength <= 10) {
+            return Array.from({ length: wordsLength - 1 }, (_, index) => index + 2);
+        }
+
+        const options = [5, 10, 15, 20, wordsLength];
+        return [...new Set(options.filter((value) => value >= 2 && value <= wordsLength))];
     }
 
-    function showView(viewName) {
-        startView.style.display = viewName === "start" ? "block" : "none";
-        playView.style.display = viewName === "play" ? "block" : "none";
-        resultView.style.display = viewName === "result" ? "block" : "none";
-        emptyView.style.display = viewName === "empty" ? "block" : "none";
+    function getDefaultQuestionCount(wordsLength) {
+        if (wordsLength < 2) return 0;
+        return Math.min(10, wordsLength);
+    }
+
+    function updateQuestionCountMeta() {
+        if (!countHint) return;
+
+        if (moduleWords.length < 2) {
+            countHint.textContent = "";
+            return;
+        }
+
+        if (moduleWords.length <= 10) {
+            countHint.textContent = `This module has ${moduleWords.length} words, so you can choose between 2 and ${moduleWords.length} questions.`;
+            return;
+        }
+
+        countHint.textContent = `You can choose up to ${moduleWords.length} questions for this module.`;
+    }
+
+    function initCustomSelect(dropdown) {
+        if (!dropdown) return;
+
+        const selected = dropdown.querySelector(".quiz-select-selected");
+        const items = dropdown.querySelector(".quiz-select-items");
+        if (!selected || !items) return;
+
+        selected.addEventListener("click", (event) => {
+            event.stopPropagation();
+            document.querySelectorAll(".quiz-custom-select").forEach((candidate) => {
+                if (candidate !== dropdown) {
+                    candidate.querySelector(".quiz-select-items")?.classList.add("quiz-select-hide");
+                    candidate.querySelector(".quiz-select-selected")?.classList.remove("active");
+                }
+            });
+            items.classList.toggle("quiz-select-hide");
+            selected.classList.toggle("active");
+        });
+    }
+
+    function setCustomSelectOptions({ dropdown, options, value, placeholder, onChange }) {
+        if (!dropdown) return;
+
+        const selected = dropdown.querySelector(".quiz-select-selected");
+        const items = dropdown.querySelector(".quiz-select-items");
+        if (!selected || !items) return;
+
+        const normalizedOptions = Array.isArray(options) ? options : [];
+        const current = normalizedOptions.find((option) => String(option.value) === String(value));
+
+        dropdown.dataset.value = current ? String(current.value) : "";
+        selected.textContent = current ? current.label : (placeholder || "Select");
+        items.innerHTML = "";
+
+        normalizedOptions.forEach((option) => {
+            const element = document.createElement("div");
+            element.dataset.value = String(option.value);
+            element.textContent = option.label;
+
+            if (String(option.value) === String(value)) {
+                element.classList.add("selected");
+            }
+
+            element.addEventListener("click", (event) => {
+                event.stopPropagation();
+                dropdown.dataset.value = String(option.value);
+                selected.textContent = option.label;
+                items.querySelectorAll("div").forEach((candidate) => candidate.classList.remove("selected"));
+                element.classList.add("selected");
+                items.classList.add("quiz-select-hide");
+                selected.classList.remove("active");
+                if (typeof onChange === "function") {
+                    onChange(String(option.value));
+                }
+            });
+
+            items.appendChild(element);
+        });
+    }
+
+    function initQuestionCountSelect(wordsLength) {
+        if (!countSelect) return;
+
+        const options = getQuestionCountOptions(wordsLength);
+
+        if (!options.length) {
+            selectedQuestionCount = 0;
+            if (countSelectSelected) {
+                countSelectSelected.textContent = "Select amount";
+            }
+            if (countSelectItems) {
+                countSelectItems.innerHTML = "";
+            }
+            updateQuestionCountMeta();
+            return;
+        }
+
+        const preferredCount = selectedQuestionCount || getDefaultQuestionCount(wordsLength);
+        selectedQuestionCount = options.includes(preferredCount)
+            ? preferredCount
+            : options[options.length - 1];
+
+        setCustomSelectOptions({
+            dropdown: countSelect,
+            options: options.map((value) => ({
+                value: String(value),
+                label: value === wordsLength ? `All available (${value})` : `${value} questions`
+            })),
+            value: String(selectedQuestionCount),
+            placeholder: "Select amount",
+            onChange: (nextValue) => {
+                selectedQuestionCount = Number(nextValue) || getDefaultQuestionCount(moduleWords.length);
+                updateQuestionCountMeta();
+            }
+        });
+
+        updateQuestionCountMeta();
+    }
+
+    function getCurrentQuestionCount() {
+        if (!moduleWords.length) return 0;
+
+        const maxAllowed = moduleWords.length;
+        const normalizedCount = Number(selectedQuestionCount) || getDefaultQuestionCount(maxAllowed);
+        return Math.max(2, Math.min(normalizedCount, maxAllowed));
     }
 
     async function loadModuleWords() {
         if (!moduleId) {
             showView("empty");
-            return;
-        }
-
-        if (restoreSavedResultState()) {
+            syncHistory("empty", "replace");
             return;
         }
 
@@ -213,32 +528,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (!res.ok) {
                 showView("empty");
+                syncHistory("empty", "replace");
                 return;
             }
 
             moduleWords = await res.json();
+            wordCountLabel.textContent = String(moduleWords.length);
 
-            const questionCount = getQuestionCount(moduleWords);
-
-            wordCountLabel.textContent = moduleWords.length;
-            questionCountLabel.textContent = questionCount;
+            initQuestionCountSelect(moduleWords.length);
 
             if (moduleWords.length < 2) {
                 showView("empty");
+                syncHistory("empty", "replace");
+                return;
+            }
+
+            if (restoreSavedResultState()) {
                 return;
             }
 
             showView("start");
+            syncHistory("start", "replace");
         } catch (error) {
             console.error(error);
             showView("empty");
+            syncHistory("empty", "replace");
         }
     }
 
     function getRandomWrongTranslations(correctWordId, count = 3) {
         const pool = moduleWords
-            .filter(word => word.id !== correctWordId)
-            .map(word => word.translation);
+            .filter((word) => word.id !== correctWordId)
+            .map((word) => word.translation);
 
         return shuffle([...new Set(pool)]).slice(0, count);
     }
@@ -269,7 +590,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         let isCorrectPair = true;
 
         if (!shouldBeCorrect) {
-            const wrongPool = moduleWords.filter(w => w.id !== word.id);
+            const wrongPool = moduleWords.filter((candidate) => candidate.id !== word.id);
             const randomWrongWord = shuffle(wrongPool)[0];
 
             if (randomWrongWord) {
@@ -287,10 +608,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function buildQuestions(mode) {
-        const questionCount = getQuestionCount(moduleWords);
+        const questionCount = getCurrentQuestionCount();
         const baseWords = sampleWords(moduleWords, questionCount);
 
-        return baseWords.map(word => {
+        return baseWords.map((word) => {
             if (mode === "multiple") return buildMultipleChoiceQuestion(word);
             if (mode === "write") return buildWriteQuestion(word);
             if (mode === "truefalse") return buildTrueFalseQuestion(word);
@@ -306,7 +627,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function updateProgress() {
         const total = questions.length;
-        const current = currentQuestionIndex + 1;
+        const current = Math.min(currentQuestionIndex + 1, total);
         const progressPercent = total ? (currentQuestionIndex / total) * 100 : 0;
 
         progressLabel.textContent = `Question ${current} / ${total}`;
@@ -317,8 +638,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     function recordMistake(word, userAnswer, correctAnswer) {
         mistakes.push({
             word: word.word,
-            userAnswer: userAnswer || "—",
-            correctAnswer: correctAnswer || "—"
+            userAnswer: userAnswer || "-",
+            correctAnswer: correctAnswer || "-"
         });
     }
 
@@ -339,12 +660,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (currentQuestionIndex >= questions.length) {
             isFinishingQuiz = true;
-
-            setTimeout(async () => {
-                await showResults();
-                isFinishingQuiz = false;
-            }, 120);
-
+            await showResults();
+            isFinishingQuiz = false;
             return;
         }
 
@@ -357,7 +674,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <h2 class="question-title">${question.word.word}</h2>
             <p class="question-subtitle">Choose the correct translation.</p>
             <div class="answer-grid">
-                ${question.options.map(option => `
+                ${question.options.map((option) => `
                     <button class="answer-btn" type="button" data-answer="${option.replace(/"/g, "&quot;")}">
                         ${option}
                     </button>
@@ -367,16 +684,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const answerButtons = questionContainer.querySelectorAll(".answer-btn");
 
-        answerButtons.forEach(button => {
+        answerButtons.forEach((button) => {
             button.addEventListener("click", () => {
                 const selectedAnswer = button.dataset.answer;
                 const isCorrect = normalizeText(selectedAnswer) === normalizeText(question.correctAnswer);
 
-                answerButtons.forEach(btn => {
-                    btn.classList.add("disabled");
+                answerButtons.forEach((candidate) => {
+                    candidate.classList.add("disabled");
 
-                    if (normalizeText(btn.dataset.answer) === normalizeText(question.correctAnswer)) {
-                        btn.classList.add("correct");
+                    if (normalizeText(candidate.dataset.answer) === normalizeText(question.correctAnswer)) {
+                        candidate.classList.add("correct");
                     }
                 });
 
@@ -428,7 +745,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const feedback = document.createElement("div");
             feedback.className = `feedback-box ${isCorrect ? "correct" : "wrong"}`;
             feedback.innerHTML = isCorrect
-                ? `Correct!`
+                ? "Correct!"
                 : `Wrong. Correct answer: <strong>${question.correctAnswer}</strong>`;
 
             if (isCorrect) {
@@ -455,9 +772,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         checkBtn.addEventListener("click", submitAnswer);
 
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
                 submitAnswer();
             }
         });
@@ -476,16 +793,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const answerButtons = questionContainer.querySelectorAll(".answer-btn");
 
-        answerButtons.forEach(button => {
+        answerButtons.forEach((button) => {
             button.addEventListener("click", () => {
                 const selectedAnswer = button.dataset.answer;
                 const isCorrect = selectedAnswer === question.correctAnswer;
 
-                answerButtons.forEach(btn => {
-                    btn.classList.add("disabled");
+                answerButtons.forEach((candidate) => {
+                    candidate.classList.add("disabled");
 
-                    if (btn.dataset.answer === question.correctAnswer) {
-                        btn.classList.add("correct");
+                    if (candidate.dataset.answer === question.correctAnswer) {
+                        candidate.classList.add("correct");
                     }
                 });
 
@@ -493,8 +810,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     button.classList.add("wrong");
                     recordMistake(
                         question.word,
-                        `${question.word.word} → ${question.shownTranslation}`,
-                        `${question.word.word} → ${question.word.translation}`
+                        `${question.word.word} -> ${question.shownTranslation}`,
+                        `${question.word.word} -> ${question.word.translation}`
                     );
                 } else {
                     score++;
@@ -505,7 +822,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     question,
                     selectedAnswer,
                     isCorrect,
-                    `${question.word.word} → ${question.word.translation}`
+                    `${question.word.word} -> ${question.word.translation}`
                 );
 
                 const nextRow = document.createElement("div");
@@ -552,7 +869,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 body: JSON.stringify({
                     module_id: Number(moduleId),
                     quiz_type: selectedMode,
-                    score: score,
+                    score,
                     total_questions: questions.length,
                     answers: answersToSave
                 })
@@ -577,89 +894,140 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const total = questions.length;
         const percent = total ? Math.round((score / total) * 100) : 0;
+        const playHeight = playView?.getBoundingClientRect().height || 0;
 
+        progressFill.style.transition = "none";
         progressFill.style.width = "100%";
 
-        let summaryText = `You answered ${score} out of ${total} questions correctly.`;
-
-        if (quizSaved) {
-            summaryText += ` You earned ${earnedXp} XP.`;
-        }
-
-        resultSummary.textContent = summaryText;
-        resultCorrect.textContent = score;
-        resultTotal.textContent = total;
-        resultPercent.textContent = `${percent}%`;
-
-        mistakesList.innerHTML = "";
-
-        if (mistakes.length > 0) {
-            mistakesBlock.style.display = "block";
-
-            mistakes.forEach(mistake => {
-                const item = document.createElement("div");
-                item.className = "mistake-item";
-                item.innerHTML = `
-                    <div class="mistake-word">${mistake.word}</div>
-                    <div class="mistake-line">Your answer: ${mistake.userAnswer}</div>
-                    <div class="mistake-line">Correct answer: ${mistake.correctAnswer}</div>
-                `;
-                mistakesList.appendChild(item);
-            });
-        } else {
-            mistakesBlock.style.display = "none";
-        }
-
         saveResultState();
-        showView("result");
+        if (playHeight > 0) {
+            persistentShellMinHeight = `${Math.ceil(playHeight)}px`;
+            persistentResultMinHeight = `${Math.ceil(playHeight)}px`;
+        }
+
+        renderResultContent({
+            scoreValue: score,
+            totalValue: total,
+            percentValue: percent,
+            mistakesValue: mistakes,
+            saved: quizSaved,
+            xpValue: earnedXp
+        });
+
+        showView("result", {
+            scrollToTop: false,
+            freezeFrom: playView,
+            freezeTo: playView
+        });
+        syncHistory("result", "replace");
     }
 
     function startQuiz(mode) {
         clearSavedResultState();
-
         selectedMode = mode;
+        selectedQuestionCount = getCurrentQuestionCount();
+
+        resetActiveQuizState();
         questions = buildQuestions(mode);
-        currentQuestionIndex = 0;
-        score = 0;
-        mistakes = [];
-        answersToSave = [];
-        quizSaved = false;
-        earnedXp = 0;
-        isFinishingQuiz = false;
 
         if (!questions.length) {
             showView("empty");
+            syncHistory("empty", "replace");
             return;
         }
 
-        showView("play");
         renderCurrentQuestion();
+        showView("play", { scrollToTop: true });
+        syncHistory("play", "push");
     }
 
-    document.querySelectorAll(".mode-card").forEach(button => {
-        button.addEventListener("click", () => {
-            if (isFinishingQuiz) return;
-            const mode = button.dataset.mode;
-            startQuiz(mode);
+    function showStartScreen({ fromHistory = false } = {}) {
+        clearSavedResultState();
+        resetActiveQuizState();
+        showView("start", { scrollToTop: false });
+
+        if (!fromHistory) {
+            syncHistory("start", "replace");
+        }
+    }
+
+    if (logo) {
+        logo.addEventListener("click", () => {
+            window.location.href = "dashboard.html";
         });
+    }
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("token");
+            window.location.href = "index.html";
+        });
+    }
+
+    initCustomSelect(countSelect);
+
+    document.addEventListener("click", () => {
+        countSelectItems?.classList.add("quiz-select-hide");
+        countSelectSelected?.classList.remove("active");
     });
 
-    restartBtn.addEventListener("click", () => {
-        if (isFinishingQuiz) return;
+    if (backBtn) {
+        backBtn.addEventListener("click", () => {
+            if (currentView === "play" || currentView === "result") {
+                if (window.history.state?.langlyQuizPage) {
+                    window.history.back();
+                } else {
+                    showStartScreen();
+                }
+                return;
+            }
 
-        clearSavedResultState();
+            clearSavedResultState();
+            const folderId = sessionStorage.getItem("langlyCurrentFolderId");
+            if (folderId) {
+                window.location.href = `my-words.html?folder=${folderId}`;
+            } else {
+                window.location.href = "my-words.html";
+            }
+        });
+    }
 
-        if (selectedMode) {
-            startQuiz(selectedMode);
+    window.addEventListener("popstate", (event) => {
+        const state = event.state;
+
+        if (!state || !state.langlyQuizPage || String(state.moduleId) !== String(moduleId)) {
+            return;
+        }
+
+        if (state.view === "start") {
+            showStartScreen({ fromHistory: true });
+            return;
+        }
+
+        if (state.view === "result") {
+            restoreSavedResultState();
         }
     });
 
-    changeModeBtn.addEventListener("click", () => {
-        if (isFinishingQuiz) return;
+    moduleTitleEl.textContent = moduleName;
 
-        clearSavedResultState();
-        showView("start");
+    document.querySelectorAll(".mode-card").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (isFinishingQuiz) return;
+            startQuiz(button.dataset.mode);
+        });
     });
 
-    loadModuleWords();
+    restartBtn?.addEventListener("click", () => {
+        if (isFinishingQuiz || !selectedMode) return;
+        clearSavedResultState();
+        startQuiz(selectedMode);
+    });
+
+    changeModeBtn?.addEventListener("click", () => {
+        if (isFinishingQuiz) return;
+        showStartScreen();
+    });
+
+    await loadModuleWords();
 });
