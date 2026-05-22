@@ -168,6 +168,7 @@ async function loadSidebarFolders() {
 }
 
 function initStudyPicker() {
+    const lessonBtn = document.getElementById("sidebar-lesson-btn");
     const cardsBtn = document.getElementById("sidebar-cards-btn");
     const quizBtn = document.getElementById("sidebar-quiz-btn");
     const modal = document.getElementById("study-picker-modal");
@@ -181,6 +182,10 @@ function initStudyPicker() {
     let currentMode = null;
     let currentData = [];
     let closeTimer = null;
+
+    lessonBtn?.addEventListener("click", async () => {
+        await openStudyPicker("lesson");
+    });
 
     cardsBtn.addEventListener("click", async () => {
         await openStudyPicker("cards");
@@ -240,9 +245,11 @@ function initStudyPicker() {
         currentMode = mode;
         currentData = [];
 
-        title.textContent = mode === "cards"
-            ? "Choose module for cards"
-            : "Choose module for quiz";
+        title.textContent = mode === "lesson"
+            ? "Choose module for lesson"
+            : mode === "cards"
+                ? "Choose module for cards"
+                : "Choose module for quiz";
 
         searchInput.value = "";
         content.innerHTML = `<div class="study-picker-loading">Loading...</div>`;
@@ -362,7 +369,14 @@ function renderStudyPickerContent(data, mode, content, searchTerm = "", navigate
                 sessionStorage.setItem("langlyCurrentFolderTitle", folder.name || "");
                 sessionStorage.setItem("langlyCurrentModuleTitle", module.name || "");
 
-                if (mode === "cards") {
+                if (mode === "lesson") {
+                    const url = `lesson.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
+                    if (typeof navigate === "function") {
+                        navigate(url);
+                    } else {
+                        window.location.href = url;
+                    }
+                } else if (mode === "cards") {
                     const url = `flashcards.html?module=${module.id}&name=${encodeURIComponent(module.name)}`;
                     if (typeof navigate === "function") {
                         navigate(url);

@@ -28,6 +28,7 @@ class User(Base):
 
     achievements = relationship("Achievement", backref="user")
     quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete")
+    lesson_attempts = relationship("LessonAttempt", back_populates="user", cascade="all, delete")
     user_languages = relationship("UserLanguage", back_populates="user",cascade="all, delete")
     notes = relationship("Note", back_populates="user", cascade="all, delete")
     
@@ -138,6 +139,7 @@ class Module(Base):
     folder = relationship("Folder", back_populates="modules")
     words = relationship("Word")
     quiz_attempts = relationship("QuizAttempt", back_populates="module", cascade="all, delete")
+    lesson_attempts = relationship("LessonAttempt", back_populates="module", cascade="all, delete")
 
 class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
@@ -172,6 +174,24 @@ class QuizAnswer(Base):
 
     attempt = relationship("QuizAttempt", back_populates="answers")
     word = relationship("Word", back_populates="quiz_answers")
+
+
+class LessonAttempt(Base):
+    __tablename__ = "lesson_attempts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
+
+    score = Column(Integer, nullable=False, default=0)
+    total_tasks = Column(Integer, nullable=False, default=0)
+    words_reviewed = Column(Integer, nullable=False, default=0)
+    xp_earned = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="lesson_attempts")
+    module = relationship("Module", back_populates="lesson_attempts")
 
 class Note(Base):
     __tablename__ = "notes"

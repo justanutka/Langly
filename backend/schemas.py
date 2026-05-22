@@ -83,6 +83,25 @@ class QuizAttemptOut(BaseModel):
     class Config:
         from_attributes = True
 
+class LessonAttemptCreate(BaseModel):
+    module_id: int
+    score: int
+    total_tasks: int
+    words_reviewed: int
+
+
+class LessonAttemptOut(BaseModel):
+    id: int
+    module_id: int
+    score: int
+    total_tasks: int
+    words_reviewed: int
+    xp_earned: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class WordMasteredUpdate(BaseModel):
     is_mastered: bool
 

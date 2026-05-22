@@ -516,6 +516,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 120);
     }
 
+    function goToLesson(moduleId, moduleName) {
+        sessionStorage.setItem("langlyCurrentFolderId", currentFolderId ?? "");
+        sessionStorage.setItem("langlyCurrentModuleId", moduleId ?? "");
+        sessionStorage.setItem("langlyCurrentFolderTitle", folderTitle?.textContent || "");
+        sessionStorage.setItem("langlyCurrentModuleTitle", moduleName || "");
+        document.body?.classList.add("page-transitioning");
+        window.setTimeout(() => {
+            window.location.href = `lesson.html?module=${moduleId}&name=${encodeURIComponent(moduleName || "")}`;
+        }, 120);
+    }
+
     function renderModules() {
     if (currentView !== "modules") return;
 
@@ -536,6 +547,11 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <div class="module-actions">
+                <button class="study-btn lesson-btn" type="button">
+                    <span class="study-emoji">&#127891;</span>
+                    <span>Lesson</span>
+                </button>
+
                 <button class="study-btn cards-btn" type="button">
                     <span class="study-emoji">🧠</span>
                     <span>Cards</span>
@@ -549,6 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         const deleteBtn = card.querySelector(".delete-btn");
+        const lessonBtn = card.querySelector(".lesson-btn");
         const cardsBtn = card.querySelector(".cards-btn");
         const quizBtn = card.querySelector(".quiz-btn");
 
@@ -578,6 +595,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     };
+
+        lessonBtn.onclick = async (e) => {
+            e.stopPropagation();
+
+            const hasWords = await checkModuleHasWords(module.id);
+
+            if (!hasWords) {
+                showToast("Add words before starting lesson");
+                return;
+            }
+
+            goToLesson(module.id, module.name);
+        };
 
         cardsBtn.onclick = async (e) => {
             e.stopPropagation();

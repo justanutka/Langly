@@ -51,6 +51,13 @@ def delete_module(
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
 
+    lesson_attempts = db.query(models.LessonAttempt).filter(
+        models.LessonAttempt.module_id == module.id
+    ).all()
+
+    for attempt in lesson_attempts:
+        db.delete(attempt)
+
     quiz_attempts = db.query(models.QuizAttempt).filter(
         models.QuizAttempt.module_id == module.id
     ).all()
