@@ -45,6 +45,18 @@
                     <div>
                         <p class="lesson-kicker">Guided lesson</p>
                         <h1 id="lesson-module-title">Lesson</h1>
+                        <script>
+                            (() => {
+                                const title = document.getElementById("lesson-module-title");
+                                if (!title) return;
+
+                                const params = new URLSearchParams(window.location.search);
+                                title.textContent =
+                                    params.get("name") ||
+                                    sessionStorage.getItem("langlyCurrentModuleTitle") ||
+                                    "Lesson";
+                            })();
+                        </script>
                         <p class="lesson-subtitle">
                             Warm up with words, flip a few cards, and finish with quick practice.
                         </p>

@@ -175,13 +175,13 @@ body::before{
 
 .lesson-stage{
   position:relative;
-  min-height:440px;
+  min-height:0;
 }
 
 .lesson-card{
   display:none;
-  min-height:440px;
-  padding:28px;
+  min-height:320px;
+  padding:24px 28px;
   border-radius:26px;
   background:rgba(255,255,255,0.78);
   border:1px solid rgba(77,101,255,0.10);
@@ -475,8 +475,8 @@ body::before{
   word-break:break-word;
 }
 
-.lesson-question-subtitle{
-  margin:0 0 22px;
+.lesson-card .lesson-question-subtitle{
+  margin:0 0 18px;
   color:#66758f;
 }
 
@@ -530,6 +530,7 @@ body::before{
   gap:14px;
   width:100%;
   max-width:720px;
+  margin-top:2px;
 }
 
 .lesson-write-input{

@@ -8,10 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
 
-    if (typeof loadSidebar === "function") {
-        await loadSidebar();
-    }
-
     const params = new URLSearchParams(window.location.search);
     const moduleId = params.get("module");
     const moduleName =
@@ -72,6 +68,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (moduleTitle) {
         moduleTitle.textContent = moduleName;
+    }
+
+    if (typeof loadSidebar === "function") {
+        await loadSidebar();
     }
 
     if (cardsLink && moduleId) {

@@ -193,11 +193,20 @@ function renderWelcome(dashboard, stats) {
                     <div class="focus-progress-percent">${Math.round(percent)}%</div>
                 </div>
                 <div class="progress-bar">
-                    <div class="progress-fill" style="width:${percent}%"></div>
+                    <div class="progress-fill" data-progress="${percent}" style="width:0%"></div>
                 </div>
             </div>
         </div>
     `;
+
+    const progressFill = container.querySelector(".progress-fill");
+    if (progressFill) {
+        window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+                progressFill.style.width = `${progressFill.dataset.progress || 0}%`;
+            });
+        });
+    }
 }
 
 
