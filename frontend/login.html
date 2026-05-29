@@ -77,7 +77,9 @@
     return value && value !== key ? value : fallback;
   };
 
-  window.langlyUiText?.apply(document);
+  window.langlyUiText?.init?.().then(() => {
+    window.langlyUiText?.apply(document);
+  });
 
   passwordToggle?.addEventListener("click", () => {
     const shouldShow = passwordInput.type === "password";

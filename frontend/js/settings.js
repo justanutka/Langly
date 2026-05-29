@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           return res.json();
         });
     window.langlyCurrentUser = user;
-    window.langlyUiText?.setLocaleFromUser(user);
+    await window.langlyUiText?.setLocaleFromUser(user);
     window.langlyUiText?.apply(document);
     return user;
   }
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadSidebar({ user });
 
     languages = await languagesPromise;
-    window.langlyUiText?.setLocaleFromUser(user);
+    await window.langlyUiText?.setLocaleFromUser(user);
     window.langlyUiText?.apply(document);
     initDropdown(user.interface_language_id || user.native_language_id);
   } catch (error) {
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (chosen?.code) {
-        window.langlyUiText?.setLocale(chosen.code);
+        await window.langlyUiText?.setLocale(chosen.code);
         window.langlyUiText?.apply(document);
       }
 

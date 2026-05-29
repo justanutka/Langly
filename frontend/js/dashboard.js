@@ -1,8 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("discovery-container");
   if (!container) {
     return;
   }
+
+  await window.langlyUiText?.init?.();
 
   const logo = document.getElementById("logo");
   if (logo) {

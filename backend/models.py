@@ -207,8 +207,10 @@ class Note(Base):
     is_important = Column(Boolean, default=False)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    language_id = Column(Integer, ForeignKey("languages.id"), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="notes")
+    language = relationship("Language")

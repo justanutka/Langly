@@ -125,6 +125,7 @@ class NoteOut(BaseModel):
     content: str
     color: str
     is_important: bool
+    language_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         window.langlyCurrentUser = user;
-        window.langlyUiText?.setLocaleFromUser(user);
+        await window.langlyUiText?.setLocaleFromUser(user);
         window.langlyUiText?.apply(document);
 
         renderUserEmail(user);

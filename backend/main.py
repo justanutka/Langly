@@ -22,24 +22,44 @@ Base.metadata.create_all(bind=engine)
 
 def ensure_runtime_schema():
     inspector = inspect(engine)
-    if "users" not in inspector.get_table_names():
-        return
+    table_names = inspector.get_table_names()
 
-    user_columns = {column["name"] for column in inspector.get_columns("users")}
-    if "interface_language_id" in user_columns:
-        return
+    if "users" in table_names:
+        user_columns = {column["name"] for column in inspector.get_columns("users")}
+        if "interface_language_id" not in user_columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE users ADD COLUMN interface_language_id INTEGER"))
+                connection.execute(
+                    text(
+                        """
+                        UPDATE users
+                        SET interface_language_id = native_language_id
+                        WHERE interface_language_id IS NULL
+                        """
+                    )
+                )
 
-    with engine.begin() as connection:
-        connection.execute(text("ALTER TABLE users ADD COLUMN interface_language_id INTEGER"))
-        connection.execute(
-            text(
-                """
-                UPDATE users
-                SET interface_language_id = native_language_id
-                WHERE interface_language_id IS NULL
-                """
-            )
-        )
+    if "notes" in table_names:
+        note_columns = {column["name"] for column in inspector.get_columns("notes")}
+        if "language_id" not in note_columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE notes ADD COLUMN language_id INTEGER"))
+                connection.execute(
+                    text(
+                        """
+                        UPDATE notes
+                        SET language_id = COALESCE(
+                            (SELECT id FROM languages WHERE code = 'en' LIMIT 1),
+                            (
+                                SELECT COALESCE(users.active_language_id, users.native_language_id)
+                                FROM users
+                                WHERE users.id = notes.user_id
+                            )
+                        )
+                        WHERE language_id IS NULL
+                        """
+                    )
+                )
 
 
 ensure_runtime_schema()

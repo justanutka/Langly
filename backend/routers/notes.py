@@ -7,13 +7,23 @@ from .. import models, schemas, database, auth
 router = APIRouter(prefix="/notes", tags=["Notes"])
 
 
+def get_active_language_id(current_user: models.User) -> int:
+    if not current_user.active_language_id:
+        raise HTTPException(status_code=400, detail="Choose an active language first")
+
+    return current_user.active_language_id
+
+
 @router.get("/", response_model=list[schemas.NoteOut])
 def get_notes(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
+    language_id = get_active_language_id(current_user)
+
     notes = db.query(models.Note).filter(
-        models.Note.user_id == current_user.id
+        models.Note.user_id == current_user.id,
+        models.Note.language_id == language_id
     ).order_by(models.Note.is_important.desc(), models.Note.updated_at.desc()).all()
 
     return notes
@@ -31,12 +41,15 @@ def create_note(
     if not note.content.strip():
         raise HTTPException(status_code=400, detail="Content is required")
 
+    language_id = get_active_language_id(current_user)
+
     new_note = models.Note(
         title=note.title.strip(),
         content=note.content.strip(),
         color=note.color,
         is_important=note.is_important,
-        user_id=current_user.id
+        user_id=current_user.id,
+        language_id=language_id
     )
 
     db.add(new_note)
@@ -55,7 +68,8 @@ def update_note(
 ):
     note = db.query(models.Note).filter(
         models.Note.id == note_id,
-        models.Note.user_id == current_user.id
+        models.Note.user_id == current_user.id,
+        models.Note.language_id == get_active_language_id(current_user)
     ).first()
 
     if not note:
@@ -93,7 +107,8 @@ def delete_note(
 ):
     note = db.query(models.Note).filter(
         models.Note.id == note_id,
-        models.Note.user_id == current_user.id
+        models.Note.user_id == current_user.id,
+        models.Note.language_id == get_active_language_id(current_user)
     ).first()
 
     if not note:
