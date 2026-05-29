@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadSidebar();
     }
 
+    await window.langlyUiText?.init?.();
+    window.langlyUiText?.apply(document);
+
     const logo = document.getElementById("logo");
     if (logo) {
         logo.addEventListener("click", () => {
@@ -35,15 +38,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const moduleNameFromUrl = params.get("name");
 
     if (!moduleId) {
-        alert("No module selected");
+        alert(window.langlyUiText?.t("cards.no_module") || "No module selected");
         return;
     }
 
-    const userRes = await fetch(BASE_URL + "/users/me", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const user = await userRes.json();
+    const user = window.langlyApi?.getCurrentUser
+        ? await window.langlyApi.getCurrentUser()
+        : await fetch(BASE_URL + "/users/me", {
+            headers: { Authorization: `Bearer ${token}` }
+        }).then((res) => res.json());
 
     const res = await fetch(
         `${BASE_URL}/words/?language_id=${user.active_language_id}`,
@@ -55,7 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     words = data.filter(w => w.module_id == moduleId);
 
     if (words.length === 0) {
-        alert("No words in this module");
+        alert(window.langlyUiText?.t("cards.no_words") || "No words in this module");
         return;
     }
 
@@ -66,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.getElementById("module-name").innerText =
-        moduleName || "Module";
+        moduleName || window.langlyUiText?.t("cards.module") || "Module";
 
     renderCard();
 

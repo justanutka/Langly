@@ -21,7 +21,7 @@
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -33,12 +33,12 @@
             <div class="flashcards-top">
                 <button class="back-btn" onclick="goBack()" type="button">
                     <span>←</span>
-                    Back
+                    <span data-ui-text="cards.back">Back</span>
                 </button>
 
                 <div class="flashcards-title">
-                    <span>Study cards</span>
-                    <h2 id="module-name">Module</h2>
+                    <span data-ui-text="cards.study_cards">Study cards</span>
+                    <h2 id="module-name" data-ui-text="cards.module">Module</h2>
                 </div>
             </div>
 
@@ -46,7 +46,7 @@
                 <div class="stat-item">
                     <div class="stat-icon">🧠</div>
                     <div>
-                        <p>Cards viewed</p>
+                        <p data-ui-text="cards.viewed">Cards viewed</p>
                         <strong id="progress">0 / 0</strong>
                     </div>
                 </div>
@@ -54,8 +54,8 @@
                 <div class="stat-item">
                     <div class="stat-icon accent">✨</div>
                     <div>
-                        <p>Mode</p>
-                        <strong>Flip & remember</strong>
+                        <p data-ui-text="cards.mode">Mode</p>
+                        <strong data-ui-text="cards.flip_mode">Flip & remember</strong>
                     </div>
                 </div>
             </div>
@@ -72,15 +72,15 @@
                             <div class="flashcard-inner">
 
                                 <div class="flashcard-front">
-                                    <div class="card-badge">Word</div>
+                                    <div class="card-badge" data-ui-text="cards.word">Word</div>
                                     <span id="word-text"></span>
-                                    <p>Click to reveal translation</p>
+                                    <p data-ui-text="cards.reveal">Click to reveal translation</p>
                                 </div>
 
                                 <div class="flashcard-back">
-                                    <div class="card-badge">Translation</div>
+                                    <div class="card-badge" data-ui-text="cards.translation">Translation</div>
                                     <span id="translation-text"></span>
-                                    <p>Great, you viewed this card</p>
+                                    <p data-ui-text="cards.viewed_card">Great, you viewed this card</p>
                                 </div>
 
                             </div>
@@ -90,13 +90,13 @@
                     <div class="flashcard-controls">
                         <button id="prev-btn" class="control-btn" type="button">
                             <span>←</span>
-                            Previous
+                            <span data-ui-text="cards.previous">Previous</span>
                         </button>
 
-                        <p class="flip-hint">Click card or press Enter/Space to flip</p>
+                        <p class="flip-hint" data-ui-text="cards.flip_hint">Click card or press Enter/Space to flip</p>
 
                         <button id="next-btn" class="control-btn primary" type="button">
-                            Next
+                            <span data-ui-text="cards.next">Next</span>
                             <span>→</span>
                         </button>
                     </div>
@@ -105,13 +105,13 @@
                 <aside class="study-notes">
                     <div class="note-card main-note">
                         <div class="note-icon">💡</div>
-                        <h3>Small study trick</h3>
-                        <p>Say the word out loud before flipping the card. It helps your brain remember faster.</p>
+                        <h3 data-ui-text="cards.study_trick">Small study trick</h3>
+                        <p data-ui-text="cards.trick_text">Say the word out loud before flipping the card. It helps your brain remember faster.</p>
                     </div>
 
                     <div class="note-card mini-note">
                         <div class="note-icon pink">⌨️</div>
-                        <p>Keyboard: ← Previous, → Next, Enter/Space Flip</p>
+                        <p data-ui-text="cards.keyboard">Keyboard: ← Previous, → Next, Enter/Space Flip</p>
                     </div>
                 </aside>
 
@@ -121,6 +121,7 @@
     </main>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/flashcards.js"></script>
 

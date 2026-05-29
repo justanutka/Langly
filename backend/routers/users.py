@@ -41,7 +41,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     new_user = models.User(
         email=normalized_email,
         password_hash=hashed_password,
-        native_language_id=user.native_language_id 
+        native_language_id=user.native_language_id,
+        interface_language_id=user.native_language_id
     )
 
     db.add(new_user)
@@ -225,6 +226,8 @@ def read_users_me(
         streak = current_user.streak
         freeze_days = current_user.freeze_days
 
+    interface_language = current_user.interface_language or current_user.native_language
+
     return {
         "email": current_user.email,
         "level": level,
@@ -236,7 +239,10 @@ def read_users_me(
         "active_language_code": current_user.active_language.code if current_user.active_language else None,
         "native_language_id": current_user.native_language_id,
         "native_language_name": current_user.native_language.name if current_user.native_language else None,
-        "native_language_code": current_user.native_language.code if current_user.native_language else None
+        "native_language_code": current_user.native_language.code if current_user.native_language else None,
+        "interface_language_id": interface_language.id if interface_language else None,
+        "interface_language_name": interface_language.name if interface_language else None,
+        "interface_language_code": interface_language.code if interface_language else None
     }
 
 
@@ -272,3 +278,25 @@ def set_language(
     db.commit()
 
     return {"message": "Language updated"}
+
+
+# =========================
+# SET INTERFACE LANGUAGE
+# =========================
+@router.post("/set-interface-language")
+def set_interface_language(
+    language_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    language = db.query(models.Language).filter(
+        models.Language.id == language_id
+    ).first()
+
+    if not language:
+        raise HTTPException(status_code=404, detail="Language not found")
+
+    current_user.interface_language_id = language_id
+    db.commit()
+
+    return {"message": "Interface language updated"}

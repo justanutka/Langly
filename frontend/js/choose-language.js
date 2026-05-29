@@ -5,6 +5,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   const languagesContainer = document.getElementById("languages-container");
   const token = localStorage.getItem("token");
 
+  function t(key, fallback) {
+    const value = window.langlyUiText?.t(key);
+    return value && value !== key ? value : fallback;
+  }
+
+  function renderStaticText() {
+    const title = document.querySelector(".card h1");
+    const subtitle = document.querySelector(".card p");
+    const loading = document.querySelector(".language-loading");
+
+    if (title) title.textContent = `${t("choose.title", "Choose your study language")} 🌍`;
+    if (subtitle) subtitle.textContent = t("choose.subtitle", "You can change it later in your profile settings.");
+    if (loading) loading.textContent = t("choose.loading", "Loading languages...");
+  }
+
   function setPageReady() {
     pageBody.classList.remove("page-pending");
   }
@@ -19,6 +34,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  await window.langlyUiText?.init?.();
+  renderStaticText();
+
   const logo = document.getElementById("logo-link");
 
   if (logo) {
@@ -32,13 +50,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const res = await fetch(BASE_URL + "/users/languages");
-
-    if (!res.ok) {
-      throw new Error("Failed to load languages");
-    }
-
-    const languages = await res.json();
+    const languages = window.langlyApi?.getLanguages
+      ? await window.langlyApi.getLanguages()
+      : await fetch(BASE_URL + "/users/languages").then((res) => {
+          if (!res.ok) throw new Error("Failed to load languages");
+          return res.json();
+        });
 
     if (!languagesContainer) {
       setPageReady();
@@ -48,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     languagesContainer.innerHTML = "";
 
     if (!Array.isArray(languages) || !languages.length) {
-      languagesContainer.innerHTML = '<div class="language-loading">No languages available.</div>';
+      languagesContainer.innerHTML = `<div class="language-loading">${t("choose.empty", "No languages available.")}</div>`;
       return;
     }
 
@@ -66,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           allButtons.forEach((button) => {
             button.disabled = true;
           });
-          btn.textContent = "Saving...";
+          btn.textContent = t("common.saving", "Saving...");
 
           const setRes = await fetch(
             BASE_URL + "/users/set-language?language_id=" + lang.id,
@@ -97,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     console.error("Error loading languages:", error);
     if (languagesContainer) {
-      languagesContainer.innerHTML = '<div class="language-loading">Could not load languages.</div>';
+      languagesContainer.innerHTML = `<div class="language-loading">${t("choose.error", "Could not load languages.")}</div>`;
     }
   } finally {
     setPageReady();

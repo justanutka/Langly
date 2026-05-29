@@ -1,7 +1,15 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const BASE_URL = "http://127.0.0.1:8000";
-  const EMAIL_RULE_TEXT = "Enter a valid email address with @.";
-  const PASSWORD_RULE_TEXT = "Password must be at least 7 characters long and contain at least one letter and one digit.";
+  await window.langlyUiText?.init?.();
+  window.langlyUiText?.apply(document);
+
+  function t(key, fallback) {
+    const value = window.langlyUiText?.t(key);
+    return value && value !== key ? value : fallback;
+  }
+
+  const EMAIL_RULE_TEXT = t("auth.email_rule", "Enter a valid email address with @.");
+  const PASSWORD_RULE_TEXT = t("auth.password_rule", "Password must be at least 7 characters long and contain at least one letter and one digit.");
   const form = document.getElementById("signup-form");
   const messageBox = document.getElementById("message");
   const submitButton = form?.querySelector('button[type="submit"]');
@@ -47,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const email = emailInput.value.trim().toLowerCase();
 
     if (!email) {
-      setFieldError(emailInput, emailError, "Please enter your email.");
+      setFieldError(emailInput, emailError, t("auth.email_required", "Please enter your email."));
       return false;
     }
 
@@ -64,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const password = passwordInput.value.trim();
 
     if (!password) {
-      setFieldError(passwordInput, passwordError, "Please enter a password.");
+      setFieldError(passwordInput, passwordError, t("auth.password_required", "Please enter a password."));
       return false;
     }
 
@@ -82,12 +90,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const password = passwordInput.value.trim();
 
     if (!confirm) {
-      setFieldError(confirmInput, confirmError, "Please confirm your password.");
+      setFieldError(confirmInput, confirmError, t("auth.confirm_required", "Please confirm your password."));
       return false;
     }
 
     if (password && confirm !== password) {
-      setFieldError(confirmInput, confirmError, "Passwords do not match.");
+      setFieldError(confirmInput, confirmError, t("auth.passwords_no_match", "Passwords do not match."));
       return false;
     }
 
@@ -104,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const shouldShow = input.type === "password";
         input.type = shouldShow ? "text" : "password";
         button.classList.toggle("is-visible", shouldShow);
-        button.setAttribute("aria-label", shouldShow ? "Hide password" : "Show password");
+          button.setAttribute("aria-label", shouldShow ? t("common.hide_password", "Hide password") : t("common.show_password", "Show password"));
       });
     });
   }
@@ -136,7 +144,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       optionsContainer.innerHTML = "";
 
       if (!Array.isArray(languages) || !languages.length) {
-        setMessage("No languages available right now.", "error");
+        setMessage(t("auth.no_languages", "No languages available right now."), "error");
         return;
       }
 
@@ -156,7 +164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     } catch (error) {
       console.error("Failed to load languages", error);
-      setMessage("Cannot load languages right now.", "error");
+      setMessage(t("auth.languages_error", "Cannot load languages right now."), "error");
     }
   }
 
@@ -205,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const confirmOk = validateConfirmField();
 
     if (!selectedLanguageId) {
-      setMessage("Please choose your native language.", "error");
+      setMessage(t("auth.native_required", "Please choose your native language."), "error");
       return;
     }
 
@@ -219,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = "Creating account...";
+        submitButton.textContent = t("auth.creating_account", "Creating account...");
       }
 
       const response = await fetch(BASE_URL + "/users/register", {
@@ -235,7 +243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.detail || "Registration failed.", "error");
+        setMessage(data.detail || t("auth.registration_failed", "Registration failed."), "error");
         return;
       }
 
@@ -245,11 +253,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       window.location.replace("choose-language.html");
     } catch (error) {
-      setMessage("Cannot connect to API.", "error");
+      setMessage(t("auth.api_error", "Cannot connect to API."), "error");
     } finally {
       if (submitButton) {
         submitButton.disabled = false;
-        submitButton.textContent = "Sign up";
+        submitButton.textContent = t("auth.signup", "Sign up");
       }
     }
   });

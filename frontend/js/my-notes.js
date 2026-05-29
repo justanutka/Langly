@@ -8,6 +8,11 @@ let savedSelection = null;
 let viewingNoteId = null;
 let notesFilterValue = "all";
 
+function t(key, params, fallback) {
+    const value = window.langlyUiText?.t(key, params);
+    return value && value !== key ? value : fallback || key;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("token");
 
@@ -20,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (typeof loadSidebar === "function") {
             await loadSidebar();
         }
+
+        await window.langlyUiText?.init?.();
+        window.langlyUiText?.apply(document);
 
         const logo = document.getElementById("logo");
         if (logo) {
@@ -166,7 +174,7 @@ async function loadNotes() {
         });
 
         if (!res.ok) {
-            showToast("Could not load notes");
+            showToast(t("notes.load_error", null, "Could not load notes"));
             return;
         }
 
@@ -174,7 +182,7 @@ async function loadNotes() {
         renderNotes();
     } catch (error) {
         console.error(error);
-        showToast("Server connection error");
+        showToast(t("notes.server_error", null, "Server connection error"));
     }
 }
 
@@ -231,12 +239,12 @@ function renderNotes() {
             <div class="note-content">${sanitizeNoteHtml(note.content)}</div>
 
             <div class="note-meta">
-                Updated ${formatDate(note.updated_at)}
+                ${t("notes.updated", { date: formatDate(note.updated_at) }, `Updated ${formatDate(note.updated_at)}`)}
             </div>
 
             <div class="note-actions">
-                <button class="note-action-btn edit-note-btn" type="button">Edit</button>
-                <button class="note-action-btn delete-note-btn" type="button">Delete</button>
+                <button class="note-action-btn edit-note-btn" type="button">${t("common.edit", null, "Edit")}</button>
+                <button class="note-action-btn delete-note-btn" type="button">${t("common.delete", null, "Delete")}</button>
             </div>
         `;
 
@@ -271,7 +279,7 @@ function openNoteModal(note = null) {
         editingNoteId = note.id;
         selectedColor = note.color || "indigo";
 
-        modalTitle.textContent = "Edit note";
+        modalTitle.textContent = t("notes.edit_note", null, "Edit note");
         titleInput.value = note.title;
         editor.innerHTML = sanitizeNoteHtml(note.content || "");
         importantInput.checked = note.is_important;
@@ -279,7 +287,7 @@ function openNoteModal(note = null) {
         editingNoteId = null;
         selectedColor = "indigo";
 
-        modalTitle.textContent = "New note";
+        modalTitle.textContent = t("notes.new_note", null, "New note");
         titleInput.value = "";
         editor.innerHTML = "";
         importantInput.checked = false;
@@ -316,7 +324,7 @@ async function saveNote() {
     const plainContent = getPlainText(content).trim();
 
     if (!title || !plainContent) {
-        showNoteMessage("Please fill in title and content.");
+        showNoteMessage(t("notes.fill_title_content", null, "Please fill in title and content."));
         return;
     }
 
@@ -346,7 +354,7 @@ async function saveNote() {
         const data = await res.json().catch(() => null);
 
         if (!res.ok) {
-            showNoteMessage(data?.detail || "Could not save note.");
+            showNoteMessage(data?.detail || t("notes.save_error", null, "Could not save note."));
             return;
         }
 
@@ -355,10 +363,10 @@ async function saveNote() {
         closeNoteModal();
         await loadNotes();
 
-        showToast(wasEditing ? "Note updated" : "Note created");
+        showToast(wasEditing ? t("notes.updated_toast", null, "Note updated") : t("notes.created", null, "Note created"));
     } catch (error) {
         console.error(error);
-        showNoteMessage("Server connection error.");
+        showNoteMessage(t("notes.server_error", null, "Server connection error."));
     }
 }
 
@@ -386,16 +394,16 @@ async function deleteNote() {
         });
 
         if (!res.ok) {
-            showToast("Could not delete note");
+            showToast(t("notes.delete_error", null, "Could not delete note"));
             return;
         }
 
         closeDeleteModal();
         await loadNotes();
-        showToast("Note deleted");
+        showToast(t("notes.deleted", null, "Note deleted"));
     } catch (error) {
         console.error(error);
-        showToast("Server connection error");
+        showToast(t("notes.server_error", null, "Server connection error"));
     }
 }
 
@@ -433,7 +441,7 @@ function applyTextHighlight(type) {
     const selection = window.getSelection();
 
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-        showNoteMessage("Select text first, then choose a highlight color.");
+        showNoteMessage(t("notes.select_text", null, "Select text first, then choose a highlight color."));
         return;
     }
 
@@ -637,6 +645,24 @@ function initNotesFilterDropdown(dropdown) {
 
     const selected = dropdown.querySelector(".notes-select-selected");
     const items = dropdown.querySelector(".notes-select-items");
+    const labels = {
+        all: t("notes.all", null, "All notes"),
+        important: t("notes.important_only", null, "Important only"),
+        indigo: t("notes.indigo", null, "Indigo"),
+        turquoise: t("notes.turquoise", null, "Turquoise"),
+        pink: t("notes.pink", null, "Pink"),
+        yellow: t("notes.yellow", null, "Yellow")
+    };
+
+    items.querySelectorAll("div").forEach(item => {
+        if (labels[item.dataset.value]) {
+            item.textContent = labels[item.dataset.value];
+        }
+    });
+
+    if (selected) {
+        selected.textContent = labels[notesFilterValue] || labels.all;
+    }
 
     selected.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -682,7 +708,7 @@ function openViewNoteModal(note) {
 
     title.textContent = note.title;
     content.innerHTML = sanitizeNoteHtml(note.content || "");
-    date.textContent = `Updated ${formatDate(note.updated_at)}`;
+    date.textContent = t("notes.updated", { date: formatDate(note.updated_at) }, `Updated ${formatDate(note.updated_at)}`);
 
     if (note.is_important) {
         important.classList.remove("hidden");

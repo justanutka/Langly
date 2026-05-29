@@ -18,11 +18,11 @@
     <link rel="stylesheet" href="css/words.css">
 </head>
 
-<body class="page-pending">
+<body>
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -30,9 +30,9 @@
 
     <main class="main-content">
         <div class="words-header-center">
-            <h1 id="words-page-title">My Folders</h1>
+            <h1 id="words-page-title" data-ui-text="words.folders_title">My Folders</h1>
 
-            <p id="words-page-subtitle" class="subtitle">
+            <p id="words-page-subtitle" class="subtitle" data-ui-text="words.folders_subtitle">
                 Organize and study your vocabulary
             </p>
 
@@ -41,7 +41,7 @@
                 id="open-folder-modal"
                 type="button"
             >
-                + Create Folder
+                + <span data-ui-text="words.create_folder">Create Folder</span>
             </button>
         </div>
 
@@ -50,16 +50,17 @@
                 type="text"
                 id="search-input"
                 placeholder="Search..."
+                data-ui-placeholder="common.search"
             >
 
             <div class="custom-select" id="sort-dropdown">
                 <div class="select-selected">
-                    Newest first
+                    <span data-ui-text="common.newest_first">Newest first</span>
                 </div>
 
                 <div class="select-items select-hide">
-                    <div data-value="new" class="selected">Newest first</div>
-                    <div data-value="old">Oldest first</div>
+                    <div data-value="new" class="selected" data-ui-text="common.newest_first">Newest first</div>
+                    <div data-value="old" data-ui-text="common.oldest_first">Oldest first</div>
                     <div data-value="az">A → Z</div>
                     <div data-value="za">Z → A</div>
                 </div>
@@ -89,11 +90,11 @@
 
             <div class="add-word-card">
                 <div class="add-word-row">
-                    <input id="word-input" placeholder="Word">
-                    <input id="translation-input" placeholder="Translation">
+                    <input id="word-input" placeholder="Word" data-ui-placeholder="words.word">
+                    <input id="translation-input" placeholder="Translation" data-ui-placeholder="words.translation">
 
                     <button id="save-word-btn" class="btn-main" type="button">
-                        Add Word
+                        <span data-ui-text="words.add_word">Add Word</span>
                     </button>
                 </div>
 
@@ -110,18 +111,20 @@
 
 <div class="modal-overlay" id="folder-modal">
     <div class="modal">
-        <h2>Create Folder</h2>
+        <h2 data-ui-text="words.create_folder">Create Folder</h2>
 
         <input
             type="text"
             id="folder-name-input"
             placeholder="Folder name"
+            data-ui-placeholder="words.folder_name"
         >
 
         <input
             type="text"
             id="folder-description"
             placeholder="Description (optional)"
+            data-ui-placeholder="words.description_optional"
         >
 
         <input
@@ -132,11 +135,11 @@
 
         <div class="modal-buttons">
             <button class="btn-main" id="create-folder-btn" type="button">
-                Create
+                <span data-ui-text="common.create">Create</span>
             </button>
 
             <button class="btn-secondary" id="close-folder-modal" type="button">
-                Cancel
+                <span data-ui-text="common.cancel">Cancel</span>
             </button>
         </div>
     </div>
@@ -144,21 +147,22 @@
 
 <div class="modal-overlay" id="module-modal">
     <div class="modal">
-        <h2>Create Module</h2>
+        <h2 data-ui-text="words.create_module">Create Module</h2>
 
         <input
             type="text"
             id="module-name-input"
             placeholder="Module name"
+            data-ui-placeholder="words.module_name"
         >
 
         <div class="modal-buttons">
             <button class="btn-main" id="create-module-btn" type="button">
-                Create
+                <span data-ui-text="common.create">Create</span>
             </button>
 
             <button class="btn-secondary" id="close-module-modal" type="button">
-                Cancel
+                <span data-ui-text="common.cancel">Cancel</span>
             </button>
         </div>
     </div>
@@ -172,17 +176,17 @@
 
 <div class="modal-overlay" id="delete-modal">
     <div class="modal">
-        <h2>Delete</h2>
+        <h2 data-ui-text="common.delete">Delete</h2>
 
-        <p id="delete-text">Are you sure?</p>
+        <p id="delete-text" data-ui-text="common.are_you_sure">Are you sure?</p>
 
         <div class="modal-buttons">
             <button class="btn-danger" id="confirm-delete" type="button">
-                Delete
+                <span data-ui-text="common.delete">Delete</span>
             </button>
 
             <button class="btn-secondary" id="cancel-delete" type="button">
-                Cancel
+                <span data-ui-text="common.cancel">Cancel</span>
             </button>
         </div>
     </div>
@@ -212,6 +216,7 @@
     <span id="toast-text"></span>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/app.js"></script>
 <script src="js/words.js"></script>

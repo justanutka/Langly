@@ -23,7 +23,7 @@
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -33,17 +33,17 @@
         <div class="lesson-page">
             <div class="lesson-shell">
                 <div class="lesson-top-actions">
-                    <button id="lesson-back-btn" class="lesson-back-btn" type="button">Back to module</button>
+                    <button id="lesson-back-btn" class="lesson-back-btn" type="button" data-ui-text="lesson.back_module">Back to module</button>
 
                     <div class="lesson-link-row">
-                        <a id="lesson-cards-link" class="lesson-soft-link" href="#">Cards</a>
-                        <a id="lesson-quiz-link" class="lesson-soft-link" href="#">Quiz</a>
+                        <a id="lesson-cards-link" class="lesson-soft-link" href="#" data-ui-text="sidebar.cards">Cards</a>
+                        <a id="lesson-quiz-link" class="lesson-soft-link" href="#" data-ui-text="sidebar.quiz">Quiz</a>
                     </div>
                 </div>
 
                 <section class="lesson-hero">
                     <div>
-                        <p class="lesson-kicker">Guided lesson</p>
+                        <p class="lesson-kicker" data-ui-text="lesson.guided">Guided lesson</p>
                         <h1 id="lesson-module-title">Lesson</h1>
                         <script>
                             (() => {
@@ -58,17 +58,17 @@
                             })();
                         </script>
                         <p class="lesson-subtitle">
-                            Warm up with words, flip a few cards, and finish with quick practice.
+                            <span data-ui-text="lesson.subtitle">Warm up with words, flip a few cards, and finish with quick practice.</span>
                         </p>
                     </div>
 
                     <div class="lesson-hero-stats">
                         <div class="lesson-pill">
-                            <span>Words</span>
+                            <span data-ui-text="dashboard.words">Words</span>
                             <strong id="lesson-word-count">0</strong>
                         </div>
                         <div class="lesson-pill lesson-pill-blue">
-                            <span>Step</span>
+                            <span data-ui-text="lesson.step">Step</span>
                             <strong id="lesson-step-label">1 / 4</strong>
                         </div>
                     </div>
@@ -82,51 +82,51 @@
                     <div class="lesson-card lesson-card--active" id="lesson-intro-view">
                         <div class="lesson-view-grid">
                             <div>
-                                <div class="lesson-badge">Step 1</div>
-                                <h2>Start with the module context</h2>
-                                <p>
+                                <div class="lesson-badge" data-ui-text="lesson.step_number" data-ui-text-params='{"number":1}'>Step 1</div>
+                                <h2 data-ui-text="lesson.intro_title">Start with the module context</h2>
+                                <p data-ui-text="lesson.intro_text">
                                     This lesson is generated from your module words. First you will preview the vocabulary,
                                     then practice with cards, and finally answer a short exercise set.
                                 </p>
                             </div>
 
                             <div class="lesson-note">
-                                <div class="lesson-note-title">Lesson path</div>
+                                <div class="lesson-note-title" data-ui-text="lesson.path">Lesson path</div>
                                 <div class="lesson-path">
-                                    <span>Preview</span>
-                                    <span>Cards</span>
-                                    <span>Practice</span>
-                                    <span>Result</span>
+                                    <span data-ui-text="lesson.preview">Preview</span>
+                                    <span data-ui-text="sidebar.cards">Cards</span>
+                                    <span data-ui-text="lesson.practice">Practice</span>
+                                    <span data-ui-text="lesson.result">Result</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="lesson-actions">
-                            <button id="lesson-start-btn" class="lesson-primary-btn" type="button">Start lesson</button>
+                            <button id="lesson-start-btn" class="lesson-primary-btn" type="button" data-ui-text="lesson.start">Start lesson</button>
                         </div>
                     </div>
 
                     <div class="lesson-card" id="lesson-preview-view">
                         <div class="lesson-section-head">
                             <div>
-                                <div class="lesson-badge">Step 2</div>
-                                <h2>Preview vocabulary</h2>
+                                <div class="lesson-badge" data-ui-text="lesson.step_number" data-ui-text-params='{"number":2}'>Step 2</div>
+                                <h2 data-ui-text="lesson.preview_title">Preview vocabulary</h2>
                             </div>
-                            <p>Read the pairs before active practice.</p>
+                            <p data-ui-text="lesson.preview_subtitle">Read the pairs before active practice.</p>
                         </div>
 
                         <div id="lesson-preview-list" class="lesson-preview-list"></div>
 
                         <div class="lesson-actions">
-                            <button id="lesson-preview-next" class="lesson-primary-btn" type="button">Continue to cards</button>
+                            <button id="lesson-preview-next" class="lesson-primary-btn" type="button" data-ui-text="lesson.continue_cards">Continue to cards</button>
                         </div>
                     </div>
 
                     <div class="lesson-card" id="lesson-cards-view">
                         <div class="lesson-section-head">
                             <div>
-                                <div class="lesson-badge">Step 3</div>
-                                <h2>Flip and remember</h2>
+                                <div class="lesson-badge" data-ui-text="lesson.step_number" data-ui-text-params='{"number":3}'>Step 3</div>
+                                <h2 data-ui-text="lesson.flip_title">Flip and remember</h2>
                             </div>
                             <p id="lesson-card-counter">Card 1 / 1</p>
                         </div>
@@ -135,31 +135,31 @@
                             <button id="lesson-flip-card" class="lesson-mini-card" type="button">
                                 <span class="lesson-mini-card-inner">
                                     <span class="lesson-mini-card-face lesson-mini-card-front">
-                                        <span class="lesson-card-label">Word</span>
+                                        <span class="lesson-card-label" data-ui-text="cards.word">Word</span>
                                         <strong id="lesson-card-front-word"></strong>
-                                        <span>Click to reveal translation</span>
+                                        <span data-ui-text="cards.reveal">Click to reveal translation</span>
                                     </span>
 
                                     <span class="lesson-mini-card-face lesson-mini-card-back">
-                                        <span class="lesson-card-label">Translation</span>
+                                        <span class="lesson-card-label" data-ui-text="cards.translation">Translation</span>
                                         <strong id="lesson-card-back-word"></strong>
-                                        <span>Click to show word again</span>
+                                        <span data-ui-text="lesson.show_word">Click to show word again</span>
                                     </span>
                                 </span>
                             </button>
                         </div>
 
                         <div class="lesson-actions lesson-actions-between">
-                            <button id="lesson-card-prev" class="lesson-secondary-btn" type="button">Previous</button>
-                            <button id="lesson-card-next" class="lesson-primary-btn" type="button">Next</button>
+                            <button id="lesson-card-prev" class="lesson-secondary-btn" type="button" data-ui-text="cards.previous">Previous</button>
+                            <button id="lesson-card-next" class="lesson-primary-btn" type="button" data-ui-text="cards.next">Next</button>
                         </div>
                     </div>
 
                     <div class="lesson-card" id="lesson-practice-view">
                         <div class="lesson-section-head">
                             <div>
-                                <div class="lesson-badge">Step 4</div>
-                                <h2>Quick practice</h2>
+                                <div class="lesson-badge" data-ui-text="lesson.step_number" data-ui-text-params='{"number":4}'>Step 4</div>
+                                <h2 data-ui-text="lesson.quick_practice">Quick practice</h2>
                             </div>
                             <p id="lesson-question-counter">Question 1 / 1</p>
                         </div>
@@ -170,36 +170,36 @@
                     <div class="lesson-card" id="lesson-result-view">
                         <div class="lesson-result-top">
                             <div class="lesson-result-icon">&#10024;</div>
-                            <h2>Lesson complete</h2>
+                            <h2 data-ui-text="lesson.complete">Lesson complete</h2>
                             <p id="lesson-result-summary"></p>
                         </div>
 
                         <div class="lesson-result-stats">
                             <div>
-                                <span>Correct</span>
+                                <span data-ui-text="quiz.correct">Correct</span>
                                 <strong id="lesson-result-score">0</strong>
                             </div>
                             <div>
-                                <span>Tasks</span>
+                                <span data-ui-text="lesson.tasks">Tasks</span>
                                 <strong id="lesson-result-total">0</strong>
                             </div>
                             <div>
-                                <span>Accuracy</span>
+                                <span data-ui-text="quiz.accuracy">Accuracy</span>
                                 <strong id="lesson-result-percent">0%</strong>
                             </div>
                         </div>
 
                         <div class="lesson-actions lesson-result-actions">
-                            <button id="lesson-repeat-btn" class="lesson-primary-btn" type="button">Repeat lesson</button>
-                            <a id="lesson-start-quiz-btn" class="lesson-secondary-link" href="#">Start quiz</a>
+                            <button id="lesson-repeat-btn" class="lesson-primary-btn" type="button" data-ui-text="lesson.repeat">Repeat lesson</button>
+                            <a id="lesson-start-quiz-btn" class="lesson-secondary-link" href="#" data-ui-text="lesson.start_quiz">Start quiz</a>
                         </div>
                     </div>
 
                     <div class="lesson-card" id="lesson-empty-view">
                         <div class="lesson-result-top">
                             <div class="lesson-result-icon">&#128218;</div>
-                            <h2>No words yet</h2>
-                            <p>Add at least one word to this module before starting a lesson.</p>
+                            <h2 data-ui-text="lesson.no_words">No words yet</h2>
+                            <p data-ui-text="lesson.no_words_desc">Add at least one word to this module before starting a lesson.</p>
                         </div>
                     </div>
                 </section>
@@ -208,6 +208,7 @@
     </main>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/lesson.js"></script>
 

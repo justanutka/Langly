@@ -25,6 +25,8 @@ class User(Base):
     active_language = relationship("Language", foreign_keys=[active_language_id])
     native_language_id = Column(Integer, ForeignKey("languages.id"), nullable=True)
     native_language = relationship("Language", foreign_keys=[native_language_id])
+    interface_language_id = Column(Integer, ForeignKey("languages.id"), nullable=True)
+    interface_language = relationship("Language", foreign_keys=[interface_language_id])
 
     achievements = relationship("Achievement", backref="user")
     quiz_attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete")

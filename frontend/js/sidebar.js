@@ -1,6 +1,6 @@
 const SIDEBAR_BASE_URL = "http://127.0.0.1:8000";
 
-async function loadSidebar() {
+async function loadSidebar(options = {}) {
     const container = document.getElementById("sidebar-container");
     if (!container) return;
 
@@ -10,10 +10,10 @@ async function loadSidebar() {
     container.innerHTML = html;
 
     initSidebar();
-    initSidebarPageTransitions();
     initNewFolderButton();
     initStudyPicker();
-    await loadSidebarUserData();
+    window.langlyUiText?.apply(container);
+    await loadSidebarUserData(options.user);
 }
 
 /* SIDEBAR TOGGLE */
@@ -40,32 +40,6 @@ function initSidebar() {
     });
 }
 
-function initSidebarPageTransitions() {
-    const links = document.querySelectorAll(".sidebar-nav .nav-item[href]");
-
-    links.forEach((link) => {
-        link.addEventListener("click", (event) => {
-            const href = link.getAttribute("href");
-            if (!href || href.startsWith("#")) return;
-
-            const targetUrl = new URL(href, window.location.href);
-            const currentUrl = new URL(window.location.href);
-
-            if (targetUrl.pathname === currentUrl.pathname && targetUrl.search === currentUrl.search) {
-                event.preventDefault();
-                return;
-            }
-
-            event.preventDefault();
-            document.body?.classList.add("page-transitioning");
-
-            window.setTimeout(() => {
-                window.location.href = targetUrl.href;
-            }, 140);
-        });
-    });
-}
-
 /* NEW FOLDER BUTTON */
 function initNewFolderButton() {
     const newFolderBtn = document.getElementById("add-folder-btn");
@@ -86,24 +60,34 @@ function initNewFolderButton() {
     });
 }
 
-async function loadSidebarUserData() {
+async function loadSidebarUserData(providedUser = null) {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
-        const userRes = await fetch(`${SIDEBAR_BASE_URL}/users/me`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        let user = providedUser || window.langlyCurrentUser || null;
+        if (!user && window.langlyUiText?.init) {
+            await window.langlyUiText.init();
+            user = window.langlyCurrentUser || null;
+        }
 
-        if (userRes.ok) {
-            const user = await userRes.json();
-            const emailElement = document.getElementById("user-email");
+        if (!user) {
+            const userRes = await fetch(`${SIDEBAR_BASE_URL}/users/me`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
 
-            if (emailElement) {
-                emailElement.textContent = user.email || "";
+            if (userRes.ok) {
+                user = await userRes.json();
+                window.langlyCurrentUser = user;
             }
+        }
+
+        const emailElement = document.getElementById("user-email");
+
+        if (emailElement && user) {
+            emailElement.textContent = user.email || "";
         }
     } catch (error) {
         console.error("Sidebar user load error:", error);
@@ -119,15 +103,13 @@ async function loadSidebarFolders() {
     if (!token || !container) return;
 
     try {
-        const res = await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-
-        if (!res.ok) return;
-
-        const folders = await res.json();
+        const folders = window.langlyApi?.getFolders
+            ? await window.langlyApi.getFolders()
+            : await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }).then((res) => res.ok ? res.json() : []);
         const recentFolders = folders.slice(-4).reverse();
 
         container.innerHTML = "";
@@ -246,13 +228,13 @@ function initStudyPicker() {
         currentData = [];
 
         title.textContent = mode === "lesson"
-            ? "Choose module for lesson"
+            ? window.langlyUiText?.t("study.choose_lesson") || "Choose module for lesson"
             : mode === "cards"
-                ? "Choose module for cards"
-                : "Choose module for quiz";
+                ? window.langlyUiText?.t("study.choose_cards") || "Choose module for cards"
+                : window.langlyUiText?.t("study.choose_quiz") || "Choose module for quiz";
 
         searchInput.value = "";
-        content.innerHTML = `<div class="study-picker-loading">Loading...</div>`;
+        content.innerHTML = `<div class="study-picker-loading">${window.langlyUiText?.t("common.loading") || "Loading..."}</div>`;
         openStudyPickerModal();
 
         try {
@@ -269,14 +251,14 @@ function initStudyPicker() {
             });
 
             if (!foldersRes.ok) {
-                content.innerHTML = `<div class="study-picker-empty">Could not load folders.</div>`;
+                content.innerHTML = `<div class="study-picker-empty">${window.langlyUiText?.t("study.load_error") || "Could not load folders."}</div>`;
                 return;
             }
 
             const folders = await foldersRes.json();
 
             if (!folders.length) {
-                content.innerHTML = `<div class="study-picker-empty">No folders yet.</div>`;
+                content.innerHTML = `<div class="study-picker-empty">${window.langlyUiText?.t("study.no_folders") || "No folders yet."}</div>`;
                 return;
             }
 
@@ -296,14 +278,14 @@ function initStudyPicker() {
             currentData = modulesByFolder.filter(item => item.modules.length > 0);
 
             if (!currentData.length) {
-                content.innerHTML = `<div class="study-picker-empty">No modules available yet.</div>`;
+                content.innerHTML = `<div class="study-picker-empty">${window.langlyUiText?.t("study.no_modules") || "No modules available yet."}</div>`;
                 return;
             }
 
             renderStudyPickerContent(currentData, currentMode, content, "", navigateWithFade);
         } catch (error) {
             console.error(error);
-            content.innerHTML = `<div class="study-picker-empty">Something went wrong.</div>`;
+            content.innerHTML = `<div class="study-picker-empty">${window.langlyUiText?.t("common.error") || "Something went wrong."}</div>`;
         }
     }
 
@@ -334,7 +316,7 @@ function renderStudyPickerContent(data, mode, content, searchTerm = "", navigate
         .filter(item => item.modules.length > 0);
 
     if (!filteredFolders.length) {
-        content.innerHTML = `<div class="study-picker-empty">No matching modules found.</div>`;
+        content.innerHTML = `<div class="study-picker-empty">${window.langlyUiText?.t("study.no_matches") || "No matching modules found."}</div>`;
         return;
     }
 

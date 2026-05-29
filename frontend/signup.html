@@ -15,7 +15,7 @@
   <!-- HEADER -->
   <header class="top-bar">
     <a href="index.html" class="brand">Langly</a>
-    <a href="login.html" class="top-link">Log in</a>
+    <a href="login.html" class="top-link" data-ui-text="auth.login">Log in</a>
   </header>
 
   <!-- MAIN -->
@@ -23,17 +23,17 @@
     <div class="auth-card">
       <img src="img/book_star.png" alt="Langly" class="auth-illustration" />
 
-      <h1 class="auth-title">Create your account</h1>
+      <h1 class="auth-title" data-ui-text="auth.create_account">Create your account</h1>
 
       <form id="signup-form" novalidate>
         <div class="field">
-          <label for="email">Email</label>
+          <label for="email" data-ui-text="common.email">Email</label>
           <input id="email" type="email" inputmode="email" autocomplete="email" required />
           <div class="field-error" id="email-error"></div>
         </div>
 
         <div class="field">
-          <label for="password">Password</label>
+          <label for="password" data-ui-text="common.password">Password</label>
           <div class="password-wrap">
             <input id="password" type="password" autocomplete="new-password" minlength="7" required />
             <button
@@ -42,6 +42,7 @@
               data-toggle-password
               data-target="password"
               aria-label="Show password"
+              data-ui-aria-label="common.show_password"
             >
               <span class="password-toggle-icon" aria-hidden="true"></span>
             </button>
@@ -50,7 +51,7 @@
         </div>
 
         <div class="field">
-          <label for="confirm">Confirm password</label>
+          <label for="confirm" data-ui-text="auth.confirm_password">Confirm password</label>
           <div class="password-wrap">
             <input id="confirm" type="password" autocomplete="new-password" minlength="7" required />
             <button
@@ -59,6 +60,7 @@
               data-toggle-password
               data-target="confirm"
               aria-label="Show password"
+              data-ui-aria-label="common.show_password"
             >
               <span class="password-toggle-icon" aria-hidden="true"></span>
             </button>
@@ -67,11 +69,11 @@
         </div>
 
         <div class="field">
-          <label>Your native language</label>
+          <label data-ui-text="auth.native_language">Your native language</label>
 
           <div class="custom-select" id="native-select">
             <div class="select-trigger">
-              <span id="selected-value">Select a language</span>
+              <span id="selected-value" data-ui-text="auth.select_language">Select a language</span>
               <div class="arrow"></div>
             </div>
 
@@ -85,20 +87,21 @@
         <div class="checkbox-row">
           <input id="terms" type="checkbox" />
           <label for="terms" style="margin:0;">
-            I agree to <a href="#">Terms</a>
+            <span data-ui-text="auth.terms_prefix">I agree to</span> <a href="#" data-ui-text="auth.terms">Terms</a>
           </label>
         </div>
 
-        <button type="submit" class="btn-primary">Sign up</button>
+        <button type="submit" class="btn-primary" data-ui-text="auth.signup">Sign up</button>
       </form>
 
       <div id="message"></div>
 
       <div class="auth-footer">
-        Already have an account? <a href="login.html">Log in!</a>
+        <span data-ui-text="auth.have_account">Already have an account?</span> <a href="login.html" data-ui-text="auth.login">Log in</a>
       </div>
     </div>
   </main>
+<script src="js/interface-language.js"></script>
 <script src="js/signup.js"></script>
 </body>
 </html>

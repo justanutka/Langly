@@ -8,22 +8,27 @@
 
         <a href="dashboard.html" class="nav-item">
             <span class="icon">🏠</span>
-            <span class="label">Dashboard</span>
+            <span class="label" data-ui-text="sidebar.dashboard">Dashboard</span>
         </a>
 
         <a href="my-words.html" class="nav-item">
             <span class="icon">📚</span>
-            <span class="label">Library</span>
+            <span class="label" data-ui-text="sidebar.library">Library</span>
         </a>
 
         <a href="my-notes.html" class="nav-item">
             <span class="icon">📖</span>
-            <span class="label">My notes</span>
+            <span class="label" data-ui-text="sidebar.notes">My notes</span>
         </a>
 
         <a href="profile.html" class="nav-item">
             <span class="icon">👤</span>
-            <span class="label">Profile</span>
+            <span class="label" data-ui-text="sidebar.profile">Profile</span>
+        </a>
+
+        <a href="settings.html" class="nav-item">
+            <span class="icon">&#9881;</span>
+            <span class="label" data-ui-text="sidebar.settings">Settings</span>
         </a>
 
     </nav>
@@ -33,14 +38,14 @@
     <div class="sidebar-section">
 
         <div class="sidebar-title">
-            Your folders
+            <span data-ui-text="sidebar.folders">Your folders</span>
         </div>
 
         <div id="folders-container"></div>
 
         <div class="sidebar-item add" id="add-folder-btn">
             <span class="icon">+</span>
-            <span class="label">New folder</span>
+            <span class="label" data-ui-text="sidebar.new_folder">New folder</span>
         </div>
 
     </div>
@@ -50,28 +55,28 @@
     <div class="sidebar-section">
 
         <div class="sidebar-title">
-            Start studying
+            <span data-ui-text="sidebar.study">Start studying</span>
         </div>
 
         <div class="sidebar-item" id="sidebar-lesson-btn">
             <span class="icon">&#127891;</span>
-            <span class="label">Lesson</span>
+            <span class="label" data-ui-text="sidebar.lesson">Lesson</span>
         </div>
 
         <div class="sidebar-item" id="sidebar-cards-btn">
             <span class="icon">🧠</span>
-            <span class="label">Cards</span>
+            <span class="label" data-ui-text="sidebar.cards">Cards</span>
         </div>
 
         <div class="sidebar-item" id="sidebar-quiz-btn">
             <span class="icon">❓</span>
-            <span class="label">Quiz</span>
+            <span class="label" data-ui-text="sidebar.quiz">Quiz</span>
         </div>
 
     </div>
 
     <div class="sidebar-footer">
-        Logged in as:
+        <span data-ui-text="sidebar.logged_in_as">Logged in as:</span>
         <div id="user-email"></div>
     </div>
 
@@ -80,7 +85,7 @@
 <div class="study-picker-overlay" id="study-picker-modal">
     <div class="study-picker-modal">
         <div class="study-picker-header">
-            <h3 id="study-picker-title">Choose module</h3>
+            <h3 id="study-picker-title" data-ui-text="study.choose_module">Choose module</h3>
             <button type="button" class="study-picker-close" id="study-picker-close">×</button>
         </div>
 
@@ -89,6 +94,7 @@
             id="study-picker-search"
             class="study-picker-search"
             placeholder="Search module..."
+            data-ui-placeholder="study.search_module"
         >
 
         <div id="study-picker-content" class="study-picker-content"></div>

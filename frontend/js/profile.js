@@ -12,25 +12,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  await window.langlyUiText?.init?.();
+  window.langlyUiText?.apply(document);
+
   try {
-    const [meRes, statsRes, langRes] = await Promise.all([
-      fetch(BASE_URL + "/users/me", {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-      fetch(BASE_URL + "/study/stats", {
-        headers: { Authorization: `Bearer ${token}` }
-      }),
-      fetch(BASE_URL + "/users/languages", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+    const [user, statsRes, langRes] = await Promise.all([
+      window.langlyApi?.getCurrentUser
+        ? window.langlyApi.getCurrentUser()
+        : fetch(BASE_URL + "/users/me", {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then((res) => {
+            if (!res.ok) throw new Error("User fetch failed");
+            return res.json();
+          }),
+      window.langlyApi?.getStudyStats
+        ? window.langlyApi.getStudyStats().catch(() => null)
+        : fetch(BASE_URL + "/study/stats", {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then((res) => res.ok ? res.json() : null),
+      window.langlyApi?.getLanguages
+        ? window.langlyApi.getLanguages()
+        : fetch(BASE_URL + "/users/languages", {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then((res) => {
+            if (!res.ok) throw new Error("Languages fetch failed");
+            return res.json();
+          })
     ]);
 
-    if (!meRes.ok) throw new Error("User fetch failed");
-    if (!langRes.ok) throw new Error("Languages fetch failed");
-
-    const user = await meRes.json();
-    const stats = statsRes.ok ? await statsRes.json() : null;
-    const languages = await langRes.json();
+    const stats = statsRes;
+    const languages = langRes;
 
     // Sidebar email
     const sidebarEmail = document.getElementById("user-email");
@@ -53,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const streakEl = document.getElementById("profile-streak");
     if (streakEl) {
       const streak = Number(stats?.streak ?? user.streak ?? 0);
-      const label = streak === 1 ? "day" : "days";
+      const label = streak === 1 ? profileT("profile.day", null, "day") : profileT("profile.days", null, "days");
       streakEl.textContent = `${streak} ${label}`;
     }
 
@@ -94,6 +105,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+function profileT(key, params, fallback) {
+  const value = window.langlyUiText?.t(key, params);
+  return value && value !== key ? value : fallback || key;
+}
+
 function initLanguageDropdown(languages, activeLanguageId) {
   const dropdown = document.getElementById("language-dropdown");
   if (!dropdown) return;
@@ -104,7 +120,7 @@ function initLanguageDropdown(languages, activeLanguageId) {
 
   const active = languages.find(lang => lang.id === activeLanguageId) || languages[0];
   dropdown.dataset.value = active ? String(active.id) : "";
-  selected.textContent = active ? active.name : "Select language";
+  selected.textContent = active ? active.name : profileT("settings.select_language", null, "Select language");
 
   items.innerHTML = "";
 
@@ -153,7 +169,7 @@ async function changeLanguage({ languages } = {}) {
   messageBox.classList.remove("success", "error");
 
   if (!languageId) {
-    messageBox.textContent = "Choose a language";
+    messageBox.textContent = profileT("settings.choose_language", null, "Choose a language");
     messageBox.classList.add("error");
     return;
   }
@@ -166,13 +182,16 @@ async function changeLanguage({ languages } = {}) {
 
     if (!res.ok) throw new Error("Set language failed");
 
-    const [meRes, statsRes] = await Promise.all([
-      fetch(BASE_URL + "/users/me", { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(BASE_URL + "/study/stats", { headers: { Authorization: `Bearer ${token}` } })
+    const [me, statsRes] = await Promise.all([
+      window.langlyApi?.getCurrentUser
+        ? window.langlyApi.getCurrentUser({ force: true })
+        : fetch(BASE_URL + "/users/me", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null),
+      window.langlyApi?.getStudyStats
+        ? window.langlyApi.getStudyStats({ force: true }).catch(() => null)
+        : fetch(BASE_URL + "/study/stats", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null)
     ]);
 
-    const me = meRes.ok ? await meRes.json() : null;
-    const stats = statsRes.ok ? await statsRes.json() : null;
+    const stats = statsRes;
 
     if (me) {
       const sidebarEmail = document.getElementById("user-email");
@@ -187,7 +206,7 @@ async function changeLanguage({ languages } = {}) {
     const streakEl = document.getElementById("profile-streak");
     if (streakEl) {
       const streak = Number(stats?.streak ?? me?.streak ?? 0);
-      const label = streak === 1 ? "day" : "days";
+      const label = streak === 1 ? profileT("profile.day", null, "day") : profileT("profile.days", null, "days");
       streakEl.textContent = `${streak} ${label}`;
     }
 
@@ -217,11 +236,11 @@ async function changeLanguage({ languages } = {}) {
       activeLangNameEl.textContent = chosen?.name || "—";
     }
 
-    messageBox.textContent = "Language updated successfully";
+    messageBox.textContent = profileT("profile.language_updated", null, "Language updated successfully");
     messageBox.classList.add("success");
   } catch (error) {
     console.error(error);
-    messageBox.textContent = "Something went wrong";
+    messageBox.textContent = profileT("common.error", null, "Something went wrong");
     messageBox.classList.add("error");
   }
 }

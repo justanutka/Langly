@@ -266,7 +266,7 @@
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">L</div>
-      <div class="sidebar-title">Language App</div>
+      <div class="sidebar-title" data-ui-text="landing.title">Language App</div>
     </div>
 
     <div>
@@ -275,19 +275,19 @@
         <li class="nav-item">
           <a class="nav-link" href="my-words.html">
             <span class="nav-icon">🏠</span>
-            <span>Library</span>
+            <span data-ui-text="sidebar.library">Library</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link active" href="study.html">
             <span class="nav-icon">🃏</span>
-            <span>Study cards</span>
+            <span data-ui-text="cards.study_cards">Study cards</span>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="profile.html">
             <span class="nav-icon">👤</span>
-            <span>Profile</span>
+            <span data-ui-text="sidebar.profile">Profile</span>
           </a>
         </li>
       </ul>
@@ -297,7 +297,7 @@
         <li class="nav-item">
           <a class="nav-link" href="index.html">
             <span class="nav-icon">🌐</span>
-            <span>Landing page</span>
+            <span data-ui-text="landing.title">Landing page</span>
           </a>
         </li>
       </ul>
@@ -313,23 +313,23 @@
     <div class="card">
       <div class="top-row">
         <div style="text-align:left;">
-          <h1>Study session</h1>
+          <h1 data-ui-text="cards.study_cards">Study session</h1>
           <p class="subtitle">Review your words using spaced repetition. You can study a specific lesson or module.</p>
         </div>
         <div class="lang-pill" id="lang-pill">Language: –</div>
       </div>
 
       <div class="folder-row">
-        <span class="folder-label">Folder:</span>
+        <span class="folder-label" data-ui-text="dashboard.select_folder">Folder:</span>
         <select id="study-folder-select"></select>
       </div>
       <div id="folder-info" class="folder-info"></div>
 
       <div id="content">
-        <div class="word" id="word">Loading...</div>
+        <div class="word" id="word" data-ui-text="common.loading">Loading...</div>
         <div class="translation" id="translation">(hidden)</div>
 
-        <button class="btn-main" id="toggle-btn">Show translation</button>
+        <button class="btn-main" id="toggle-btn" data-ui-text="cards.reveal">Show translation</button>
 
         <div class="grades">
           <button class="grade-btn" data-grade="0">0</button>
@@ -345,7 +345,14 @@
     </div>
   </main>
 
+  <script src="js/interface-language.js"></script>
   <script>
+    const tr = (key, fallback, params) => {
+      const value = window.langlyUiText?.t(key, params);
+      return value && value !== key ? value : fallback;
+    };
+    window.langlyUiText?.apply(document);
+
     const email = localStorage.getItem("userEmail");
     const targetLanguage = localStorage.getItem("targetLanguage") || "en";
 
@@ -372,7 +379,7 @@
       sidebarEmail.textContent = email;
     } else {
       sidebarEmail.textContent = "guest";
-      messageBox.textContent = "You are not logged in. Please log in again.";
+      messageBox.textContent = tr("auth.login_required", "You are not logged in. Please log in again.");
       messageBox.className = "error";
       content.style.display = "none";
     }
@@ -392,7 +399,7 @@
         const data = await res.json();
 
         if (!res.ok) {
-          folderInfo.textContent = data.detail || "Could not load folders.";
+          folderInfo.textContent = data.detail || tr("study.load_error", "Could not load folders.");
           return;
         }
 
@@ -400,7 +407,7 @@
         renderFolderOptions();
       } catch (err) {
         console.error(err);
-        folderInfo.textContent = "Cannot connect to API (folders).";
+        folderInfo.textContent = tr("auth.api_error", "Cannot connect to API.");
       }
     }
 
@@ -409,7 +416,7 @@
 
       const optAll = document.createElement("option");
       optAll.value = "";
-      optAll.textContent = "All words (all folders)";
+      optAll.textContent = tr("dashboard.words", "All words") + " (all folders)";
       folderSelect.appendChild(optAll);
 
       for (const f of folders) {
@@ -420,7 +427,7 @@
       }
 
       folderInfo.textContent =
-        "Choose a lesson or module to study. When you select a parent folder (e.g. Lesson 1), all its subfolders (Fruits, Animals, ...) are included.";
+        tr("study.choose_module", "Choose a lesson or module to study.");
     }
 
     folderSelect.addEventListener("change", () => {
@@ -432,7 +439,7 @@
     async function loadWords() {
       if (!email) return;
 
-      messageBox.textContent = "Loading words...";
+      messageBox.textContent = tr("dashboard.loading_words", "Loading words...");
       messageBox.className = "";
 
       try {
@@ -447,7 +454,7 @@
         const data = await res.json();
 
         if (!res.ok) {
-          messageBox.textContent = data.detail || "Could not load words.";
+          messageBox.textContent = data.detail || tr("common.error", "Could not load words.");
           messageBox.className = "error";
           content.style.display = "none";
           return;
@@ -457,11 +464,11 @@
         currentIndex = 0;
 
         if (words.length === 0) {
-          wordEl.textContent = "No words to review.";
+          wordEl.textContent = tr("dashboard.no_words", "No words to review.");
           translationEl.textContent = "";
           toggleBtn.style.display = "none";
           document.querySelector(".grades").style.display = "none";
-          messageBox.textContent = "Try another folder or add some words first.";
+          messageBox.textContent = tr("words.no_words_module", "Try another folder or add some words first.");
           messageBox.className = "";
           return;
         }
@@ -470,13 +477,13 @@
         document.querySelector(".grades").style.display = "flex";
 
         showTranslation = false;
-        toggleBtn.textContent = "Show translation";
+        toggleBtn.textContent = tr("cards.reveal", "Show translation");
         renderCurrentWord();
         messageBox.textContent = "";
         messageBox.className = "";
       } catch (err) {
         console.error(err);
-        messageBox.textContent = "Cannot connect to API. Is the server running?";
+        messageBox.textContent = tr("auth.api_running_error", "Cannot connect to API. Is the server running?");
         messageBox.className = "error";
         content.style.display = "none";
       }
@@ -490,7 +497,7 @@
         translationEl.textContent = w.translation;
         translationEl.style.opacity = "1";
       } else {
-        translationEl.textContent = "Translation hidden";
+        translationEl.textContent = tr("cards.reveal", "Translation hidden");
         translationEl.style.opacity = "0.4";
       }
     }
@@ -500,11 +507,11 @@
       if (showTranslation) {
         translationEl.textContent = words[currentIndex].translation;
         translationEl.style.opacity = "1";
-        toggleBtn.textContent = "Hide translation";
+        toggleBtn.textContent = tr("cards.show_word", "Hide translation");
       } else {
-        translationEl.textContent = "Translation hidden";
+        translationEl.textContent = tr("cards.reveal", "Translation hidden");
         translationEl.style.opacity = "0.4";
-        toggleBtn.textContent = "Show translation";
+        toggleBtn.textContent = tr("cards.reveal", "Show translation");
       }
     });
 
@@ -530,7 +537,7 @@
         });
       } catch (err) {
         console.error(err);
-        messageBox.textContent = "Could not send grade, but you can continue.";
+        messageBox.textContent = tr("common.error", "Could not send grade, but you can continue.");
         messageBox.className = "error";
       }
     }
@@ -548,7 +555,7 @@
         return;
       }
       showTranslation = false;
-      toggleBtn.textContent = "Show translation";
+      toggleBtn.textContent = tr("cards.reveal", "Show translation");
       renderCurrentWord();
     }
 

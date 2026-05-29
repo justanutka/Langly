@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Langly - Settings</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/settings.css">
+</head>
+
+<body>
+
+<header class="top-bar">
+    <div class="brand" id="logo">Langly</div>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
+</header>
+
+<div class="app-layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="settings-page">
+            <div class="settings-header">
+                <div>
+                    <div class="settings-kicker" data-ui-text="settings.kicker">APP PREFERENCES</div>
+                    <h1 data-ui-text="settings.title">Settings</h1>
+                    <p data-ui-text="settings.subtitle">
+                        Choose the language Langly uses for navigation, labels and messages.
+                    </p>
+                </div>
+            </div>
+
+            <section class="settings-panel">
+                <div class="settings-panel-icon" aria-hidden="true">&#9881;</div>
+
+                <div class="settings-panel-content">
+                    <div class="settings-panel-text">
+                        <h2 data-ui-text="settings.interface_title">Interface language</h2>
+                        <p data-ui-text="settings.interface_desc">
+                            This does not change your native language or the words shown on the dashboard.
+                        </p>
+                    </div>
+
+                    <div class="settings-control-row">
+                        <div class="settings-custom-select" id="interface-language-dropdown" data-value="">
+                            <div class="settings-select-selected" data-ui-text="settings.select_language">
+                                Select language
+                            </div>
+                            <div class="settings-select-items settings-select-hide"></div>
+                        </div>
+
+                        <button class="settings-primary-btn" id="save-interface-language-btn" type="button" data-ui-text="settings.save_language">
+                            Save language
+                        </button>
+                    </div>
+
+                    <div id="settings-message" class="settings-message"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script src="js/interface-language.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/settings.js"></script>
+
+</body>
+</html>

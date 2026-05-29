@@ -21,7 +21,7 @@
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -45,24 +45,24 @@
 
                 <section class="quiz-header">
                     <div class="quiz-header-main">
-                        <p class="quiz-kicker">Module quiz</p>
+                        <p class="quiz-kicker" data-ui-text="quiz.kicker">Module quiz</p>
                         <h1 id="quiz-module-title">Quiz</h1>
-                        <p class="quiz-subtitle">
+                        <p class="quiz-subtitle" data-ui-text="quiz.subtitle">
                             Pick a mode and train your memory in the way that fits you best.
                         </p>
                     </div>
 
                     <div class="quiz-header-stats">
                         <div class="quiz-count-panel">
-                            <div class="quiz-count-label">Questions in quiz</div>
+                            <div class="quiz-count-label" data-ui-text="quiz.questions_in_quiz">Questions in quiz</div>
                             <div class="quiz-custom-select quiz-custom-select--compact" id="quiz-count-select" data-value="">
-                                <div class="quiz-select-selected">Select amount</div>
+                                <div class="quiz-select-selected" data-ui-text="quiz.select_amount">Select amount</div>
                                 <div class="quiz-select-items quiz-select-hide"></div>
                             </div>
                         </div>
 
                         <div class="hero-pill hero-pill-violet">
-                            <span>Words</span>
+                            <span data-ui-text="dashboard.words">Words</span>
                             <strong id="word-count-label">0</strong>
                         </div>
                     </div>
@@ -71,33 +71,33 @@
                 <div id="quiz-stage" class="quiz-stage">
                 <div id="quiz-start-view" class="quiz-card quiz-card--active">
                     <div class="section-head">
-                        <h2 class="section-title">Choose quiz mode</h2>
-                        <p class="section-note">A few minutes now, stronger recall later.</p>
+                        <h2 class="section-title" data-ui-text="quiz.choose_mode">Choose quiz mode</h2>
+                        <p class="section-note" data-ui-text="quiz.mode_note">A few minutes now, stronger recall later.</p>
                     </div>
 
                     <div class="mode-grid">
                         <button class="mode-card mode-card-multiple" data-mode="multiple" type="button">
                             <span class="mode-badge">🔹 Multiple choice</span>
-                            <span class="mode-title">Pick the correct option</span>
-                            <span class="mode-desc">Choose the correct translation from 4 possible answers.</span>
+                            <span class="mode-title" data-ui-text="quiz.pick_option">Pick the correct option</span>
+                            <span class="mode-desc" data-ui-text="quiz.multiple_desc">Choose the correct translation from 4 possible answers.</span>
                         </button>
 
                         <button class="mode-card mode-card-write" data-mode="write" type="button">
                             <span class="mode-badge">✍️ Write answer</span>
-                            <span class="mode-title">Type it yourself</span>
-                            <span class="mode-desc">Write the correct translation without prompts.</span>
+                            <span class="mode-title" data-ui-text="quiz.type_yourself">Type it yourself</span>
+                            <span class="mode-desc" data-ui-text="quiz.write_desc">Write the correct translation without prompts.</span>
                         </button>
 
                         <button class="mode-card mode-card-truefalse" data-mode="truefalse" type="button">
                             <span class="mode-badge">✅ True / False</span>
-                            <span class="mode-title">Decide quickly</span>
-                            <span class="mode-desc">Check whether the shown word pair is correct.</span>
+                            <span class="mode-title" data-ui-text="quiz.decide">Decide quickly</span>
+                            <span class="mode-desc" data-ui-text="quiz.truefalse_desc">Check whether the shown word pair is correct.</span>
                         </button>
 
                         <button class="mode-card mode-card-mixed" data-mode="mixed" type="button">
                             <span class="mode-badge">✨ Mixed test</span>
-                            <span class="mode-title">A bit of everything</span>
-                            <span class="mode-desc">Mix all available question types in one session.</span>
+                            <span class="mode-title" data-ui-text="quiz.mixed_title">A bit of everything</span>
+                            <span class="mode-desc" data-ui-text="quiz.mixed_desc">Mix all available question types in one session.</span>
                         </button>
                     </div>
                 </div>
@@ -105,8 +105,8 @@
                 <div id="quiz-play-view" class="quiz-card">
                     <div class="progress-top">
                         <div class="progress-text">
-                            <span id="progress-label">Question 1 / 10</span>
-                            <span id="score-label">Score: 0</span>
+                            <span id="progress-label" data-ui-text="quiz.question_counter" data-ui-text-params='{"current":1,"total":10}'>Question 1 / 10</span>
+                            <span id="score-label" data-ui-text="quiz.score" data-ui-text-params='{"score":0}'>Score: 0</span>
                         </div>
 
                         <div class="progress-bar">
@@ -120,41 +120,41 @@
                 <div id="quiz-result-view" class="quiz-card">
                     <div class="result-top">
                         <div class="result-emoji">🎉</div>
-                        <h2>Your result</h2>
+                        <h2 data-ui-text="quiz.result_title">Your result</h2>
                         <p id="result-summary" class="result-summary"></p>
                     </div>
 
                     <div class="result-stats">
                         <div class="result-stat">
-                            <span>Correct</span>
+                            <span data-ui-text="quiz.correct">Correct</span>
                             <strong id="result-correct">0</strong>
                         </div>
 
                         <div class="result-stat">
-                            <span>Total</span>
+                            <span data-ui-text="quiz.total">Total</span>
                             <strong id="result-total">0</strong>
                         </div>
 
                         <div class="result-stat">
-                            <span>Accuracy</span>
+                            <span data-ui-text="quiz.accuracy">Accuracy</span>
                             <strong id="result-percent">0%</strong>
                         </div>
                     </div>
 
                     <div id="mistakes-block" class="mistakes-block" style="display:none;">
-                        <h3>Mistakes</h3>
+                        <h3 data-ui-text="quiz.mistakes">Mistakes</h3>
                         <div id="mistakes-list" class="mistakes-list"></div>
                     </div>
 
                     <div class="result-actions">
-                        <button id="restart-btn" class="btn-main" type="button">Try again</button>
-                        <button id="change-mode-btn" class="btn-secondary" type="button">Choose another mode</button>
+                        <button id="restart-btn" class="btn-main" type="button" data-ui-text="quiz.try_again">Try again</button>
+                        <button id="change-mode-btn" class="btn-secondary" type="button" data-ui-text="quiz.change_mode">Choose another mode</button>
                     </div>
                 </div>
 
                 <div id="quiz-empty-view" class="quiz-card">
-                    <h2 class="section-title">Not enough words</h2>
-                    <p class="empty-text">
+                    <h2 class="section-title" data-ui-text="quiz.not_enough">Not enough words</h2>
+                    <p class="empty-text" data-ui-text="quiz.not_enough_desc">
                         Add at least 2 words to this module before starting a quiz.
                     </p>
                 </div>
@@ -164,6 +164,7 @@
     </main>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/quiz.js"></script>
 <script>

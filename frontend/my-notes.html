@@ -18,11 +18,11 @@
     >
 </head>
 
-<body class="page-pending">
+<body>
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+    <button id="logout-btn" class="logout-btn" type="button" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -33,15 +33,15 @@
 
             <div class="notes-header">
                 <div>
-                    <p class="notes-kicker">Language diary</p>
-                    <h1>My Notes</h1>
-                    <p class="notes-subtitle">
+                    <p class="notes-kicker" data-ui-text="notes.kicker">Language diary</p>
+                    <h1 data-ui-text="notes.title">My Notes</h1>
+                    <p class="notes-subtitle" data-ui-text="notes.subtitle">
                         Save grammar tips, useful phrases, mistakes and small ideas from your study sessions.
                     </p>
                 </div>
 
                 <button class="btn-main" id="open-note-modal" type="button">
-                    + New note
+                    + <span data-ui-text="notes.new_note">New note</span>
                 </button>
             </div>
 
@@ -50,16 +50,17 @@
                     type="text"
                     id="notes-search"
                     placeholder="Search notes..."
+                    data-ui-placeholder="notes.search"
                 >
 
                 <div class="notes-custom-select" id="notes-filter-dropdown">
                     <div class="notes-select-selected">
-                        All notes
+                        <span data-ui-text="notes.all">All notes</span>
                     </div>
 
                     <div class="notes-select-items notes-select-hide">
-                        <div data-value="all" class="selected">All notes</div>
-                        <div data-value="important">Important only</div>
+                        <div data-value="all" class="selected" data-ui-text="notes.all">All notes</div>
+                        <div data-value="important" data-ui-text="notes.important_only">Important only</div>
                         <div data-value="indigo">Indigo</div>
                         <div data-value="turquoise">Turquoise</div>
                         <div data-value="pink">Pink</div>
@@ -70,8 +71,8 @@
 
             <div id="notes-empty" class="notes-empty">
                 <div class="empty-icon">📝</div>
-                <h2>No notes yet</h2>
-                <p>Create your first note and keep your learning thoughts in one place.</p>
+                <h2 data-ui-text="notes.no_notes">No notes yet</h2>
+                <p data-ui-text="notes.no_notes_desc">Create your first note and keep your learning thoughts in one place.</p>
             </div>
 
             <div id="notes-grid" class="notes-grid"></div>
@@ -83,7 +84,7 @@
 <div class="modal-overlay" id="note-modal">
     <div class="note-modal">
         <div class="note-modal-header">
-            <h2 id="note-modal-title">New note</h2>
+            <h2 id="note-modal-title" data-ui-text="notes.new_note">New note</h2>
             <button id="close-note-modal" class="modal-close" type="button">×</button>
         </div>
 
@@ -91,25 +92,26 @@
             type="text"
             id="note-title-input"
             placeholder="Note title"
+            data-ui-placeholder="notes.note_title"
         >
 
         <div class="editor-toolbar">
-            <span class="toolbar-label">Text highlight</span>
+            <span class="toolbar-label" data-ui-text="notes.text_highlight">Text highlight</span>
 
             <button class="highlight-btn highlight-yellow" data-highlight="yellow" type="button">
-                Yellow
+                <span data-ui-text="notes.yellow">Yellow</span>
             </button>
 
             <button class="highlight-btn highlight-pink" data-highlight="pink" type="button">
-                Pink
+                <span data-ui-text="notes.pink">Pink</span>
             </button>
 
             <button class="highlight-btn highlight-turquoise" data-highlight="turquoise" type="button">
-                Turquoise
+                <span data-ui-text="notes.turquoise">Turquoise</span>
             </button>
 
             <button class="highlight-btn clear-highlight" data-highlight="clear" type="button">
-                Clear
+                <span data-ui-text="notes.clear">Clear</span>
             </button>
         </div>
 
@@ -118,11 +120,12 @@
             class="note-editor"
             contenteditable="true"
             data-placeholder="Write your note here..."
+            data-ui-placeholder="notes.write_note"
         ></div>
 
         <div class="note-options">
             <div>
-                <p class="option-label">Note color</p>
+                <p class="option-label" data-ui-text="notes.note_color">Note color</p>
 
                 <div class="color-picker">
                     <button class="color-dot active" data-color="indigo" type="button"></button>
@@ -134,7 +137,7 @@
 
             <label class="important-toggle">
                 <input type="checkbox" id="note-important-input">
-                <span>Mark as important</span>
+                <span data-ui-text="notes.mark_important">Mark as important</span>
             </label>
         </div>
 
@@ -142,11 +145,11 @@
 
         <div class="modal-actions">
             <button class="btn-secondary" id="cancel-note-btn" type="button">
-                Cancel
+                <span data-ui-text="common.cancel">Cancel</span>
             </button>
 
             <button class="btn-main" id="save-note-btn" type="button">
-                Save note
+                <span data-ui-text="notes.save_note">Save note</span>
             </button>
         </div>
     </div>
@@ -156,7 +159,7 @@
     <div class="view-note-modal">
         <div class="view-note-header">
             <div>
-                <div id="view-note-important" class="view-important hidden">★ Important</div>
+                <div id="view-note-important" class="view-important hidden">★ <span data-ui-text="notes.important">Important</span></div>
                 <h2 id="view-note-title"></h2>
             </div>
 
@@ -169,11 +172,11 @@
 
         <div class="modal-actions">
             <button class="btn-secondary" id="close-view-note-bottom" type="button">
-                Close
+                <span data-ui-text="common.close">Close</span>
             </button>
 
             <button class="btn-main" id="edit-view-note" type="button">
-                Edit
+                <span data-ui-text="common.edit">Edit</span>
             </button>
         </div>
     </div>
@@ -181,16 +184,16 @@
 
 <div class="modal-overlay" id="delete-note-modal">
     <div class="delete-modal">
-        <h2>Delete note?</h2>
-        <p>This action cannot be undone.</p>
+        <h2 data-ui-text="notes.delete_note">Delete note?</h2>
+        <p data-ui-text="notes.delete_note_desc">This action cannot be undone.</p>
 
         <div class="modal-actions">
             <button class="btn-secondary" id="cancel-delete-note" type="button">
-                Cancel
+                <span data-ui-text="common.cancel">Cancel</span>
             </button>
 
             <button class="btn-danger" id="confirm-delete-note" type="button">
-                Delete
+                <span data-ui-text="common.delete">Delete</span>
             </button>
         </div>
     </div>
@@ -200,6 +203,7 @@
     <span id="toast-text"></span>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/my-notes.js"></script>
 

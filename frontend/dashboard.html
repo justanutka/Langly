@@ -11,11 +11,11 @@
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
 
-<body class="page-pending">
+<body>
 
 <header class="top-bar">
     <div class="brand" id="logo">Langly</div>
-    <button id="logout-btn" class="logout-btn">Log out</button>
+    <button id="logout-btn" class="logout-btn" data-ui-text="common.logout">Log out</button>
 </header>
 
 <div class="app-layout">
@@ -24,12 +24,12 @@
     <main class="main-content">
         <div id="welcome-container">
             <div class="welcome-card focus-card dashboard-welcome-placeholder" aria-hidden="true">
-                <div class="focus-kicker">TODAY'S FOCUS</div>
+                <div class="focus-kicker" data-ui-text="dashboard.focus">TODAY'S FOCUS</div>
                 <div class="focus-main">
-                    <div class="focus-title">Learn a small set and mark what sticks.</div>
-                    <div class="focus-meta">Loading your progress...</div>
+                    <div class="focus-title" data-ui-text="dashboard.focus_title">Learn a small set and mark what sticks.</div>
+                    <div class="focus-meta" data-ui-text="dashboard.loading_progress">Loading your progress...</div>
                     <div class="focus-progress-row">
-                        <div class="focus-progress-label">Level progress</div>
+                        <div class="focus-progress-label" data-ui-text="dashboard.level_progress">Level progress</div>
                         <div class="focus-progress-percent">--%</div>
                     </div>
                     <div class="progress-bar">
@@ -42,6 +42,7 @@
     </main>
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/app.js"></script>
 <script src="js/dashboard.js"></script>

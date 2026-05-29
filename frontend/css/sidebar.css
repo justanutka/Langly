@@ -316,7 +316,6 @@
     position:fixed;
     inset:0;
     background:rgba(15, 23, 42, 0.38);
-    backdrop-filter:blur(6px);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -325,7 +324,9 @@
     opacity:0;
     visibility:hidden;
     pointer-events:none;
-    transition:opacity 0.22s ease, visibility 0.22s ease;
+    transition:
+        opacity 0.24s ease,
+        visibility 0.24s ease;
 }
 
 .study-picker-overlay.is-open{
@@ -345,13 +346,28 @@
     padding:24px;
     box-sizing:border-box;
     opacity:0;
-    transform:translateY(14px) scale(0.98);
-    transition:opacity 0.22s ease, transform 0.22s cubic-bezier(.2,.8,.2,1);
+    transform:translate3d(0, 12px, 0) scale(0.985);
+    transition:
+        opacity 0.24s ease,
+        transform 0.28s cubic-bezier(.2, .8, .2, 1);
+    will-change:opacity, transform;
+    backface-visibility:hidden;
 }
 
 .study-picker-overlay.is-open .study-picker-modal{
     opacity:1;
-    transform:translateY(0) scale(1);
+    transform:translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce){
+    .study-picker-overlay,
+    .study-picker-modal{
+        transition:none;
+    }
+
+    .study-picker-modal{
+        transform:none;
+    }
 }
 
 .study-picker-modal *{

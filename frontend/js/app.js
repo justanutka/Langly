@@ -80,6 +80,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        window.langlyCurrentUser = user;
+        window.langlyUiText?.setLocaleFromUser(user);
+        window.langlyUiText?.apply(document);
+
         renderUserEmail(user);
 
         const isDashboard = document.getElementById("welcome-container");
@@ -107,18 +111,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 async function getCurrentUserAndUpdateStreak() {
+    if (window.langlyCurrentUser) {
+        return window.langlyCurrentUser;
+    }
+
     const token = localStorage.getItem("token");
 
     try {
-        const res = await fetch(BASE_URL + "/users/me", {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!res.ok) {
-            throw new Error("Unauthorized");
-        }
-
-        const user = await res.json();
+        const user = window.langlyApi?.getCurrentUser
+            ? await window.langlyApi.getCurrentUser()
+            : await fetch(BASE_URL + "/users/me", {
+                headers: { "Authorization": `Bearer ${token}` }
+            }).then((res) => {
+                if (!res.ok) throw new Error("Unauthorized");
+                return res.json();
+            });
         return user;
 
     } catch (error) {
@@ -142,22 +149,26 @@ async function loadFullDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-        const [dashboardRes, statsRes] = await Promise.all([
+        const [dashboardRes, stats] = await Promise.all([
             fetch(BASE_URL + "/study/dashboard", {
                 headers: { "Authorization": `Bearer ${token}` }
             }),
 
-            fetch(BASE_URL + "/study/stats", {
-                headers: { "Authorization": `Bearer ${token}` }
-            })
+            window.langlyApi?.getStudyStats
+                ? window.langlyApi.getStudyStats()
+                : fetch(BASE_URL + "/study/stats", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                }).then((res) => {
+                    if (!res.ok) throw new Error("API error");
+                    return res.json();
+                })
         ]);
 
-        if (!dashboardRes.ok || !statsRes.ok) {
+        if (!dashboardRes.ok) {
             throw new Error("API error");
         }
 
         const dashboard = await dashboardRes.json();
-        const stats = await statsRes.json();
 
         renderWelcome(dashboard, stats);
         renderStats(stats);
@@ -174,22 +185,26 @@ function renderWelcome(dashboard, stats) {
 
     const xpNeededTotal = Number(stats?.xp_to_next_level || 0) + Number(dashboard?.xp || 0);
     const percent = xpNeededTotal > 0 ? (Number(dashboard?.xp || 0) / xpNeededTotal) * 100 : 0;
+    const uiText = window.langlyUiText;
+    const t = (key, params) => uiText?.t(key, params) || key;
+    const streak = Number(dashboard.streak || 0);
+    const streakKey = streak === 1 ? "dashboard.day_streak" : "dashboard.days_streak";
 
     const dot = "•";
     const fire = "\uD83D\uDD25";
 
     container.innerHTML = `
         <div class="welcome-card focus-card">
-            <div class="focus-kicker">TODAY'S FOCUS</div>
+            <div class="focus-kicker">${t("dashboard.focus")}</div>
             <div class="focus-main">
-                <div class="focus-title">Learn a small set and mark what sticks.</div>
+                <div class="focus-title">${t("dashboard.focus_title")}</div>
                 <div class="focus-meta">
                     Level ${dashboard.level} ${dot}
                     ${dashboard.xp} / ${xpNeededTotal} XP ${dot}
-                    ${fire} ${dashboard.streak} day streak
+                    ${fire} ${t(streakKey, { count: streak })}
                 </div>
                 <div class="focus-progress-row">
-                    <div class="focus-progress-label">Level progress</div>
+                    <div class="focus-progress-label">${t("dashboard.level_progress")}</div>
                     <div class="focus-progress-percent">${Math.round(percent)}%</div>
                 </div>
                 <div class="progress-bar">
@@ -218,17 +233,17 @@ function renderStats(stats) {
         <div class="stats-grid">
 
             <div class="stat-card">
-                <div class="stat-title">Words learned</div>
+                <div class="stat-title">${window.langlyUiText?.t("dashboard.words_learned") || "Words learned"}</div>
                 <div class="stat-value">${stats.mastered_words}</div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-title">Due today</div>
+                <div class="stat-title">${window.langlyUiText?.t("dashboard.due_today") || "Due today"}</div>
                 <div class="stat-value">${stats.due_today}</div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-title">Progress</div>
+                <div class="stat-title">${window.langlyUiText?.t("dashboard.progress") || "Progress"}</div>
                 <div class="stat-value">${stats.progress_percent}%</div>
             </div>
 

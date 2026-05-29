@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const logo = document.getElementById("logo");
 
     if (logo) {
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    await window.langlyUiText?.init?.();
 
     const foldersView = document.getElementById("folders-view");
     const modulesView = document.getElementById("modules-view");
@@ -75,6 +76,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let sortValue = "new";
     let currentView = "folders";
+
+    function t(key, params, fallback) {
+        const value = window.langlyUiText?.t(key, params);
+        return value && value !== key ? value : fallback || key;
+    }
+
+    function applyInterfaceText() {
+        window.langlyUiText?.apply(document);
+
+        if (backToFoldersBtn) backToFoldersBtn.textContent = `← ${t("words.back_to_folders", null, "Back to folders")}`;
+        if (backToModulesBtn) backToModulesBtn.textContent = `← ${t("words.back_to_modules", null, "Back to modules")}`;
+
+        const sortDropdown = document.getElementById("sort-dropdown");
+        const labels = {
+            new: t("common.newest_first", null, "Newest first"),
+            old: t("common.oldest_first", null, "Oldest first"),
+            az: t("common.az", null, "A to Z"),
+            za: t("common.za", null, "Z to A")
+        };
+        sortDropdown?.querySelectorAll(".select-items div").forEach((item) => {
+            if (labels[item.dataset.value]) {
+                item.textContent = labels[item.dataset.value];
+            }
+        });
+        const sortSelected = sortDropdown?.querySelector(".select-selected");
+        const currentSort = sortDropdown?.querySelector(`.select-items div[data-value="${sortValue}"]`);
+        if (sortSelected && currentSort) {
+            sortSelected.textContent = currentSort.textContent;
+        }
+    }
+
+    applyInterfaceText();
 
     function showToast(text) {
         const toast = document.getElementById("toast");
@@ -162,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
         wordsView.style.display = "none";
         currentFolderId = null;
         currentModuleId = null;
-        updatePageHeader("My Folders", "Organize and study your vocabulary");
+        updatePageHeader(t("words.folders_title", null, "My Folders"), t("words.folders_subtitle", null, "Organize and study your vocabulary"));
         updateTopButton();
         clearAllWordsState();
     }
@@ -175,7 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "block";
         wordsView.style.display = "none";
         folderTitle.textContent = folderName;
-        updatePageHeader("My Modules", "Choose a module to add words, review cards, or start a quiz.");
+        updatePageHeader(t("words.modules_title", null, "My Modules"), t("words.modules_subtitle", null, "Choose a module to add words, review cards, or start a quiz."));
         updateTopButton();
         clearModuleState();
         saveWordsState();
@@ -188,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modulesView.style.display = "none";
         wordsView.style.display = "block";
         moduleTitle.textContent = module.name;
-        updatePageHeader("My Words", "Add and review words in this module.");
+        updatePageHeader(t("words.words_title", null, "My Words"), t("words.words_subtitle", null, "Add and review words in this module."));
         hideWordMessage();
         saveWordsState();
     }
@@ -197,12 +230,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!openFolderModal) return;
 
         if (currentView === "modules" && currentFolderId) {
-            openFolderModal.textContent = "+ Create Module";
+            openFolderModal.textContent = `+ ${t("words.create_module", null, "Create Module")}`;
             openFolderModal.onclick = () => {
                 moduleModal.style.display = "flex";
             };
         } else {
-            openFolderModal.textContent = "+ Create Folder";
+            openFolderModal.textContent = `+ ${t("words.create_folder", null, "Create Folder")}`;
             openFolderModal.onclick = () => {
                 folderModal.style.display = "flex";
             };
@@ -222,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         } catch (error) {
             console.error("Delete error:", error);
-            showToast("Could not delete item");
+            showToast(t("words.delete_error", null, "Could not delete item"));
         } finally {
             deleteModal.style.display = "none";
             deleteCallback = null;
@@ -320,6 +353,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function getUser() {
+        if (window.langlyApi?.getCurrentUser) {
+            return await window.langlyApi.getCurrentUser();
+        }
+
         const res = await fetch(BASE_URL + "/users/me", {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -357,11 +394,11 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadFolders(force = false) {
         if (currentView !== "folders" && !force) return;
 
-        const res = await fetch(BASE_URL + "/folders/", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        currentFolders = await res.json();
+        currentFolders = window.langlyApi?.getFolders
+            ? await window.langlyApi.getFolders()
+            : await fetch(BASE_URL + "/folders/", {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then((res) => res.json());
 
         if (currentView === "folders" || force) {
             renderFolders();
@@ -395,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const cardEl = e.target.closest(".folder-card");
 
-                openDeleteModal("Delete this folder?", async () => {
+                openDeleteModal(t("words.delete_folder", null, "Delete this folder?"), async () => {
                     cardEl.classList.add("delete-animation");
 
                     await new Promise(resolve => setTimeout(resolve, 300));
@@ -405,6 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         headers: { Authorization: `Bearer ${token}` }
                     });
 
+                    window.langlyApi?.clearFoldersCache?.();
                     history.pushState(null, "", "my-words.html");
                     showFoldersView();
                     await loadFolders(true);
@@ -424,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         createCard.innerHTML = `
             <div class="plus">+</div>
-            <div>Create folder</div>
+            <div>${t("words.create_folder_short", null, "Create folder")}</div>
         `;
 
         createCard.onclick = () => {
@@ -450,6 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ name, description, emoji })
         });
 
+        window.langlyApi?.clearFoldersCache?.();
         folderModal.style.display = "none";
         folderInput.value = "";
         folderDescription.value = "";
@@ -549,17 +588,17 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="module-actions">
                 <button class="study-btn lesson-btn" type="button">
                     <span class="study-emoji">&#127891;</span>
-                    <span>Lesson</span>
+                    <span>${t("words.lesson", null, "Lesson")}</span>
                 </button>
 
                 <button class="study-btn cards-btn" type="button">
                     <span class="study-emoji">🧠</span>
-                    <span>Cards</span>
+                    <span>${t("words.cards", null, "Cards")}</span>
                 </button>
 
                 <button class="study-btn quiz-btn" type="button">
                     <span class="study-emoji">✨</span>
-                    <span>Quiz</span>
+                    <span>${t("words.quiz", null, "Quiz")}</span>
                 </button>
             </div>
         `;
@@ -574,14 +613,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const cardEl = e.target.closest(".module-card");
 
-        openDeleteModal("Delete this module?", async () => {
+        openDeleteModal(t("words.delete_module", null, "Delete this module?"), async () => {
             const res = await fetch(`${BASE_URL}/modules/${module.id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (!res.ok) {
-                showToast("Could not delete module");
+                showToast(t("words.delete_module_error", null, "Could not delete module"));
                 return;
             }
 
@@ -602,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const hasWords = await checkModuleHasWords(module.id);
 
             if (!hasWords) {
-                showToast("Add words before starting lesson");
+                showToast(t("words.add_words_lesson", null, "Add words before starting lesson"));
                 return;
             }
 
@@ -615,7 +654,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const hasWords = await checkModuleHasWords(module.id);
 
             if (!hasWords) {
-                showToast("This module has no words yet");
+                showToast(t("words.no_words_module", null, "This module has no words yet"));
                 return;
             }
 
@@ -628,7 +667,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const hasWords = await checkModuleHasWords(module.id);
 
             if (!hasWords) {
-                showToast("Add words before starting quiz");
+                showToast(t("words.add_words_quiz", null, "Add words before starting quiz"));
                 return;
             }
 
@@ -645,7 +684,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     createCard.innerHTML = `
         <div class="plus">+</div>
-        <div>Create module</div>
+        <div>${t("words.create_module_short", null, "Create module")}</div>
     `;
 
     createCard.onclick = () => {
@@ -726,7 +765,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="word-translation">${word.translation}</div>
                     </div>
                     <button class="master-word-btn ${word.is_mastered ? "active" : ""}" type="button">
-                        ${word.is_mastered ? "✓ Mastered" : "Mark mastered"}
+                        ${word.is_mastered ? `✓ ${t("words.mastered", null, "Mastered")}` : t("words.mark_mastered", null, "Mark mastered")}
                     </button>
                     <button class="delete-word-btn" type="button">🗑</button>
                 </div>
@@ -771,19 +810,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
 
                     if (!res.ok) {
-                        showToast("Could not update mastered status");
+                        showToast(t("words.mastered_error", null, "Could not update mastered status"));
                         return;
                     }
 
                     await loadWords();
                 } catch (error) {
                     console.error(error);
-                    showToast("Server error while updating word");
+                    showToast(t("words.update_server_error", null, "Server error while updating word"));
                 }
             };
 
             deleteBtn.onclick = async () => {
-                openDeleteModal(`Delete word "${word.word}"?`, async () => {
+                openDeleteModal(t("words.delete_word", { word: word.word }, `Delete word "${word.word}"?`), async () => {
                     const res = await fetch(`${BASE_URL}/words/${word.id}`, {
                         method: "DELETE",
                         headers: {
@@ -792,7 +831,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
 
                     if (!res.ok) {
-                        showToast("Could not delete word");
+                        showToast(t("words.delete_word_error", null, "Could not delete word"));
                         return;
                     }
 
@@ -812,12 +851,12 @@ document.addEventListener("DOMContentLoaded", () => {
         hideWordMessage();
 
         if (!word || !translation) {
-            showWordMessage("Please fill in both fields.", "error");
+            showWordMessage(t("words.fill_word_fields", null, "Please fill in both fields."), "error");
             return;
         }
 
         if (!currentModuleId) {
-            showWordMessage("Please open a module first.", "error");
+            showWordMessage(t("words.open_module_first", null, "Please open a module first."), "error");
             return;
         }
 
@@ -844,7 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await res.json().catch(() => null);
 
             if (!res.ok) {
-                const errorText = data?.detail || "Something went wrong while adding the word.";
+                const errorText = data?.detail || t("words.add_word_error", null, "Something went wrong while adding the word.");
                 showWordMessage(errorText, "error");
                 return;
             }
@@ -855,7 +894,7 @@ document.addEventListener("DOMContentLoaded", () => {
             hideWordMessage();
             await loadWords();
         } catch (error) {
-            showWordMessage("Server connection error. Please try again.", "error");
+            showWordMessage(t("notes.server_error", null, "Server connection error. Please try again."), "error");
             console.error(error);
         }
     };

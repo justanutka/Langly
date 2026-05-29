@@ -24,11 +24,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadSidebar();
     }
 
+    await window.langlyUiText?.init?.();
+    window.langlyUiText?.apply(document);
+    if (moduleTitleEl) {
+        moduleTitleEl.textContent = moduleName;
+    }
+
+    function qt(key, params, fallback) {
+        const value = window.langlyUiText?.t(key, params);
+        return value && value !== key ? value : fallback || key;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function updateScoreLabel() {
+        if (scoreLabel) {
+            scoreLabel.textContent = qt("quiz.score", { score }, `Score: ${score}`);
+        }
+    }
+
     const quizShell = document.querySelector(".quiz-shell");
     const quizStage = document.getElementById("quiz-stage");
     const logo = document.getElementById("logo");
     const logoutBtn = document.getElementById("logout-btn");
     const backBtn = document.getElementById("back-btn");
+    const goFlashcardsBtn = document.getElementById("go-flashcards-btn");
 
     const startView = document.getElementById("quiz-start-view");
     const playView = document.getElementById("quiz-play-view");
@@ -67,6 +94,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     let activeResultSaveId = 0;
     const RESULT_EMOJI = "\uD83C\uDF89";
 
+    if (goFlashcardsBtn) {
+        goFlashcardsBtn.textContent = `${qt("quiz.go_cards", null, "Go to flashcards")} \u2192`;
+    }
+
+    [
+        ["multiple", "quiz.multiple_choice", "Multiple choice"],
+        ["write", "quiz.write_answer", "Write answer"],
+        ["truefalse", "quiz.true_false", "True / False"],
+        ["mixed", "quiz.mixed", "Mixed test"]
+    ].forEach(([mode, key, fallback]) => {
+        const badge = document.querySelector(`[data-mode="${mode}"] .mode-badge`);
+        if (badge) badge.textContent = qt(key, null, fallback);
+    });
+
     function getResultStorageKey() {
         return `langlyQuizResult_${moduleId}`;
     }
@@ -83,11 +124,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!backBtn) return;
 
         if (currentView === "play" || currentView === "result") {
-            backBtn.textContent = "← Back to quiz modes";
+            backBtn.textContent = `← ${qt("quiz.back_modes", null, "Back to quiz modes")}`;
             return;
         }
 
-        backBtn.textContent = "← Back to module";
+        backBtn.textContent = `← ${qt("quiz.back_module", null, "Back to module")}`;
     }
 
     function stabilizeShellHeight(callback, { scrollToTop = false, freezeFrom = null, freezeTo = null } = {}) {
@@ -241,18 +282,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         questionContainer.innerHTML = "";
         progressFill.style.transition = "";
         progressFill.style.width = "0%";
-        progressLabel.textContent = "Question 0 / 0";
-        scoreLabel.textContent = "Score: 0";
+        progressLabel.textContent = qt("quiz.question_counter", { current: 0, total: 0 }, "Question 0 / 0");
+        scoreLabel.textContent = qt("quiz.score", { score: 0 }, "Score: 0");
     }
 
     function buildResultSummary(scoreValue, totalValue, saved, xpValue) {
-        let summaryText = `You answered ${scoreValue} out of ${totalValue} questions correctly.`;
-
         if (saved) {
-            summaryText += ` You earned ${xpValue || 0} XP.`;
+            return qt(
+                "quiz.summary_xp",
+                { score: scoreValue, total: totalValue, xp: xpValue || 0 },
+                `You answered ${scoreValue} out of ${totalValue} questions correctly. You earned ${xpValue || 0} XP.`
+            );
         }
 
-        return summaryText;
+        return qt(
+            "quiz.summary",
+            { score: scoreValue, total: totalValue },
+            `You answered ${scoreValue} out of ${totalValue} questions correctly.`
+        );
     }
 
     function renderResultContent({
@@ -268,13 +315,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         const mistakesMarkup = hasMistakes
             ? `
                 <div class="mistakes-block">
-                    <h3>Mistakes</h3>
+                    <h3>${qt("quiz.mistakes", null, "Mistakes")}</h3>
                     <div class="mistakes-list">
                         ${mistakesValue.map((mistake) => `
                             <div class="mistake-item">
-                                <div class="mistake-word">${mistake.word}</div>
-                                <div class="mistake-line">Your answer: ${mistake.userAnswer}</div>
-                                <div class="mistake-line">Correct answer: ${mistake.correctAnswer}</div>
+                                <div class="mistake-word">${escapeHtml(mistake.word)}</div>
+                                <div class="mistake-line">${qt("quiz.your_answer", { answer: escapeHtml(mistake.userAnswer) }, `Your answer: ${escapeHtml(mistake.userAnswer)}`)}</div>
+                                <div class="mistake-line">${qt("quiz.correct_answer", { answer: escapeHtml(mistake.correctAnswer) }, `Correct answer: ${escapeHtml(mistake.correctAnswer)}`)}</div>
                             </div>
                         `).join("")}
                     </div>
@@ -285,23 +332,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         questionContainer.innerHTML = `
             <div class="result-top">
                 <div class="result-emoji">${RESULT_EMOJI}</div>
-                <h2>Your result</h2>
+                <h2>${qt("quiz.result_title", null, "Your result")}</h2>
                 <p class="result-summary">${summaryText}</p>
             </div>
 
             <div class="result-stats">
                 <div class="result-stat">
-                    <span>Correct</span>
+                    <span>${qt("quiz.correct", null, "Correct")}</span>
                     <strong>${scoreValue}</strong>
                 </div>
 
                 <div class="result-stat">
-                    <span>Total</span>
+                    <span>${qt("quiz.total", null, "Total")}</span>
                     <strong>${totalValue}</strong>
                 </div>
 
                 <div class="result-stat">
-                    <span>Accuracy</span>
+                    <span>${qt("quiz.accuracy", null, "Accuracy")}</span>
                     <strong>${percentValue}%</strong>
                 </div>
             </div>
@@ -309,8 +356,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${mistakesMarkup}
 
             <div class="result-actions">
-                <button id="quiz-result-restart" class="btn-main" type="button">Try again</button>
-                <button id="quiz-result-change-mode" class="btn-secondary" type="button">Choose another mode</button>
+                <button id="quiz-result-restart" class="btn-main" type="button">${qt("quiz.try_again", null, "Try again")}</button>
+                <button id="quiz-result-change-mode" class="btn-secondary" type="button">${qt("quiz.change_mode", null, "Choose another mode")}</button>
             </div>
         `;
 
@@ -416,11 +463,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (moduleWords.length <= 10) {
-            countHint.textContent = `This module has ${moduleWords.length} words, so you can choose between 2 and ${moduleWords.length} questions.`;
+            countHint.textContent = qt(
+                "quiz.module_small",
+                { count: moduleWords.length },
+                `This module has ${moduleWords.length} words, so you can choose between 2 and ${moduleWords.length} questions.`
+            );
             return;
         }
 
-        countHint.textContent = `You can choose up to ${moduleWords.length} questions for this module.`;
+        countHint.textContent = qt(
+            "quiz.module_large",
+            { count: moduleWords.length },
+            `You can choose up to ${moduleWords.length} questions for this module.`
+        );
     }
 
     function initCustomSelect(dropdown) {
@@ -454,7 +509,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const current = normalizedOptions.find((option) => String(option.value) === String(value));
 
         dropdown.dataset.value = current ? String(current.value) : "";
-        selected.textContent = current ? current.label : (placeholder || "Select");
+        selected.textContent = current ? current.label : (placeholder || qt("quiz.select", null, "Select"));
         items.innerHTML = "";
 
         normalizedOptions.forEach((option) => {
@@ -491,7 +546,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!options.length) {
             selectedQuestionCount = 0;
             if (countSelectSelected) {
-                countSelectSelected.textContent = "Select amount";
+                countSelectSelected.textContent = qt("quiz.select_amount", null, "Select amount");
             }
             if (countSelectItems) {
                 countSelectItems.innerHTML = "";
@@ -509,10 +564,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             dropdown: countSelect,
             options: options.map((value) => ({
                 value: String(value),
-                label: value === wordsLength ? `All available (${value})` : `${value} questions`
+                label: value === wordsLength
+                    ? qt("quiz.all_available", { count: value }, `All available (${value})`)
+                    : qt("quiz.questions", { count: value }, `${value} questions`)
             })),
             value: String(selectedQuestionCount),
-            placeholder: "Select amount",
+            placeholder: qt("quiz.select_amount", null, "Select amount"),
             onChange: (nextValue) => {
                 selectedQuestionCount = Number(nextValue) || getDefaultQuestionCount(moduleWords.length);
                 updateQuestionCountMeta();
@@ -648,8 +705,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const current = Math.min(currentQuestionIndex + 1, total);
         const progressPercent = total ? (currentQuestionIndex / total) * 100 : 0;
 
-        progressLabel.textContent = `Question ${current} / ${total}`;
-        scoreLabel.textContent = `Score: ${score}`;
+        progressLabel.textContent = qt("quiz.question_counter", { current, total }, `Question ${current} / ${total}`);
+        updateScoreLabel();
         progressFill.style.width = `${progressPercent}%`;
     }
 
@@ -688,13 +745,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function renderMultipleChoice(question) {
         questionContainer.innerHTML = `
-            <div class="question-type">Multiple choice</div>
-            <h2 class="question-title">${question.word.word}</h2>
-            <p class="question-subtitle">Choose the correct translation.</p>
+            <div class="question-type">${qt("quiz.multiple_choice", null, "Multiple choice")}</div>
+            <h2 class="question-title">${escapeHtml(question.word.word)}</h2>
+            <p class="question-subtitle">${qt("quiz.choose_translation", null, "Choose the correct translation.")}</p>
             <div class="answer-grid">
                 ${question.options.map((option) => `
-                    <button class="answer-btn" type="button" data-answer="${option.replace(/"/g, "&quot;")}">
-                        ${option}
+                    <button class="answer-btn" type="button" data-answer="${escapeHtml(option)}">
+                        ${escapeHtml(option)}
                     </button>
                 `).join("")}
             </div>
@@ -720,14 +777,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     recordMistake(question.word, selectedAnswer, question.correctAnswer);
                 } else {
                     score++;
-                    scoreLabel.textContent = `Score: ${score}`;
+                    updateScoreLabel();
                 }
 
                 recordAnswer(question, selectedAnswer, isCorrect);
 
                 const nextRow = document.createElement("div");
                 nextRow.className = "next-row";
-                nextRow.innerHTML = `<button class="btn-main" type="button">Next</button>`;
+                nextRow.innerHTML = `<button class="btn-main" type="button">${qt("cards.next", null, "Next")}</button>`;
                 questionContainer.appendChild(nextRow);
 
                 nextRow.querySelector("button").addEventListener("click", goToNextQuestion, { once: true });
@@ -737,14 +794,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function renderWriteAnswer(question) {
         questionContainer.innerHTML = `
-            <div class="question-type">Write answer</div>
-            <h2 class="question-title">${question.word.word}</h2>
-            <p class="question-subtitle">Type the correct translation.</p>
+            <div class="question-type">${qt("quiz.write_answer", null, "Write answer")}</div>
+            <h2 class="question-title">${escapeHtml(question.word.word)}</h2>
+            <p class="question-subtitle">${qt("lesson.type_translation", null, "Type the correct translation.")}</p>
 
             <div class="write-box">
-                <input id="write-input" class="write-input" type="text" placeholder="Type your answer...">
+                <input id="write-input" class="write-input" type="text" placeholder="${qt("quiz.type_answer_placeholder", null, "Type your answer...")}">
                 <div class="write-actions">
-                    <button id="check-answer-btn" class="btn-main" type="button">Check answer</button>
+                    <button id="check-answer-btn" class="btn-main" type="button">${qt("lesson.check_answer", null, "Check answer")}</button>
                 </div>
             </div>
         `;
@@ -763,12 +820,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             const feedback = document.createElement("div");
             feedback.className = `feedback-box ${isCorrect ? "correct" : "wrong"}`;
             feedback.innerHTML = isCorrect
-                ? "Correct!"
-                : `Wrong. Correct answer: <strong>${question.correctAnswer}</strong>`;
+                ? qt("quiz.correct_bang", null, "Correct!")
+                : qt(
+                    "quiz.wrong_correct_answer",
+                    { answer: `<strong>${escapeHtml(question.correctAnswer)}</strong>` },
+                    `Wrong. Correct answer: <strong>${escapeHtml(question.correctAnswer)}</strong>`
+                );
 
             if (isCorrect) {
                 score++;
-                scoreLabel.textContent = `Score: ${score}`;
+                updateScoreLabel();
             } else {
                 recordMistake(question.word, userAnswer, question.correctAnswer);
             }
@@ -780,7 +841,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const nextRow = document.createElement("div");
             nextRow.className = "next-row";
-            nextRow.innerHTML = `<button class="btn-main" type="button">Next</button>`;
+            nextRow.innerHTML = `<button class="btn-main" type="button">${qt("cards.next", null, "Next")}</button>`;
 
             questionContainer.appendChild(feedback);
             questionContainer.appendChild(nextRow);
@@ -800,12 +861,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function renderTrueFalse(question) {
         questionContainer.innerHTML = `
-            <div class="question-type">True / False</div>
-            <h2 class="question-title">${question.word.word}</h2>
-            <p class="question-subtitle">Does this translation match: <strong>${question.shownTranslation}</strong>?</p>
+            <div class="question-type">${qt("quiz.true_false", null, "True / False")}</div>
+            <h2 class="question-title">${escapeHtml(question.word.word)}</h2>
+            <p class="question-subtitle">${qt(
+                "quiz.truefalse_match",
+                { translation: `<strong>${escapeHtml(question.shownTranslation)}</strong>` },
+                `Does this translation match: <strong>${escapeHtml(question.shownTranslation)}</strong>?`
+            )}</p>
             <div class="answer-grid">
-                <button class="answer-btn" type="button" data-answer="true">True</button>
-                <button class="answer-btn" type="button" data-answer="false">False</button>
+                <button class="answer-btn" type="button" data-answer="true">${qt("quiz.true", null, "True")}</button>
+                <button class="answer-btn" type="button" data-answer="false">${qt("quiz.false", null, "False")}</button>
             </div>
         `;
 
@@ -833,7 +898,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     );
                 } else {
                     score++;
-                    scoreLabel.textContent = `Score: ${score}`;
+                    updateScoreLabel();
                 }
 
                 recordAnswer(
@@ -845,7 +910,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 const nextRow = document.createElement("div");
                 nextRow.className = "next-row";
-                nextRow.innerHTML = `<button class="btn-main" type="button">Next</button>`;
+                nextRow.innerHTML = `<button class="btn-main" type="button">${qt("cards.next", null, "Next")}</button>`;
                 questionContainer.appendChild(nextRow);
 
                 nextRow.querySelector("button").addEventListener("click", goToNextQuestion, { once: true });

@@ -19,7 +19,7 @@
 
 </head>
 
-<body class="page-pending">
+<body>
 
 <header class="top-bar">
 
@@ -27,7 +27,7 @@
         Langly
     </div>
 
-    <button id="logout-btn" class="logout-btn">
+    <button id="logout-btn" class="logout-btn" data-ui-text="common.logout">
         Log out
     </button>
 
@@ -49,12 +49,12 @@
 
             <div class="profile-header">
                 <div>
-                    <div class="profile-kicker">LEARNER PROFILE</div>
-                    <h1>Profile</h1>
+                    <div class="profile-kicker" data-ui-text="profile.kicker">LEARNER PROFILE</div>
+                    <h1 data-ui-text="profile.title">Profile</h1>
                 </div>
 
                 <div class="profile-active-language">
-                    <div class="profile-meta-label">Active language</div>
+                    <div class="profile-meta-label" data-ui-text="profile.active_language">Active language</div>
                     <div id="profile-active-language-name" class="profile-meta-value">—</div>
                 </div>
             </div>
@@ -65,24 +65,24 @@
                     <div class="profile-account-top">
                         <div class="profile-avatar" id="profile-avatar">L</div>
                         <div class="profile-account-meta">
-                            <div class="profile-muted">SIGNED IN AS</div>
+                            <div class="profile-muted" data-ui-text="profile.signed_in_as">SIGNED IN AS</div>
                             <div id="profile-email" class="profile-email"></div>
                         </div>
                     </div>
 
                     <div class="profile-mini-grid">
                         <div class="profile-mini">
-                            <div class="profile-mini-label">Current level</div>
+                            <div class="profile-mini-label" data-ui-text="profile.current_level">Current level</div>
                             <div id="profile-level" class="profile-mini-value">—</div>
                         </div>
                         <div class="profile-mini">
-                            <div class="profile-mini-label">XP balance</div>
+                            <div class="profile-mini-label" data-ui-text="profile.xp_balance">XP balance</div>
                             <div id="profile-xp" class="profile-mini-value">—</div>
                         </div>
                     </div>
 
                     <div class="profile-progress-row">
-                        <div class="profile-mini-label">Level progress</div>
+                        <div class="profile-mini-label" data-ui-text="dashboard.level_progress">Level progress</div>
                         <div id="profile-progress-percent" class="profile-mini-label">0%</div>
                     </div>
                     <div class="profile-progress-bar">
@@ -94,35 +94,35 @@
 
                     <div class="profile-stats-grid">
                         <section class="profile-panel profile-panel--stat">
-                            <div class="profile-muted">STUDY STREAK</div>
+                            <div class="profile-muted" data-ui-text="profile.study_streak">STUDY STREAK</div>
                             <div id="profile-streak" class="profile-stat-value">—</div>
-                            <div class="profile-stat-desc">Consecutive days when you opened your learning space.</div>
+                            <div class="profile-stat-desc" data-ui-text="profile.streak_desc">Consecutive days when you opened your learning space.</div>
                         </section>
 
                         <section class="profile-panel profile-panel--stat">
-                            <div class="profile-muted">WORDS LEARNED</div>
+                            <div class="profile-muted" data-ui-text="profile.words_learned">WORDS LEARNED</div>
                             <div id="profile-words-learned" class="profile-stat-value">—</div>
-                            <div class="profile-stat-desc">Words you marked as learned.</div>
+                            <div class="profile-stat-desc" data-ui-text="profile.words_learned_desc">Words you marked as learned.</div>
                         </section>
 
                         <section class="profile-panel profile-panel--stat">
-                            <div class="profile-muted">LEARNED TODAY</div>
+                            <div class="profile-muted" data-ui-text="profile.learned_today">LEARNED TODAY</div>
                             <div id="profile-learned-today" class="profile-stat-value">—</div>
-                            <div class="profile-stat-desc">Words marked today.</div>
+                            <div class="profile-stat-desc" data-ui-text="profile.learned_today_desc">Words marked today.</div>
                         </section>
 
                         <section class="profile-panel profile-panel--stat">
-                            <div class="profile-muted">SAVED WORDS</div>
+                            <div class="profile-muted" data-ui-text="profile.saved_words">SAVED WORDS</div>
                             <div id="profile-saved-words" class="profile-stat-value">—</div>
-                            <div class="profile-stat-desc">Words available for Today, flashcards and quiz.</div>
+                            <div class="profile-stat-desc" data-ui-text="profile.saved_words_desc">Words available for Today, flashcards and quiz.</div>
                         </section>
                     </div>
 
                     <div class="profile-bottom-grid">
                         <section class="profile-panel profile-panel--language">
-                            <div class="profile-muted">LANGUAGE SETTINGS</div>
-                            <h3 class="profile-panel-title">Choose active language</h3>
-                            <div class="profile-panel-subtitle">
+                            <div class="profile-muted" data-ui-text="profile.language_settings">LANGUAGE SETTINGS</div>
+                            <h3 class="profile-panel-title" data-ui-text="profile.choose_active_language">Choose active language</h3>
+                            <div class="profile-panel-subtitle" data-ui-text="profile.active_language_desc">
                                 This language controls which saved words appear in Today, flashcards and quiz.
                             </div>
 
@@ -133,7 +133,7 @@
                                 </div>
 
                                 <button class="primary-btn" id="profile-save-language-btn" type="button">
-                                    Save Language
+                                    <span data-ui-text="profile.save_language">Save Language</span>
                                 </button>
                             </div>
 
@@ -141,13 +141,13 @@
                         </section>
 
                         <section class="profile-panel profile-panel--actions">
-                            <div class="profile-muted">QUICK ACTIONS</div>
-                            <h3 class="profile-panel-title">Continue learning</h3>
+                            <div class="profile-muted" data-ui-text="profile.quick_actions">QUICK ACTIONS</div>
+                            <h3 class="profile-panel-title" data-ui-text="profile.continue_learning">Continue learning</h3>
 
                             <div class="profile-actions">
-                                <a class="profile-action-btn" href="dashboard.html">Open Dashboard</a>
-                                <a class="profile-action-btn" href="my-words.html">Manage library</a>
-                                <a class="profile-action-btn" href="my-notes.html">Open notes</a>
+                                <a class="profile-action-btn" href="dashboard.html" data-ui-text="profile.open_dashboard">Open Dashboard</a>
+                                <a class="profile-action-btn" href="my-words.html" data-ui-text="profile.manage_library">Manage library</a>
+                                <a class="profile-action-btn" href="my-notes.html" data-ui-text="profile.open_notes">Open notes</a>
                             </div>
                         </section>
                     </div>
@@ -163,6 +163,7 @@
 
 </div>
 
+<script src="js/interface-language.js"></script>
 <script src="js/sidebar.js"></script>
 <script src="js/app.js"></script>
 <script src="js/profile.js"></script>

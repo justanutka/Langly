@@ -50,6 +50,11 @@ function appendSpeechButton({ host, text, languageCode, label, className = "" })
   host.appendChild(button);
 }
 
+function tr(key, params, fallback) {
+  const value = window.langlyUiText?.t(key, params);
+  return value && value !== key ? value : fallback || key;
+}
+
 function renderMiniStats({ container, stats }) {
   const host = container.querySelector("#dash-mini-grid");
   if (!host) return;
@@ -61,24 +66,24 @@ function renderMiniStats({ container, stats }) {
 
   host.innerHTML = `
     <div class="dash-mini-card">
-      <div class="dash-mini-label">Words learned</div>
+      <div class="dash-mini-label">${tr("dashboard.words_learned")}</div>
       <div class="dash-mini-value">${mastered}</div>
-      <div class="dash-mini-sub">Marked as mastered</div>
+      <div class="dash-mini-sub">${tr("dashboard.marked_mastered")}</div>
     </div>
     <div class="dash-mini-card">
-      <div class="dash-mini-label">Learned today</div>
+      <div class="dash-mini-label">${tr("dashboard.learned_today")}</div>
       <div class="dash-mini-value">${learnedToday}</div>
-      <div class="dash-mini-sub">Marked today</div>
+      <div class="dash-mini-sub">${tr("dashboard.marked_today")}</div>
     </div>
     <div class="dash-mini-card">
-      <div class="dash-mini-label">Progress</div>
+      <div class="dash-mini-label">${tr("dashboard.progress")}</div>
       <div class="dash-mini-value">${progress}%</div>
-      <div class="dash-mini-sub">Active language</div>
+      <div class="dash-mini-sub">${tr("dashboard.active_language")}</div>
     </div>
     <div class="dash-mini-card">
-      <div class="dash-mini-label">Total words</div>
+      <div class="dash-mini-label">${tr("dashboard.total_words")}</div>
       <div class="dash-mini-value">${total}</div>
-      <div class="dash-mini-sub">Across your folders</div>
+      <div class="dash-mini-sub">${tr("dashboard.across_folders")}</div>
     </div>
   `;
 }
@@ -102,16 +107,16 @@ function initSessionSizeSelect({ container, state }) {
   state.sessionCount = initial;
 
   const options = [
-    { value: "5", label: "5 words — light" },
-    { value: "10", label: "10 words — medium" },
-    { value: "20", label: "20 words — intensive" }
+    { value: "5", label: tr("dashboard.session_light", null, "5 words - light") },
+    { value: "10", label: tr("dashboard.session_medium", null, "10 words - medium") },
+    { value: "20", label: tr("dashboard.session_intensive", null, "20 words - intensive") }
   ];
 
   setDashSelectOptions({
     dropdown,
     options,
     value: String(initial),
-    placeholder: "Session size",
+    placeholder: tr("dashboard.session_size"),
     onChange: async (v) => {
       const n = Number(v || 5);
       state.sessionCount = [5, 10, 20].includes(n) ? n : 5;
@@ -129,14 +134,14 @@ async function initDiscovery(container) {
     <div class="dash-section">
       <div class="dash-top">
         <div class="dash-queue-card">
-          <div class="dash-kicker">STUDY QUEUE</div>
-          <div class="dash-queue-value"><span id="dash-queue-count">—</span> <span class="dash-queue-unit">words</span></div>
-          <div class="dash-queue-sub">Pick how many new words to review today.</div>
+          <div class="dash-kicker">${tr("dashboard.study_queue")}</div>
+          <div class="dash-queue-value"><span id="dash-queue-count">—</span> <span class="dash-queue-unit">${tr("dashboard.words")}</span></div>
+          <div class="dash-queue-sub">${tr("dashboard.queue_sub")}</div>
 
           <div class="dash-queue-row">
-            <div class="dash-queue-label">Today session size</div>
+            <div class="dash-queue-label">${tr("dashboard.session_size")}</div>
             <div class="dash-custom-select dash-custom-select--compact" id="dash-session-size" data-value="">
-              <div class="dash-select-selected">5 words — light</div>
+              <div class="dash-select-selected">${tr("dashboard.session_light", null, "5 words - light")}</div>
               <div class="dash-select-items dash-select-hide"></div>
             </div>
           </div>
@@ -148,49 +153,49 @@ async function initDiscovery(container) {
       <div class="dash-actions-grid">
         <div class="dash-action-card">
           <div class="dash-action-badge">1</div>
-          <div class="dash-action-title">Build a deck</div>
-          <div class="dash-action-desc">Keep folders small so every module feels finishable.</div>
-          <a class="dash-action-link" href="my-words.html">Open library</a>
+          <div class="dash-action-title">${tr("dashboard.build_deck")}</div>
+          <div class="dash-action-desc">${tr("dashboard.build_deck_desc")}</div>
+          <a class="dash-action-link" href="my-words.html">${tr("dashboard.open_library")}</a>
         </div>
         <div class="dash-action-card">
           <div class="dash-action-badge">2</div>
-          <div class="dash-action-title">Practice next</div>
-          <div class="dash-action-desc">Pick a module and run a quick cards session.</div>
-          <button class="dash-action-link dash-action-btn" id="dash-open-cards" type="button">Choose module</button>
+          <div class="dash-action-title">${tr("dashboard.practice_next")}</div>
+          <div class="dash-action-desc">${tr("dashboard.practice_next_desc")}</div>
+          <button class="dash-action-link dash-action-btn" id="dash-open-cards" type="button">${tr("dashboard.choose_module")}</button>
         </div>
         <div class="dash-action-card">
           <div class="dash-action-badge">3</div>
-          <div class="dash-action-title">Test recall</div>
-          <div class="dash-action-desc">Use quizzes to catch words that only feel familiar.</div>
-          <button class="dash-action-link dash-action-btn" id="dash-open-quiz" type="button">Start quiz</button>
+          <div class="dash-action-title">${tr("dashboard.test_recall")}</div>
+          <div class="dash-action-desc">${tr("dashboard.test_recall_desc")}</div>
+          <button class="dash-action-link dash-action-btn" id="dash-open-quiz" type="button">${tr("dashboard.start_quiz")}</button>
         </div>
       </div>
 
       <div class="discovery-card">
         <div class="discovery-header">
           <div>
-            <h3 class="discovery-title">Today</h3>
+            <h3 class="discovery-title">${tr("dashboard.today")}</h3>
           </div>
           <div class="discovery-actions">
-            <button class="btn-soft btn-soft--ghost" id="discovery-shuffle" type="button">Shuffle</button>
-            <a class="btn-soft btn-soft--primary" href="my-words.html">Open library</a>
+            <button class="btn-soft btn-soft--ghost" id="discovery-shuffle" type="button">${tr("dashboard.shuffle")}</button>
+            <a class="btn-soft btn-soft--primary" href="my-words.html">${tr("dashboard.open_library")}</a>
           </div>
         </div>
 
         <div class="discovery-destination">
-          <div class="destination-label">SAVE DESTINATION</div>
+          <div class="destination-label">${tr("dashboard.save_destination")}</div>
 
           <div class="dash-custom-select" id="discovery-folder" data-value="">
-            <div class="dash-select-selected">Select folder</div>
+            <div class="dash-select-selected">${tr("dashboard.select_folder")}</div>
             <div class="dash-select-items dash-select-hide"></div>
           </div>
 
           <div class="dash-custom-select" id="discovery-module" data-value="">
-            <div class="dash-select-selected">Select module</div>
+            <div class="dash-select-selected">${tr("dashboard.select_module")}</div>
             <div class="dash-select-items dash-select-hide"></div>
           </div>
 
-          <button class="btn-soft primary" id="discovery-save-all" type="button">Save all</button>
+          <button class="btn-soft primary" id="discovery-save-all" type="button">${tr("dashboard.save_all")}</button>
         </div>
         <div class="discovery-hint" id="discovery-destination-hint"></div>
 
@@ -210,11 +215,15 @@ async function initDiscovery(container) {
   const openCardsBtn = container.querySelector("#dash-open-cards");
   const openQuizBtn = container.querySelector("#dash-open-quiz");
 
-  const user = await fetchJson(BASE_URL + "/users/me", token);
-  const stats = await fetchJson(BASE_URL + "/study/stats", token).catch(() => null);
+  const user = window.langlyApi?.getCurrentUser
+    ? await window.langlyApi.getCurrentUser()
+    : await fetchJson(BASE_URL + "/users/me", token);
+  const stats = window.langlyApi?.getStudyStats
+    ? await window.langlyApi.getStudyStats().catch(() => null)
+    : await fetchJson(BASE_URL + "/study/stats", token).catch(() => null);
 
   if (!user?.active_language_id) {
-    listEl.innerHTML = `<div class="empty-state">Select an active language first.</div>`;
+    listEl.innerHTML = `<div class="empty-state">${tr("dashboard.select_active_language", null, "Select an active language first.")}</div>`;
     return;
   }
 
@@ -229,7 +238,9 @@ async function initDiscovery(container) {
     sessionCount: 5
   };
 
-  state.folders = await fetchJson(BASE_URL + "/folders", token).catch(() => []);
+  state.folders = window.langlyApi?.getFolders
+    ? await window.langlyApi.getFolders().catch(() => [])
+    : await fetchJson(BASE_URL + "/folders", token).catch(() => []);
   initDashSelect(folderDropdown);
   initDashSelect(moduleDropdown);
   initDashSelect(sessionSizeDropdown);
@@ -268,7 +279,7 @@ async function initDiscovery(container) {
   if (saveAllBtn) {
     saveAllBtn.addEventListener("click", async () => {
       if (!state.moduleId) {
-        setToast(container, "Select a module to save into.", "error");
+        setToast(container, tr("dashboard.select_module_to_save"), "error");
         return;
       }
 
@@ -278,7 +289,7 @@ async function initDiscovery(container) {
         if (ok) saved += 1;
       }
 
-      setToast(container, saved > 0 ? `Saved ${saved} word(s).` : "Nothing saved.", saved > 0 ? "success" : "error");
+      setToast(container, saved > 0 ? tr("dashboard.saved_words", { count: saved }) : tr("dashboard.nothing_saved"), saved > 0 ? "success" : "error");
       renderWordsList({ container, state });
     });
   }
@@ -310,7 +321,7 @@ async function hydrateFolderSelect({ container, state }) {
   if (hintEl) {
     hintEl.textContent = "";
     if (!state.folders.length) {
-      hintEl.innerHTML = `No folders yet. Create one in <a href="my-words.html">Library</a>.`;
+      hintEl.innerHTML = `${tr("study.no_folders")} <a href="my-words.html">${tr("dashboard.open_library")}</a>.`;
     }
   }
 
@@ -318,7 +329,7 @@ async function hydrateFolderSelect({ container, state }) {
     dropdown: folderDropdown,
     options: state.folders.map(f => ({ value: String(f.id), label: f.name })),
     value: state.folderId,
-    placeholder: state.folders.length ? "Select folder" : "No folders yet",
+    placeholder: state.folders.length ? tr("dashboard.select_folder") : tr("study.no_folders"),
     onChange: async (folderId) => {
       state.folderId = String(folderId || "");
       localStorage.setItem("langlyDiscoveryFolderId", state.folderId);
@@ -349,7 +360,7 @@ async function hydrateModuleSelect({ container, state }) {
 
   if (hintEl) {
     if (state.folderId && !state.modules.length) {
-      hintEl.innerHTML = `No modules in this folder. Add one in <a href="my-words.html">Library</a>.`;
+      hintEl.innerHTML = `${tr("dashboard.no_modules_in_folder", null, "No modules in this folder.")} <a href="my-words.html">${tr("dashboard.open_library")}</a>.`;
     } else if (state.folders.length) {
       hintEl.textContent = "";
     }
@@ -366,8 +377,8 @@ async function hydrateModuleSelect({ container, state }) {
     options: state.modules.map(m => ({ value: String(m.id), label: m.name })),
     value: state.moduleId,
     placeholder: state.folderId
-      ? (state.modules.length ? "Select module" : "No modules yet")
-      : "Select folder first",
+      ? (state.modules.length ? tr("dashboard.select_module") : tr("study.no_modules"))
+      : tr("dashboard.select_folder_first", null, "Select folder first"),
     onChange: (moduleId) => {
       state.moduleId = String(moduleId || "");
       localStorage.setItem("langlyDiscoveryModuleId", state.moduleId);
@@ -385,7 +396,7 @@ async function hydrateWords({ container, state }) {
   const listEl = container.querySelector("#discovery-list");
   if (!listEl) return;
 
-  listEl.innerHTML = `<div class="empty-state">Loading words…</div>`;
+  listEl.innerHTML = `<div class="empty-state">${tr("dashboard.loading_words")}</div>`;
 
   const variant = getDailyVariant();
   const count = Number(state?.sessionCount || 5);
@@ -413,7 +424,7 @@ function renderWordsList({ container, state }) {
   if (!listEl) return;
 
   if (!state.dailyWords.length) {
-    listEl.innerHTML = `<div class="empty-state">No words available today.</div>`;
+    listEl.innerHTML = `<div class="empty-state">${tr("dashboard.no_words")}</div>`;
     return;
   }
 
@@ -440,11 +451,11 @@ function renderWordsList({ container, state }) {
             <span class="discovery-translation">${escapeHtml(t)}</span>
           </div>
         </div>
-        ${showBase ? `<div class="discovery-meta">Base: ${escapeHtml(base)}</div>` : ""}
+        ${showBase ? `<div class="discovery-meta">${tr("dashboard.base", null, "Base")}: ${escapeHtml(base)}</div>` : ""}
       </div>
       <div class="discovery-item-actions">
-        <button class="mini-pill" data-action="copy" type="button">Copy</button>
-        <button class="mini-pill primary" data-action="save" type="button">Save</button>
+        <button class="mini-pill" data-action="copy" type="button">${tr("dashboard.copy")}</button>
+        <button class="mini-pill primary" data-action="save" type="button">${tr("dashboard.save")}</button>
       </div>
     `;
 
@@ -472,9 +483,9 @@ function renderWordsList({ container, state }) {
       copyBtn.addEventListener("click", async () => {
         try {
           await navigator.clipboard.writeText(`${w} ${"\u2014"} ${t}`);
-          setToast(container, "Copied.", "success");
+          setToast(container, tr("dashboard.copied"), "success");
         } catch {
-          setToast(container, "Copy failed.", "error");
+          setToast(container, tr("dashboard.copy_failed"), "error");
         }
       });
     }
@@ -483,15 +494,15 @@ function renderWordsList({ container, state }) {
     if (saveBtn) {
       saveBtn.addEventListener("click", async () => {
         if (!state.moduleId) {
-          setToast(container, "Select a module to save into.", "error");
+          setToast(container, tr("dashboard.select_module_to_save"), "error");
           return;
         }
 
         const token = localStorage.getItem("token");
         const ok = await saveDiscoveryWord({ token, state, item });
         if (ok) {
-          setToast(container, "Saved.", "success");
-          saveBtn.textContent = "Saved";
+          setToast(container, tr("dashboard.saved"), "success");
+          saveBtn.textContent = tr("dashboard.saved");
           saveBtn.disabled = true;
         }
       });
@@ -529,7 +540,7 @@ async function saveDiscoveryWord({ token, state, item, silent = false }) {
     if (!res.ok) {
       if (!silent) {
         const data = await res.json().catch(() => null);
-        const msg = data?.detail || "Could not save word.";
+        const msg = data?.detail || tr("dashboard.could_not_save", null, "Could not save word.");
         setToast(document.getElementById("discovery-container"), msg, "error");
       }
       return false;
@@ -537,7 +548,7 @@ async function saveDiscoveryWord({ token, state, item, silent = false }) {
 
     return true;
   } catch (e) {
-    if (!silent) setToast(document.getElementById("discovery-container"), "Server error while saving.", "error");
+    if (!silent) setToast(document.getElementById("discovery-container"), tr("dashboard.save_server_error", null, "Server error while saving."), "error");
     return false;
   }
 }
@@ -576,13 +587,13 @@ function setDashSelectOptions({ dropdown, options, value, placeholder, onChange 
   const current = normalized.find(o => String(o.value) === String(value));
 
   dropdown.dataset.value = current ? String(current.value) : "";
-  selected.textContent = current ? current.label : (placeholder || "Select");
+  selected.textContent = current ? current.label : (placeholder || tr("dashboard.select", null, "Select"));
 
   items.innerHTML = "";
 
   if (!normalized.length) {
     const empty = document.createElement("div");
-    empty.textContent = "No items";
+    empty.textContent = tr("dashboard.no_items", null, "No items");
     items.appendChild(empty);
     return;
   }

@@ -74,6 +74,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         await loadSidebar();
     }
 
+    await window.langlyUiText?.init?.();
+    window.langlyUiText?.apply(document);
+    if (moduleTitle) {
+        moduleTitle.textContent = moduleName;
+    }
+
+    function lt(key, params, fallback) {
+        const value = window.langlyUiText?.t(key, params);
+        return value && value !== key ? value : fallback || key;
+    }
+
     if (cardsLink && moduleId) {
         cardsLink.href = `flashcards.html?module=${moduleId}&name=${encodeURIComponent(moduleName)}`;
     }
@@ -128,7 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             preview: { label: "2 / 4", progress: 35 },
             cards: { label: "3 / 4", progress: 60 },
             practice: { label: "4 / 4", progress: 82 },
-            result: { label: "Done", progress: 100 },
+            result: { label: lt("lesson.done", null, "Done"), progress: 100 },
             empty: { label: "-", progress: 0 }
         };
 
@@ -163,12 +174,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         flipCard.classList.remove("is-flipped", "is-changing-next", "is-changing-prev");
         cardFrontWord.textContent = word.word;
         cardBackWord.textContent = word.translation;
-        cardCounter.textContent = `Card ${currentCardIndex + 1} / ${moduleWords.length}`;
+        cardCounter.textContent = lt(
+            "lesson.card_counter",
+            { current: currentCardIndex + 1, total: moduleWords.length },
+            `Card ${currentCardIndex + 1} / ${moduleWords.length}`
+        );
 
         if (cardNextBtn) {
             cardNextBtn.textContent = currentCardIndex === moduleWords.length - 1
-                ? "Start practice"
-                : "Next";
+                ? lt("lesson.start_practice", null, "Start practice")
+                : lt("cards.next", null, "Next");
         }
     }
 
@@ -240,7 +255,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        questionCounter.textContent = `Question ${currentQuestionIndex + 1} / ${practiceQuestions.length}`;
+        questionCounter.textContent = lt(
+            "lesson.question_counter",
+            { current: currentQuestionIndex + 1, total: practiceQuestions.length },
+            `Question ${currentQuestionIndex + 1} / ${practiceQuestions.length}`
+        );
 
         if (question.type === "write") {
             renderWriteQuestion(question);
@@ -253,7 +272,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderMultipleQuestion(question) {
         questionContainer.innerHTML = `
             <h3 class="lesson-question-title">${escapeHtml(question.word.word)}</h3>
-            <p class="lesson-question-subtitle">Choose the correct translation.</p>
+            <p class="lesson-question-subtitle">${lt("quiz.choose_translation", null, "Choose the correct translation.")}</p>
             <div class="lesson-answer-grid">
                 ${question.options.map((option) => `
                     <button class="lesson-answer-btn" type="button" data-answer="${escapeHtml(option)}">
@@ -290,10 +309,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderWriteQuestion(question) {
         questionContainer.innerHTML = `
             <h3 class="lesson-question-title">${escapeHtml(question.word.word)}</h3>
-            <p class="lesson-question-subtitle">Type the correct translation.</p>
+            <p class="lesson-question-subtitle">${lt("lesson.type_translation", null, "Type the correct translation.")}</p>
             <div class="lesson-write-box">
-                <input id="lesson-write-input" class="lesson-write-input" type="text" placeholder="Type translation...">
-                <button id="lesson-check-btn" class="lesson-primary-btn" type="button">Check answer</button>
+                <input id="lesson-write-input" class="lesson-write-input" type="text" placeholder="${lt("lesson.type_placeholder", null, "Type translation...")}">
+                <button id="lesson-check-btn" class="lesson-primary-btn" type="button">${lt("lesson.check_answer", null, "Check answer")}</button>
             </div>
         `;
 
@@ -330,12 +349,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const feedback = document.createElement("div");
         feedback.className = `lesson-feedback ${isCorrect ? "correct" : "wrong"}`;
         feedback.innerHTML = isCorrect
-            ? "Correct."
-            : `Correct answer: <strong>${escapeHtml(correctAnswer)}</strong>`;
+            ? lt("lesson.correct", null, "Correct.")
+            : lt("lesson.correct_answer", { answer: `<strong>${escapeHtml(correctAnswer)}</strong>` }, `Correct answer: <strong>${escapeHtml(correctAnswer)}</strong>`);
 
         const actions = document.createElement("div");
         actions.className = "lesson-actions";
-        actions.innerHTML = `<button class="lesson-primary-btn" type="button">Next</button>`;
+        actions.innerHTML = `<button class="lesson-primary-btn" type="button">${lt("cards.next", null, "Next")}</button>`;
 
         questionContainer.appendChild(feedback);
         questionContainer.appendChild(actions);
@@ -412,14 +431,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (resultTotal) resultTotal.textContent = String(total);
         if (resultPercent) resultPercent.textContent = `${percent}%`;
         if (resultSummary) {
-            resultSummary.textContent = `You reviewed ${moduleWords.length} word(s) and answered ${score} out of ${total} task(s) correctly.`;
+            resultSummary.textContent = lt(
+                "lesson.summary",
+                { words: moduleWords.length, score, total },
+                `You reviewed ${moduleWords.length} word(s) and answered ${score} out of ${total} task(s) correctly.`
+            );
         }
 
         setView("result");
 
         saveLessonAttempt().then((data) => {
             if (!data || !resultSummary || currentStep !== "result") return;
-            resultSummary.textContent = `You reviewed ${moduleWords.length} word(s), answered ${score} out of ${total} task(s) correctly, and earned ${data.xp_earned || 0} XP.`;
+            resultSummary.textContent = lt(
+                "lesson.summary_xp",
+                { words: moduleWords.length, score, total, xp: data.xp_earned || 0 },
+                `You reviewed ${moduleWords.length} word(s), answered ${score} out of ${total} task(s) correctly, and earned ${data.xp_earned || 0} XP.`
+            );
         });
     }
 

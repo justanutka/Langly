@@ -19,15 +19,6 @@ body {
   font-family: "Inter", sans-serif;
   background: var(--bg-page);
   overflow-x: hidden;
-  transition: opacity 0.14s ease;
-}
-
-body.page-transitioning {
-  opacity: 0.08;
-}
-
-body.page-transitioning * {
-  transition: none !important;
 }
 
 /* GLOW BACKGROUND */
