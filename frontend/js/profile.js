@@ -182,6 +182,13 @@ async function changeLanguage({ languages } = {}) {
 
     if (!res.ok) throw new Error("Set language failed");
 
+    if (window.langlyApi?.clearLanguageScopedCache) {
+      window.langlyApi.clearLanguageScopedCache();
+    } else {
+      window.langlyApi?.clearFoldersCache?.();
+      window.langlyApi?.clearStudyStatsCache?.();
+    }
+
     const [me, statsRes] = await Promise.all([
       window.langlyApi?.getCurrentUser
         ? window.langlyApi.getCurrentUser({ force: true })
@@ -196,6 +203,11 @@ async function changeLanguage({ languages } = {}) {
     if (me) {
       const sidebarEmail = document.getElementById("user-email");
       if (sidebarEmail) sidebarEmail.textContent = me.email || "";
+      if (typeof loadSidebarUserData === "function") {
+        await loadSidebarUserData(me).catch((error) => {
+          console.error("Sidebar refresh after language change failed:", error);
+        });
+      }
     }
 
     const levelEl = document.getElementById("profile-level");

@@ -1,19 +1,52 @@
 const SIDEBAR_BASE_URL = "http://127.0.0.1:8000";
+let sidebarLoadPromise = null;
 
 async function loadSidebar(options = {}) {
     const container = document.getElementById("sidebar-container");
     if (!container) return;
 
-    const res = await fetch("components/sidebar.html");
-    const html = await res.text();
+    if (sidebarLoadPromise) {
+        await sidebarLoadPromise;
+        if (options.user) {
+            await loadSidebarUserData(options.user);
+        }
+        return;
+    }
 
-    container.innerHTML = html;
+    if (container.dataset.sidebarLoaded === "1") {
+        await window.langlyUiText?.init?.().catch((error) => {
+            console.error("Sidebar language init error:", error);
+        });
+        window.langlyUiText?.apply(container);
+        await loadSidebarUserData(options.user);
+        return;
+    }
 
-    initSidebar();
-    initNewFolderButton();
-    initStudyPicker();
-    window.langlyUiText?.apply(container);
-    await loadSidebarUserData(options.user);
+    sidebarLoadPromise = (async () => {
+        const [html] = await Promise.all([
+            fetch("components/sidebar.html").then((res) => res.text()),
+            window.langlyUiText?.init?.().catch((error) => {
+                console.error("Sidebar language init error:", error);
+            })
+        ]);
+
+        container.classList.add("is-initializing");
+        container.innerHTML = html;
+
+        initSidebar();
+        initNewFolderButton();
+        initStudyPicker();
+        window.langlyUiText?.apply(container);
+        container.dataset.sidebarLoaded = "1";
+        window.requestAnimationFrame(() => {
+            container.classList.remove("is-initializing");
+        });
+        await loadSidebarUserData(options.user);
+    })().finally(() => {
+        sidebarLoadPromise = null;
+    });
+
+    await sidebarLoadPromise;
 }
 
 /* SIDEBAR TOGGLE */

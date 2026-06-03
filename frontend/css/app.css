@@ -21,6 +21,16 @@ body {
   overflow-x: hidden;
 }
 
+body.langly-i18n-pending,
+body.page-pending {
+  opacity: 0;
+}
+
+body.langly-i18n-pending *,
+body.page-pending * {
+  transition: none !important;
+}
+
 /* GLOW BACKGROUND */
 body::before,
 body::after {

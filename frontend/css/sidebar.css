@@ -17,6 +17,18 @@
     width: var(--sidebar-collapsed-width);
 }
 
+#sidebar-container.is-initializing,
+#sidebar-container.is-initializing .sidebar,
+#sidebar-container.is-initializing .nav-item,
+#sidebar-container.is-initializing .sidebar-item,
+#sidebar-container.is-initializing .folder-item,
+#sidebar-container.is-initializing .label,
+#sidebar-container.is-initializing .folder-name,
+#sidebar-container.is-initializing .sidebar-title,
+#sidebar-container.is-initializing .sidebar-footer {
+    transition: none !important;
+}
+
 #sidebar-container:empty {
     background: var(--sidebar-bg, rgba(255, 255, 255, 0.85));
     border-right: 1px solid rgba(0,0,0,0.05);

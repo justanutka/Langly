@@ -16,6 +16,8 @@
   let studyStatsPromise = null;
   let studyStatsCache = null;
 
+  document.body?.classList.add("langly-i18n-pending");
+
   const localeCache = new Map();
   const localePromises = new Map();
 
@@ -92,6 +94,18 @@
   function t(key, params) {
     const value = currentDictionary[key] || fallbackDictionary[key] || key;
     return format(value, params || {});
+  }
+
+  function getKnownTranslation(key, params) {
+    if (Object.prototype.hasOwnProperty.call(currentDictionary, key)) {
+      return format(currentDictionary[key], params || {});
+    }
+
+    if (Object.prototype.hasOwnProperty.call(fallbackDictionary, key)) {
+      return format(fallbackDictionary[key], params || {});
+    }
+
+    return null;
   }
 
   function setLocale(code) {
@@ -232,6 +246,18 @@
     studyStatsCache = null;
   }
 
+  function clearLanguageScopedCache() {
+    clearFoldersCache();
+    clearStudyStatsCache();
+    localStorage.removeItem("langlyDiscoveryFolderId");
+    localStorage.removeItem("langlyDiscoveryModuleId");
+    sessionStorage.removeItem("langlyWordsView");
+    sessionStorage.removeItem("langlyCurrentFolderId");
+    sessionStorage.removeItem("langlyCurrentModuleId");
+    sessionStorage.removeItem("langlyCurrentFolderTitle");
+    sessionStorage.removeItem("langlyCurrentModuleTitle");
+  }
+
   function apply(root) {
     const scope = root || document;
 
@@ -244,23 +270,34 @@
           params = {};
         }
       }
-      element.textContent = t(element.dataset.uiText, params);
+      const value = getKnownTranslation(element.dataset.uiText, params);
+      if (value !== null) {
+        element.textContent = value;
+      }
     });
 
     scope.querySelectorAll("[data-ui-placeholder]").forEach((element) => {
-      const value = t(element.dataset.uiPlaceholder);
-      element.setAttribute("placeholder", value);
-      if (element.hasAttribute("data-placeholder")) {
-        element.setAttribute("data-placeholder", value);
+      const value = getKnownTranslation(element.dataset.uiPlaceholder);
+      if (value !== null) {
+        element.setAttribute("placeholder", value);
+        if (element.hasAttribute("data-placeholder")) {
+          element.setAttribute("data-placeholder", value);
+        }
       }
     });
 
     scope.querySelectorAll("[data-ui-title]").forEach((element) => {
-      element.setAttribute("title", t(element.dataset.uiTitle));
+      const value = getKnownTranslation(element.dataset.uiTitle);
+      if (value !== null) {
+        element.setAttribute("title", value);
+      }
     });
 
     scope.querySelectorAll("[data-ui-aria-label]").forEach((element) => {
-      element.setAttribute("aria-label", t(element.dataset.uiAriaLabel));
+      const value = getKnownTranslation(element.dataset.uiAriaLabel);
+      if (value !== null) {
+        element.setAttribute("aria-label", value);
+      }
     });
 
     if (Object.keys(currentAutoText).length) {
@@ -286,25 +323,32 @@
     initPromise = (async () => {
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        currentLocale = "en";
-        document.documentElement.lang = currentLocale;
-        await ensureLocale(currentLocale);
+      try {
+        if (!token) {
+          currentLocale = "en";
+          document.documentElement.lang = currentLocale;
+          await ensureLocale(currentLocale);
+          apply(document);
+          return currentLocale;
+        }
+
+        try {
+          const user = await getCurrentUser();
+          await setLocaleFromUser(user);
+        } catch (error) {
+          console.error("Interface language load error:", error);
+          await setLocale(currentLocale);
+        }
+
         apply(document);
         return currentLocale;
+      } finally {
+        document.body?.classList.remove("langly-i18n-pending");
       }
-
-      try {
-        const user = await getCurrentUser();
-        await setLocaleFromUser(user);
-      } catch (error) {
-        console.error("Interface language load error:", error);
-        await setLocale(currentLocale);
-      }
-
-      apply(document);
-      return currentLocale;
-    })();
+    })().catch((error) => {
+      document.body?.classList.remove("langly-i18n-pending");
+      throw error;
+    });
 
     return initPromise;
   }
@@ -326,7 +370,8 @@
     getLanguages,
     getStudyStats,
     clearFoldersCache,
-    clearStudyStatsCache
+    clearStudyStatsCache,
+    clearLanguageScopedCache
   };
 
   if (document.readyState === "loading") {
