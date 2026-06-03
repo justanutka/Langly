@@ -77,6 +77,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     let sortValue = "new";
     let currentView = "folders";
 
+    function buildWordsUrl({ folderId = "", moduleId = "" } = {}) {
+        const url = new URL("my-words.html", window.location.href);
+
+        if (folderId) {
+            url.searchParams.set("folder", String(folderId));
+        }
+
+        if (folderId && moduleId) {
+            url.searchParams.set("module", String(moduleId));
+        }
+
+        return url;
+    }
+
+    function syncWordsHistory({ view = "folders", folderId = "", moduleId = "" } = {}, mode = "push") {
+        const state = {
+            langlyWordsPage: true,
+            view,
+            folderId: folderId ? String(folderId) : "",
+            moduleId: moduleId ? String(moduleId) : ""
+        };
+        const method = mode === "replace" ? "replaceState" : "pushState";
+        window.history[method](state, "", buildWordsUrl({ folderId, moduleId }));
+    }
+
     function t(key, params, fallback) {
         const value = window.langlyUiText?.t(key, params);
         return value && value !== key ? value : fallback || key;
@@ -443,15 +468,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     });
 
                     window.langlyApi?.clearFoldersCache?.();
-                    history.pushState(null, "", "my-words.html");
+                    syncWordsHistory({ view: "folders" }, "push");
                     showFoldersView();
                     await loadFolders(true);
                 });
             };
 
             card.onclick = () => {
-                history.pushState(null, "", `?folder=${folder.id}`);
-                openFolder(folder);
+                openFolder(folder, { historyMode: "push" });
             };
 
             foldersContainer.appendChild(card);
@@ -674,7 +698,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             goToQuiz(module.id, module.name);
         };
 
-        card.onclick = () => openModule(module);
+        card.onclick = () => openModule(module, { historyMode: "push" });
 
         modulesContainer.appendChild(card);
     });
@@ -694,7 +718,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     modulesContainer.appendChild(createCard);
 }
 
-    async function openFolder(folder) {
+    async function openFolder(folder, { historyMode = null } = {}) {
+        if (historyMode) {
+            syncWordsHistory({ view: "modules", folderId: folder.id }, historyMode);
+        }
+
         showModulesView(folder.id, folder.name);
         saveWordsState();
         await loadModules(folder.id);
@@ -715,8 +743,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        history.pushState(null, "", `?folder=${resolvedFolder.id}`);
-        await openFolder(resolvedFolder);
+        await openFolder(resolvedFolder, { historyMode: "push" });
     };
 
     async function consumePendingSidebarFolder() {
@@ -728,10 +755,60 @@ document.addEventListener("DOMContentLoaded", async () => {
         return true;
     }
 
-    async function openModule(module) {
+    async function openModule(module, { historyMode = null } = {}) {
+        if (historyMode && currentFolderId) {
+            syncWordsHistory({ view: "words", folderId: currentFolderId, moduleId: module.id }, historyMode);
+        }
+
         showWordsView(module);
         saveWordsState();
         await loadWords();
+    }
+
+    async function restoreRouteFromUrl({ historyMode = null } = {}) {
+        const params = new URLSearchParams(window.location.search);
+        const folderId = params.get("folder");
+        const moduleId = params.get("module");
+
+        if (!folderId) {
+            if (historyMode) {
+                syncWordsHistory({ view: "folders" }, historyMode);
+            }
+            showFoldersView();
+            await loadFolders(true);
+            return;
+        }
+
+        let folder = currentFolders.find(f => String(f.id) === String(folderId));
+
+        if (!folder) {
+            await loadFolders(true);
+            folder = currentFolders.find(f => String(f.id) === String(folderId));
+        }
+
+        if (!folder) {
+            syncWordsHistory({ view: "folders" }, historyMode || "replace");
+            showFoldersView();
+            await loadFolders(true);
+            return;
+        }
+
+        await openFolder(folder, {
+            historyMode: moduleId ? null : historyMode
+        });
+
+        if (!moduleId) {
+            return;
+        }
+
+        const module = currentModules.find(m => String(m.id) === String(moduleId));
+
+        if (!module) {
+            syncWordsHistory({ view: "modules", folderId: folder.id }, historyMode || "replace");
+            return;
+        }
+
+        await openModule(module, { historyMode });
     }
 
     async function loadWords() {
@@ -900,13 +977,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     backToFoldersBtn.onclick = async () => {
-        history.pushState(null, "", "my-words.html");
+        syncWordsHistory({ view: "folders" }, "push");
         showFoldersView();
         await loadFolders(true);
     };
 
     backToModulesBtn.onclick = async () => {
         if (currentFolderId) {
+            syncWordsHistory({ view: "modules", folderId: currentFolderId }, "push");
             showModulesView(currentFolderId, folderTitle.textContent);
             await loadModules(currentFolderId);
         }
@@ -919,6 +997,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    window.addEventListener("popstate", async () => {
+        await restoreRouteFromUrl();
+    });
+
     (async () => {
         try {
             await loadFolders(true);
@@ -927,32 +1009,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            const params = new URLSearchParams(window.location.search);
-            const folderIdFromUrl = params.get("folder");
-
-            const savedModuleId = sessionStorage.getItem("langlyCurrentModuleId");
-
-            if (folderIdFromUrl) {
-                const folder = currentFolders.find(f => f.id == folderIdFromUrl);
-
-                if (folder) {
-                    await openFolder(folder);
-
-                    if (savedModuleId) {
-                        const module = currentModules.find(m => m.id == savedModuleId);
-
-                        if (module) {
-                            await openModule(module);
-                            return;
-                        }
-                    }
-
-                    return;
-                }
-            }
-
-            showFoldersView();
-            await loadFolders(true);
+            await restoreRouteFromUrl({ historyMode: "replace" });
         } finally {
             window.langlyPageState?.markReady("wordsReady");
         }
