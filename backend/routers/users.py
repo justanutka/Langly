@@ -1,11 +1,94 @@
+import hashlib
+import os
+import secrets
+import smtplib
+from email.message import EmailMessage
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
 from ..stats import get_or_create_user_language, xp_needed_for_level
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+PASSWORD_RESET_CODE_MINUTES = 10
+DOTENV_LOADED = False
+
+
+def load_local_env():
+    global DOTENV_LOADED
+
+    if DOTENV_LOADED:
+        return
+
+    DOTENV_LOADED = True
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+
+    if not os.path.exists(env_path):
+        return
+
+    with open(env_path, "r", encoding="utf-8") as env_file:
+        for line in env_file:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or "=" not in stripped:
+                continue
+
+            key, value = stripped.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
+def hash_reset_code(code: str) -> str:
+    return hashlib.sha256(str(code).encode("utf-8")).hexdigest()
+
+
+def send_password_reset_code(email: str, code: str):
+    load_local_env()
+
+    subject = "Langly password reset code"
+    body = (
+        "Hello,\n\n"
+        f"Your Langly password reset confirmation code is: {code}\n\n"
+        f"This code expires in {PASSWORD_RESET_CODE_MINUTES} minutes. "
+        "If you did not request a password reset, you can ignore this message.\n\n"
+        "Langly"
+    )
+
+    # SMTP settings belong to the app mailbox that sends the code.
+    # The "email" function argument is the recipient typed by the user in the reset form.
+    smtp_host = os.getenv("LANGLY_SMTP_HOST")
+    smtp_port = int(os.getenv("LANGLY_SMTP_PORT") or "587")
+    smtp_user = os.getenv("LANGLY_SMTP_USER")
+    smtp_password = os.getenv("LANGLY_SMTP_PASSWORD")
+    smtp_from = os.getenv("LANGLY_SMTP_FROM") or smtp_user
+    smtp_ssl = (os.getenv("LANGLY_SMTP_SSL") or "").strip().lower() in {"1", "true", "yes"}
+    smtp_starttls = (os.getenv("LANGLY_SMTP_STARTTLS") or "true").strip().lower() not in {"0", "false", "no"}
+
+    if not smtp_host or not smtp_from:
+        print(f"[Langly password reset] Code for {email}: {code}")
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = smtp_from
+    message["To"] = email
+    message.set_content(body)
+
+    smtp_class = smtplib.SMTP_SSL if smtp_ssl else smtplib.SMTP
+
+    with smtp_class(smtp_host, smtp_port) as smtp:
+        if not smtp_ssl and smtp_starttls:
+            smtp.starttls()
+        if smtp_user and smtp_password:
+            smtp.login(smtp_user, smtp_password)
+        smtp.send_message(message)
+
+    return True
 
 
 # =========================
@@ -122,10 +205,77 @@ def reset_password(
 
     user = db.query(models.User).filter(models.User.email == normalized_email).first()
 
-    if not user:
-        raise HTTPException(status_code=400, detail="User not found")
+    if user:
+        code = f"{secrets.randbelow(1000000):06d}"
+        expires_at = datetime.utcnow() + timedelta(minutes=PASSWORD_RESET_CODE_MINUTES)
 
-    user.password_hash = auth.hash_password(payload.new_password)
+        db.query(models.PasswordResetCode).filter(
+            models.PasswordResetCode.email == normalized_email,
+            models.PasswordResetCode.used_at.is_(None)
+        ).delete(synchronize_session=False)
+
+        reset_code = models.PasswordResetCode(
+            email=normalized_email,
+            code_hash=hash_reset_code(code),
+            new_password_hash=auth.hash_password(payload.new_password),
+            expires_at=expires_at
+        )
+
+        db.add(reset_code)
+        db.commit()
+
+        try:
+            email_sent = send_password_reset_code(normalized_email, code)
+        except Exception as error:
+            print(f"[Langly password reset] Email send failed for {normalized_email}: {error}")
+            print(f"[Langly password reset] Code for {normalized_email}: {code}")
+            raise HTTPException(
+                status_code=500,
+                detail="Could not send the confirmation code. Check SMTP settings."
+            )
+
+        if not email_sent:
+            raise HTTPException(
+                status_code=500,
+                detail="Email sending is not configured. Set LANGLY_SMTP_* in .env and restart the backend."
+            )
+
+    return {"message": "If this email exists, a confirmation code has been sent."}
+
+
+@router.post("/reset-password/confirm")
+def confirm_reset_password(
+    payload: schemas.ResetPasswordConfirmRequest,
+    db: Session = Depends(database.get_db)
+):
+    normalized_email = auth.normalize_email(payload.email)
+    code = str(payload.code or "").strip()
+
+    if not auth.is_email_valid(normalized_email):
+        raise HTTPException(status_code=400, detail=auth.EMAIL_RULE_MESSAGE)
+
+    if not code:
+        raise HTTPException(status_code=400, detail="Enter the confirmation code.")
+
+    reset_code = db.query(models.PasswordResetCode).filter(
+        models.PasswordResetCode.email == normalized_email,
+        models.PasswordResetCode.used_at.is_(None)
+    ).order_by(models.PasswordResetCode.created_at.desc()).first()
+
+    if (
+        not reset_code
+        or reset_code.expires_at < datetime.utcnow()
+        or reset_code.code_hash != hash_reset_code(code)
+    ):
+        raise HTTPException(status_code=400, detail="Invalid or expired confirmation code.")
+
+    user = db.query(models.User).filter(models.User.email == normalized_email).first()
+
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired confirmation code.")
+
+    user.password_hash = reset_code.new_password_hash
+    reset_code.used_at = datetime.utcnow()
     db.commit()
 
     return {"message": "Password has been reset successfully."}

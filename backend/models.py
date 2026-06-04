@@ -33,6 +33,18 @@ class User(Base):
     lesson_attempts = relationship("LessonAttempt", back_populates="user", cascade="all, delete")
     user_languages = relationship("UserLanguage", back_populates="user",cascade="all, delete")
     notes = relationship("Note", back_populates="user", cascade="all, delete")
+
+
+class PasswordResetCode(Base):
+    __tablename__ = "password_reset_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=False)
+    code_hash = Column(String, nullable=False)
+    new_password_hash = Column(String, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     
 class Language(Base):

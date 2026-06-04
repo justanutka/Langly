@@ -23,6 +23,11 @@ class ResetPasswordRequest(BaseModel):
     confirm_new_password: str
 
 
+class ResetPasswordConfirmRequest(BaseModel):
+    email: str
+    code: str
+
+
 class LanguageCreate(BaseModel):
     name: str
     code: str
