@@ -18,15 +18,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    with op.batch_alter_table("notes") as batch_op:
-        batch_op.add_column(
-            sa.Column(
-                "language_id",
-                sa.Integer(),
-                sa.ForeignKey("languages.id"),
-                nullable=True,
+    columns = {column["name"] for column in sa.inspect(op.get_bind()).get_columns("notes")}
+    # Older app versions could already add this column at startup.
+    if "language_id" not in columns:
+        with op.batch_alter_table("notes") as batch_op:
+            batch_op.add_column(
+                sa.Column(
+                    "language_id",
+                    sa.Integer(),
+                    sa.ForeignKey("languages.id", name="fk_notes_language_id"),
+                    nullable=True,
+                )
             )
-        )
 
     op.execute(
         """

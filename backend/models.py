@@ -97,7 +97,7 @@ class Word(Base):
     quiz_answers = relationship("QuizAnswer", back_populates="word", cascade="all, delete")
 
     __table_args__ = (
-        UniqueConstraint('language_id', 'word', name='unique_word_per_language'),
+        UniqueConstraint('module_id', 'word', name='unique_word_per_module'),
     )
 
 class ReviewState(Base):

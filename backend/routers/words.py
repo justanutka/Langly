@@ -1,6 +1,7 @@
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from .. import models, schemas, database, auth
 from datetime import datetime
 
@@ -147,32 +148,24 @@ def create_word(
     # DUPLICATE CHECK
     # =========================
 
-    if word.module_id:
-        module = db.query(models.Module).join(models.Folder).filter(
-            models.Module.id == word.module_id,
-            models.Folder.user_id == current_user.id,
-            models.Folder.language_id == word.language_id
-        ).first()
-
-        if not module:
-            raise HTTPException(status_code=404, detail="Module not found")
-
-    existing_word = db.query(models.Word).join(
-        models.Module,
-        models.Word.module_id == models.Module.id
-    ).join(
-        models.Folder,
-        models.Module.folder_id == models.Folder.id
-    ).filter(
+    module = db.query(models.Module).join(models.Folder).filter(
+        models.Module.id == word.module_id,
         models.Folder.user_id == current_user.id,
-        models.Word.language_id == word.language_id,
+        models.Folder.language_id == word.language_id
+    ).first()
+
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+
+    existing_word = db.query(models.Word).filter(
+        models.Word.module_id == word.module_id,
         models.Word.word == word.word
     ).first()
 
     if existing_word:
         raise HTTPException(
             status_code=400,
-            detail="Word already exists in this language"
+            detail="Word already exists in this module"
         )
 
     language_code = language.code
@@ -218,24 +211,30 @@ def create_word(
         module_id=word.module_id
     )
 
-    db.add(new_word)
-    db.commit()
+    try:
+        db.add(new_word)
+        db.flush()
+        review_state = models.ReviewState(
+            word_id=new_word.id,
+            repetition=0,
+            interval=1,
+            ef="2.5",
+            next_review=None
+        )
+        db.add(review_state)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        # Another request may have inserted the same word after the precheck.
+        duplicate = db.query(models.Word).filter(
+            models.Word.module_id == word.module_id,
+            models.Word.word == word.word
+        ).first()
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Word already exists in this module")
+        raise
+
     db.refresh(new_word)
-
-    # =========================
-    # CREATE REVIEW STATE
-    # =========================
-
-    review_state = models.ReviewState(
-        word_id=new_word.id,
-        repetition=0,
-        interval=1,
-        ef="2.5",
-        next_review=None
-    )
-
-    db.add(review_state)
-    db.commit()
 
     return new_word
 
