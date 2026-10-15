@@ -147,7 +147,24 @@ def create_word(
     # DUPLICATE CHECK
     # =========================
 
-    existing_word = db.query(models.Word).filter(
+    if word.module_id:
+        module = db.query(models.Module).join(models.Folder).filter(
+            models.Module.id == word.module_id,
+            models.Folder.user_id == current_user.id,
+            models.Folder.language_id == word.language_id
+        ).first()
+
+        if not module:
+            raise HTTPException(status_code=404, detail="Module not found")
+
+    existing_word = db.query(models.Word).join(
+        models.Module,
+        models.Word.module_id == models.Module.id
+    ).join(
+        models.Folder,
+        models.Module.folder_id == models.Folder.id
+    ).filter(
+        models.Folder.user_id == current_user.id,
         models.Word.language_id == word.language_id,
         models.Word.word == word.word
     ).first()
@@ -251,7 +268,14 @@ def get_words(
             detail="You have not selected this language"
         )
 
-    return db.query(models.Word).filter(
+    return db.query(models.Word).join(
+        models.Module,
+        models.Word.module_id == models.Module.id
+    ).join(
+        models.Folder,
+        models.Module.folder_id == models.Folder.id
+    ).filter(
+        models.Folder.user_id == current_user.id,
         models.Word.language_id == language_id
     ).all()
 
@@ -264,23 +288,19 @@ def delete_word(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    word = db.query(models.Word).filter(
-        models.Word.id == word_id
+    word = db.query(models.Word).join(
+        models.Module,
+        models.Word.module_id == models.Module.id
+    ).join(
+        models.Folder,
+        models.Module.folder_id == models.Folder.id
+    ).filter(
+        models.Word.id == word_id,
+        models.Folder.user_id == current_user.id
     ).first()
 
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
-
-    selected_language = db.query(models.UserLanguage).filter(
-        models.UserLanguage.user_id == current_user.id,
-        models.UserLanguage.language_id == word.language_id
-    ).first()
-
-    if not selected_language:
-        raise HTTPException(
-            status_code=400,
-            detail="You do not have access to this word"
-        )
 
     review_state = db.query(models.ReviewState).filter(
         models.ReviewState.word_id == word.id
@@ -328,23 +348,19 @@ def update_word_mastered(
     current_user: models.User = Depends(auth.get_current_user),
     db: Session = Depends(database.get_db)
 ):
-    word = db.query(models.Word).filter(
-        models.Word.id == word_id
+    word = db.query(models.Word).join(
+        models.Module,
+        models.Word.module_id == models.Module.id
+    ).join(
+        models.Folder,
+        models.Module.folder_id == models.Folder.id
+    ).filter(
+        models.Word.id == word_id,
+        models.Folder.user_id == current_user.id
     ).first()
 
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
-
-    selected_language = db.query(models.UserLanguage).filter(
-        models.UserLanguage.user_id == current_user.id,
-        models.UserLanguage.language_id == word.language_id
-    ).first()
-
-    if not selected_language:
-        raise HTTPException(
-            status_code=400,
-            detail="You do not have access to this word"
-        )
 
     was_mastered = bool(word.is_mastered)
     new_mastered = bool(payload.is_mastered)

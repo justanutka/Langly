@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (logoutBtn) {
             logoutBtn.addEventListener("click", () => {
+                window.langlyApi?.clearUserRuntimeCache?.();
                 localStorage.removeItem("token");
                 pageState.redirectTo("index.html");
             });

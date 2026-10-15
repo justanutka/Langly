@@ -143,16 +143,23 @@
   margin-top: 14px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   color: var(--indigo);
   font-weight: 800;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  line-height: 1;
   text-decoration: none;
-  padding: 10px 12px;
+  width: 138px;
+  height: 42px;
+  padding: 0 12px;
   border-radius: 14px;
   background: rgba(246,249,252,0.75);
   border: 1px solid rgba(77,101,255,0.12);
   cursor: pointer;
   transition: 0.2s ease;
+  white-space: nowrap;
 }
 
 .dash-action-link:hover {
@@ -170,8 +177,6 @@
 .dash-action-btn {
   border: 1px solid rgba(77,101,255,0.12);
   background: rgba(246,249,252,0.75);
-  font-family: "Inter", sans-serif;
-  font-size: 14px;
 }
 
 .dash-custom-select--compact .dash-select-selected {

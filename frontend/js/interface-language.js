@@ -258,6 +258,12 @@
     sessionStorage.removeItem("langlyCurrentModuleTitle");
   }
 
+  function clearUserRuntimeCache() {
+    currentUserPromise = null;
+    window.langlyCurrentUser = null;
+    clearLanguageScopedCache();
+  }
+
   function apply(root) {
     const scope = root || document;
 
@@ -321,9 +327,18 @@
     if (initPromise) return initPromise;
 
     initPromise = (async () => {
+      const fixedLocale = document.body?.dataset.uiLocale || document.documentElement.dataset.uiLocale;
       const token = localStorage.getItem("token");
 
       try {
+        if (fixedLocale) {
+          currentLocale = normalize(fixedLocale);
+          document.documentElement.lang = currentLocale;
+          await ensureLocale(currentLocale);
+          apply(document);
+          return currentLocale;
+        }
+
         if (!token) {
           currentLocale = "en";
           document.documentElement.lang = currentLocale;
@@ -371,7 +386,8 @@
     getStudyStats,
     clearFoldersCache,
     clearStudyStatsCache,
-    clearLanguageScopedCache
+    clearLanguageScopedCache,
+    clearUserRuntimeCache
   };
 
   if (document.readyState === "loading") {

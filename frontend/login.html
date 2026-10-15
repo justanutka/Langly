@@ -12,7 +12,7 @@
   
 </head>
 
-<body>
+<body data-ui-locale="en">
   <!-- HEADER -->
   <header class="header">
     <div class="logo">Langly</div>
@@ -125,6 +125,8 @@
         messageBox.style.color = "#e11d48";
         return;
       }
+
+      window.langlyApi?.clearUserRuntimeCache?.();
 
       //saving token
       localStorage.setItem("token", data.access_token);

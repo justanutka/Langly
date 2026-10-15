@@ -233,15 +233,23 @@ def get_study_stats(
         db, user_id=current_user.id, language_id=current_user.active_language_id
     )
 
-    total_words = db.query(models.Word).filter(
+    user_words_query = db.query(models.Word).join(
+        models.Module,
+        models.Word.module_id == models.Module.id
+    ).join(
+        models.Folder,
+        models.Module.folder_id == models.Folder.id
+    ).filter(
+        models.Folder.user_id == current_user.id,
         models.Word.language_id == current_user.active_language_id
-    ).count()
+    )
 
-    mastered_words = db.query(models.Word).outerjoin(
+    total_words = user_words_query.count()
+
+    mastered_words = user_words_query.outerjoin(
         models.ReviewState,
         models.Word.id == models.ReviewState.word_id
     ).filter(
-        models.Word.language_id == current_user.active_language_id,
         or_(
             models.Word.is_mastered == True,
             models.ReviewState.repetition >= 5
@@ -250,8 +258,7 @@ def get_study_stats(
 
     today = datetime.utcnow().date()
 
-    due_today = db.query(models.Word).filter(
-        models.Word.language_id == current_user.active_language_id,
+    due_today = user_words_query.filter(
         models.Word.mastered_at.isnot(None),
         func.date(models.Word.mastered_at) == today
     ).count()

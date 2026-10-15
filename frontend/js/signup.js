@@ -20,12 +20,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const emailError = document.getElementById("email-error");
   const passwordError = document.getElementById("password-error");
   const confirmError = document.getElementById("confirm-error");
+  const termsInput = document.getElementById("terms");
+  const termsLink = document.querySelector('a[href="terms.html"]');
 
   const nativeSelect = document.getElementById("native-select");
   const selectedValue = document.getElementById("selected-value");
   const optionsContainer = document.getElementById("select-options");
 
+  const SIGNUP_DRAFT_KEY = "langlySignupDraft";
   let selectedLanguageId = null;
+  let selectedLanguageName = "";
 
   function setMessage(text, type = "") {
     messageBox.textContent = text || "";
@@ -49,6 +53,58 @@ document.addEventListener("DOMContentLoaded", async () => {
   function setFieldError(input, errorElement, text) {
     if (input) input.classList.toggle("input-error", Boolean(text));
     if (errorElement) errorElement.textContent = text || "";
+  }
+
+  function saveDraft() {
+    const draft = {
+      email: emailInput.value,
+      password: passwordInput.value,
+      confirm: confirmInput.value,
+      nativeLanguageId: selectedLanguageId,
+      nativeLanguageName: selectedLanguageName,
+      termsAccepted: Boolean(termsInput?.checked)
+    };
+
+    sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  function getDraft() {
+    try {
+      return JSON.parse(sessionStorage.getItem(SIGNUP_DRAFT_KEY) || "null");
+    } catch {
+      return null;
+    }
+  }
+
+  function restoreDraft(languages) {
+    const draft = getDraft();
+    if (!draft) return;
+
+    emailInput.value = draft.email || "";
+    passwordInput.value = draft.password || "";
+    confirmInput.value = draft.confirm || "";
+
+    if (termsInput) {
+      termsInput.checked = Boolean(draft.termsAccepted);
+    }
+
+    const restoredLanguage = Array.isArray(languages)
+      ? languages.find((lang) => String(lang.id) === String(draft.nativeLanguageId))
+      : null;
+
+    if (restoredLanguage) {
+      selectedLanguageId = restoredLanguage.id;
+      selectedLanguageName = restoredLanguage.name;
+      selectedValue.textContent = restoredLanguage.name;
+    } else if (draft.nativeLanguageId && draft.nativeLanguageName) {
+      selectedLanguageId = draft.nativeLanguageId;
+      selectedLanguageName = draft.nativeLanguageName;
+      selectedValue.textContent = draft.nativeLanguageName;
+    }
+  }
+
+  function clearDraft() {
+    sessionStorage.removeItem(SIGNUP_DRAFT_KEY);
   }
 
   function validateEmailField() {
@@ -156,15 +212,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         option.addEventListener("click", () => {
           selectedValue.textContent = lang.name;
           selectedLanguageId = lang.id;
+          selectedLanguageName = lang.name;
           closeDropdown();
           setMessage("", "");
+          saveDraft();
         });
 
         optionsContainer.appendChild(option);
       });
+
+      restoreDraft(languages);
     } catch (error) {
       console.error("Failed to load languages", error);
       setMessage(t("auth.languages_error", "Cannot load languages right now."), "error");
+      restoreDraft([]);
     }
   }
 
@@ -193,6 +254,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   initPasswordToggles();
+
+  [emailInput, passwordInput, confirmInput].forEach((input) => {
+    input.addEventListener("input", saveDraft);
+  });
+  termsInput?.addEventListener("change", saveDraft);
+  termsLink?.addEventListener("click", saveDraft);
+
   bindLiveValidation(emailInput, validateEmailField);
   bindLiveValidation(passwordInput, () => {
     const passwordOk = validatePasswordField();
@@ -248,9 +316,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (data.access_token) {
+        window.langlyApi?.clearUserRuntimeCache?.();
         localStorage.setItem("token", data.access_token);
       }
 
+      clearDraft();
       window.location.replace("choose-language.html");
     } catch (error) {
       setMessage(t("auth.api_error", "Cannot connect to API."), "error");
