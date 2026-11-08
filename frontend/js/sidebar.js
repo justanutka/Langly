@@ -105,7 +105,7 @@ async function loadSidebarUserData(providedUser = null) {
         }
 
         if (!user) {
-            const userRes = await fetch(`${SIDEBAR_BASE_URL}/users/me`, {
+            const userRes = await window.langlySession.request(`${SIDEBAR_BASE_URL}/users/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -138,7 +138,7 @@ async function loadSidebarFolders() {
     try {
         const folders = window.langlyApi?.getFolders
             ? await window.langlyApi.getFolders()
-            : await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
+            : await window.langlySession.request(`${SIDEBAR_BASE_URL}/folders/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -277,7 +277,7 @@ function initStudyPicker() {
                 return;
             }
 
-            const foldersRes = await fetch(`${SIDEBAR_BASE_URL}/folders/`, {
+            const foldersRes = await window.langlySession.request(`${SIDEBAR_BASE_URL}/folders/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -297,7 +297,7 @@ function initStudyPicker() {
 
             const modulesByFolder = await Promise.all(
                 folders.map(async (folder) => {
-                    const modulesRes = await fetch(`${SIDEBAR_BASE_URL}/modules/${folder.id}`, {
+                    const modulesRes = await window.langlySession.request(`${SIDEBAR_BASE_URL}/modules/${folder.id}`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -419,7 +419,7 @@ function renderStudyPickerContent(data, mode, content, searchTerm = "", navigate
 
 async function checkModuleHasWords(moduleId, token) {
     try {
-        const res = await fetch(`${SIDEBAR_BASE_URL}/words/module/${moduleId}`, {
+        const res = await window.langlySession.request(`${SIDEBAR_BASE_URL}/words/module/${moduleId}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

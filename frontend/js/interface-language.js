@@ -140,7 +140,7 @@
       return currentUserPromise;
     }
 
-    currentUserPromise = fetch(`${API_BASE_URL}/users/me`, {
+    currentUserPromise = window.langlySession.request(`${API_BASE_URL}/users/me`, {
       headers: authHeaders()
     }).then(async (response) => {
       if (!response.ok) {
@@ -167,7 +167,7 @@
       return foldersPromise;
     }
 
-    foldersPromise = fetch(`${API_BASE_URL}/folders/`, {
+    foldersPromise = window.langlySession.request(`${API_BASE_URL}/folders/`, {
       headers: authHeaders()
     }).then(async (response) => {
       if (!response.ok) {
@@ -198,7 +198,7 @@
       return languagesPromise;
     }
 
-    languagesPromise = fetch(`${API_BASE_URL}/users/languages`, {
+    languagesPromise = window.langlySession.request(`${API_BASE_URL}/users/languages`, {
       headers: authHeaders()
     }).then(async (response) => {
       if (!response.ok) {
@@ -224,7 +224,7 @@
       return studyStatsPromise;
     }
 
-    studyStatsPromise = fetch(`${API_BASE_URL}/study/stats`, {
+    studyStatsPromise = window.langlySession.request(`${API_BASE_URL}/study/stats`, {
       headers: authHeaders()
     }).then(async (response) => {
       if (!response.ok) {

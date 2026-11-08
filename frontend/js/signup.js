@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadLanguages() {
     try {
-      const res = await fetch(BASE_URL + "/users/languages");
+      const res = await window.langlySession.request(BASE_URL + "/users/languages");
       if (!res.ok) {
         throw new Error("Failed to load languages");
       }
@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         submitButton.textContent = t("auth.creating_account", "Creating account...");
       }
 
-      const response = await fetch(BASE_URL + "/users/register", {
+      const response = await window.langlySession.request(BASE_URL + "/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

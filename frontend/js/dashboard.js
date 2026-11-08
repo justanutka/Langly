@@ -524,7 +524,7 @@ async function saveDiscoveryWord({ token, state, item, silent = false }) {
   if (!languageId || !moduleId || !word || !translation) return false;
 
   try {
-    const res = await fetch(`${BASE_URL}/words/`, {
+    const res = await window.langlySession.request(`${BASE_URL}/words/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -556,7 +556,7 @@ async function saveDiscoveryWord({ token, state, item, silent = false }) {
 }
 
 async function fetchJson(url, token) {
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await window.langlySession.request(url, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }

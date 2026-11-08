@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("token");
+        logoutBtn.addEventListener("click", async () => {
+            await window.langlySession.signOut();
             window.location.href = "index.html";
         });
     }
@@ -44,11 +44,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const user = window.langlyApi?.getCurrentUser
         ? await window.langlyApi.getCurrentUser()
-        : await fetch(BASE_URL + "/users/me", {
+        : await window.langlySession.request(BASE_URL + "/users/me", {
             headers: { Authorization: `Bearer ${token}` }
         }).then((res) => res.json());
 
-    const res = await fetch(
+    const res = await window.langlySession.request(
         `${BASE_URL}/words/?language_id=${user.active_language_id}`,
         { headers: { Authorization: `Bearer ${token}` } }
     );

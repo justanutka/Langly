@@ -66,6 +66,7 @@
 
   </main>
 
+  <script src="js/session.js"></script>
   <script src="js/interface-language.js"></script>
   <script>
   const form = document.getElementById("login-form");
@@ -110,7 +111,7 @@
       formData.append("username", email);
       formData.append("password", password);
 
-      const res = await fetch("http://127.0.0.1:8000/users/login", {
+      const res = await window.langlySession.request("http://127.0.0.1:8000/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -131,7 +132,7 @@
       //saving token
       localStorage.setItem("token", data.access_token);
 
-      const meRes = await fetch("http://127.0.0.1:8000/users/me", {
+      const meRes = await window.langlySession.request("http://127.0.0.1:8000/users/me", {
         headers: {
           "Authorization": `Bearer ${data.access_token}`
         }

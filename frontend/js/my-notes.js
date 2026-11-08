@@ -41,8 +41,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const logoutBtn = document.getElementById("logout-btn");
         if (logoutBtn) {
-            logoutBtn.addEventListener("click", () => {
-                localStorage.removeItem("token");
+            logoutBtn.addEventListener("click", async () => {
+                await window.langlySession.signOut();
                 document.body?.classList.add("page-transitioning");
                 window.setTimeout(() => {
                     window.location.href = "index.html";
@@ -167,7 +167,7 @@ async function loadNotes() {
     const token = localStorage.getItem("token");
 
     try {
-        const res = await fetch(`${NOTES_BASE_URL}/notes/`, {
+        const res = await window.langlySession.request(`${NOTES_BASE_URL}/notes/`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -342,7 +342,7 @@ async function saveNote() {
     const method = editingNoteId ? "PUT" : "POST";
 
     try {
-        const res = await fetch(url, {
+        const res = await window.langlySession.request(url, {
             method,
             headers: {
                 "Content-Type": "application/json",
@@ -386,7 +386,7 @@ async function deleteNote() {
     const token = localStorage.getItem("token");
 
     try {
-        const res = await fetch(`${NOTES_BASE_URL}/notes/${noteToDeleteId}`, {
+        const res = await window.langlySession.request(`${NOTES_BASE_URL}/notes/${noteToDeleteId}`, {
             method: "DELETE",
             headers: {
                 Authorization: `Bearer ${token}`

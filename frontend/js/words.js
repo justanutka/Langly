@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const user = await getUser();
 
-        const res = await fetch(
+        const res = await window.langlySession.request(
             `${BASE_URL}/words/?language_id=${user.active_language_id}`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return await window.langlyApi.getCurrentUser();
         }
 
-        const res = await fetch(BASE_URL + "/users/me", {
+        const res = await window.langlySession.request(BASE_URL + "/users/me", {
             headers: { Authorization: `Bearer ${token}` }
         });
         return await res.json();
@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         currentFolders = window.langlyApi?.getFolders
             ? await window.langlyApi.getFolders()
-            : await fetch(BASE_URL + "/folders/", {
+            : await window.langlySession.request(BASE_URL + "/folders/", {
                 headers: { Authorization: `Bearer ${token}` }
             }).then((res) => res.json());
 
@@ -462,7 +462,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     await new Promise(resolve => setTimeout(resolve, 300));
 
-                    await fetch(`${BASE_URL}/folders/${folder.id}`, {
+                    await window.langlySession.request(`${BASE_URL}/folders/${folder.id}`, {
                         method: "DELETE",
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -503,7 +503,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!name) return;
 
-        await fetch(`${BASE_URL}/folders/`, {
+        await window.langlySession.request(`${BASE_URL}/folders/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -528,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (!name || !currentFolderId) return;
 
-        await fetch(`${BASE_URL}/modules/?name=${name}&folder_id=${currentFolderId}`, {
+        await window.langlySession.request(`${BASE_URL}/modules/?name=${name}&folder_id=${currentFolderId}`, {
             method: "POST",
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -545,7 +545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function loadModules(folderId) {
         if (!folderId) return;
 
-        const res = await fetch(`${BASE_URL}/modules/${folderId}`, {
+        const res = await window.langlySession.request(`${BASE_URL}/modules/${folderId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -638,7 +638,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cardEl = e.target.closest(".module-card");
 
         openDeleteModal(t("words.delete_module", null, "Delete this module?"), async () => {
-            const res = await fetch(`${BASE_URL}/modules/${module.id}`, {
+            const res = await window.langlySession.request(`${BASE_URL}/modules/${module.id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -816,7 +816,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const activeLanguageCode = user?.active_language_code || "";
         const nativeLanguageCode = user?.native_language_code || "";
 
-        const res = await fetch(
+        const res = await window.langlySession.request(
             `${BASE_URL}/words/?language_id=${user.active_language_id}`,
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -875,7 +875,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 try {
                     const newValue = !word.is_mastered;
 
-                    const res = await fetch(`${BASE_URL}/words/${word.id}/mastered`, {
+                    const res = await window.langlySession.request(`${BASE_URL}/words/${word.id}/mastered`, {
                         method: "PATCH",
                         headers: {
                             "Content-Type": "application/json",
@@ -900,7 +900,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             deleteBtn.onclick = async () => {
                 openDeleteModal(t("words.delete_word", { word: word.word }, `Delete word "${word.word}"?`), async () => {
-                    const res = await fetch(`${BASE_URL}/words/${word.id}`, {
+                    const res = await window.langlySession.request(`${BASE_URL}/words/${word.id}`, {
                         method: "DELETE",
                         headers: {
                             Authorization: `Bearer ${token}`
@@ -942,7 +942,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const user = await getUser();
 
-            const res = await fetch(`${BASE_URL}/words/`, {
+            const res = await window.langlySession.request(`${BASE_URL}/words/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

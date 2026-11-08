@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const [user, statsRes, langRes] = await Promise.all([
       window.langlyApi?.getCurrentUser
         ? window.langlyApi.getCurrentUser()
-        : fetch(BASE_URL + "/users/me", {
+        : window.langlySession.request(BASE_URL + "/users/me", {
             headers: { Authorization: `Bearer ${token}` }
           }).then((res) => {
             if (!res.ok) throw new Error("User fetch failed");
@@ -27,12 +27,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           }),
       window.langlyApi?.getStudyStats
         ? window.langlyApi.getStudyStats().catch(() => null)
-        : fetch(BASE_URL + "/study/stats", {
+        : window.langlySession.request(BASE_URL + "/study/stats", {
             headers: { Authorization: `Bearer ${token}` }
           }).then((res) => res.ok ? res.json() : null),
       window.langlyApi?.getLanguages
         ? window.langlyApi.getLanguages()
-        : fetch(BASE_URL + "/users/languages", {
+        : window.langlySession.request(BASE_URL + "/users/languages", {
             headers: { Authorization: `Bearer ${token}` }
           }).then((res) => {
             if (!res.ok) throw new Error("Languages fetch failed");
@@ -175,7 +175,7 @@ async function changeLanguage({ languages } = {}) {
   }
 
   try {
-    const res = await fetch(
+    const res = await window.langlySession.request(
       BASE_URL + "/users/set-language?language_id=" + encodeURIComponent(languageId),
       { method: "POST", headers: { Authorization: `Bearer ${token}` } }
     );
@@ -192,10 +192,10 @@ async function changeLanguage({ languages } = {}) {
     const [me, statsRes] = await Promise.all([
       window.langlyApi?.getCurrentUser
         ? window.langlyApi.getCurrentUser({ force: true })
-        : fetch(BASE_URL + "/users/me", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null),
+        : window.langlySession.request(BASE_URL + "/users/me", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null),
       window.langlyApi?.getStudyStats
         ? window.langlyApi.getStudyStats({ force: true }).catch(() => null)
-        : fetch(BASE_URL + "/study/stats", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null)
+        : window.langlySession.request(BASE_URL + "/study/stats", { headers: { Authorization: `Bearer ${token}` } }).then((res) => res.ok ? res.json() : null)
     ]);
 
     const stats = statsRes;

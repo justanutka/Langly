@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
@@ -68,7 +70,11 @@ ensure_runtime_schema()
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip() for origin in os.getenv("LANGLY_FRONTEND_ORIGINS", "").split(",")
+        if origin.strip()
+    ],
+    allow_origin_regex=r"https?://(?:127\.0\.0\.1|localhost)(?::[0-9]+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

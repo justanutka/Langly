@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("token");
+    logoutBtn.addEventListener("click", async () => {
+      await window.langlySession.signOut();
       document.body?.classList.add("page-transitioning");
       window.location.href = "index.html";
     });
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const user = window.langlyApi?.getCurrentUser
       ? await window.langlyApi.getCurrentUser()
-      : await fetch(SETTINGS_BASE_URL + "/users/me", {
+      : await window.langlySession.request(SETTINGS_BASE_URL + "/users/me", {
           headers: { Authorization: `Bearer ${token}` }
         }).then((res) => {
           if (!res.ok) throw new Error("Unauthorized");
@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const languagesPromise = window.langlyApi?.getLanguages
       ? window.langlyApi.getLanguages()
-      : fetch(SETTINGS_BASE_URL + "/users/languages", {
+      : window.langlySession.request(SETTINGS_BASE_URL + "/users/languages", {
           headers: { Authorization: `Bearer ${token}` }
         }).then((res) => {
           if (!res.ok) throw new Error("Settings load failed");
@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveBtn.disabled = true;
       saveBtn.textContent = t("common.saving");
 
-      const res = await fetch(
+      const res = await window.langlySession.request(
         SETTINGS_BASE_URL + "/users/set-interface-language?language_id=" + encodeURIComponent(languageId),
         {
           method: "POST",

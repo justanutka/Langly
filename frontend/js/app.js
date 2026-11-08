@@ -95,9 +95,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const logoutBtn = document.getElementById("logout-btn");
 
         if (logoutBtn) {
-            logoutBtn.addEventListener("click", () => {
+            logoutBtn.addEventListener("click", async () => {
                 window.langlyApi?.clearUserRuntimeCache?.();
-                localStorage.removeItem("token");
+                await window.langlySession.signOut();
                 pageState.redirectTo("index.html");
             });
         }
@@ -121,7 +121,7 @@ async function getCurrentUserAndUpdateStreak() {
     try {
         const user = window.langlyApi?.getCurrentUser
             ? await window.langlyApi.getCurrentUser()
-            : await fetch(BASE_URL + "/users/me", {
+            : await window.langlySession.request(BASE_URL + "/users/me", {
                 headers: { "Authorization": `Bearer ${token}` }
             }).then((res) => {
                 if (!res.ok) throw new Error("Unauthorized");
@@ -151,13 +151,13 @@ async function loadFullDashboard() {
 
     try {
         const [dashboardRes, stats] = await Promise.all([
-            fetch(BASE_URL + "/study/dashboard", {
+            window.langlySession.request(BASE_URL + "/study/dashboard", {
                 headers: { "Authorization": `Bearer ${token}` }
             }),
 
             window.langlyApi?.getStudyStats
                 ? window.langlyApi.getStudyStats()
-                : fetch(BASE_URL + "/study/stats", {
+                : window.langlySession.request(BASE_URL + "/study/stats", {
                     headers: { "Authorization": `Bearer ${token}` }
                 }).then((res) => {
                     if (!res.ok) throw new Error("API error");
@@ -260,7 +260,7 @@ async function loadFolders() {
     if (!container) return;
 
     try {
-        const res = await fetch(BASE_URL + "/folders", {
+        const res = await window.langlySession.request(BASE_URL + "/folders", {
             headers: {
                 "Authorization": `Bearer ${token}`
             }

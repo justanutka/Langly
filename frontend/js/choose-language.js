@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const languages = window.langlyApi?.getLanguages
       ? await window.langlyApi.getLanguages()
-      : await fetch(BASE_URL + "/users/languages").then((res) => {
+      : await window.langlySession.request(BASE_URL + "/users/languages").then((res) => {
           if (!res.ok) throw new Error("Failed to load languages");
           return res.json();
         });
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
           btn.textContent = t("common.saving", "Saving...");
 
-          const setRes = await fetch(
+          const setRes = await window.langlySession.request(
             BASE_URL + "/users/set-language?language_id=" + lang.id,
             {
               method: "POST",

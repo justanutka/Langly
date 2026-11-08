@@ -4,9 +4,10 @@ import secrets
 import smtplib
 from email.message import EmailMessage
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
+from sqlalchemy import case
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
 from ..stats import get_or_create_user_language, xp_needed_for_level
@@ -95,7 +96,10 @@ def send_password_reset_code(email: str, code: str):
 # REGISTER (AUTO LOGIN + SAVE NATIVE LANGUAGE)
 # =========================
 @router.post("/register")
-def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+def register(
+    user: schemas.UserCreate, request: Request, response: Response,
+    db: Session = Depends(database.get_db),
+):
     normalized_email = auth.normalize_email(user.email)
 
     if not auth.is_email_valid(normalized_email):
@@ -129,18 +133,9 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     )
 
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    db.flush()
 
-    #make token
-    access_token = auth.create_access_token(
-        data={"sub": new_user.email}
-    )
-
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+    return auth.start_session(new_user, db, request, response)
 
 
 # =========================
@@ -148,6 +143,8 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
 # =========================
 @router.post("/login")
 def login(
+    request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(database.get_db)
 ):
@@ -162,14 +159,48 @@ def login(
     ):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = auth.create_access_token(
-        data={"sub": db_user.email}
-    )
+    return auth.start_session(db_user, db, request, response)
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+
+@router.post("/session/renew")
+def renew_session(
+    response: Response,
+    login: tuple = Depends(auth.get_renewable_session),
+    db: Session = Depends(database.get_db),
+):
+    user, session = login
+    now = datetime.utcnow()
+    deadline = auth.session_deadline(now, session.absolute_until)
+    idle_until = models.AuthSession.idle_until
+    # Update only a live row so a concurrent logout cannot revive the session.
+    updated = db.query(models.AuthSession).filter(
+        models.AuthSession.id == session.id,
+        idle_until > now,
+        models.AuthSession.absolute_until > now,
+    ).update({idle_until: case((idle_until < deadline, deadline), else_=idle_until)},
+             synchronize_session=False)
+    if not updated:
+        raise auth.invalid_credentials()
+    tokens = auth.token_response(user, session, now)
+    db.commit()
+    response.headers["Cache-Control"] = "no-store"
+    return tokens
+
+
+@router.post("/session/logout", status_code=204)
+def logout_session(
+    request: Request,
+    response: Response,
+    login: tuple = Depends(auth.get_renewable_session),
+    db: Session = Depends(database.get_db),
+):
+    _, session = login
+    db.query(models.AuthSession).filter(models.AuthSession.id == session.id).delete()
+    db.commit()
+    response.delete_cookie(
+        auth.RENEWAL_COOKIE, path=auth.SESSION_PATH, httponly=True,
+        secure=request.url.scheme == "https", samesite="strict",
+    )
 
 
 @router.post("/forgot-password")
@@ -276,6 +307,7 @@ def confirm_reset_password(
 
     user.password_hash = reset_code.new_password_hash
     reset_code.used_at = datetime.utcnow()
+    db.query(models.AuthSession).filter(models.AuthSession.user_id == user.id).delete()
     db.commit()
 
     return {"message": "Password has been reset successfully."}

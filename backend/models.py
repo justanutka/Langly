@@ -35,6 +35,16 @@ class User(Base):
     notes = relationship("Note", back_populates="user", cascade="all, delete")
 
 
+class AuthSession(Base):
+    __tablename__ = "auth_sessions"
+
+    id = Column(String, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    renewal_hash = Column(String, nullable=False)
+    idle_until = Column(DateTime, nullable=False, index=True)
+    absolute_until = Column(DateTime, nullable=False)
+
+
 class PasswordResetCode(Base):
     __tablename__ = "password_reset_codes"
 

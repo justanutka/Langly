@@ -595,7 +595,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch(`${BASE_URL}/words/module/${moduleId}`, {
+            const res = await window.langlySession.request(`${BASE_URL}/words/module/${moduleId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -951,7 +951,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
 
         try {
-            const res = await fetch(`${BASE_URL}/quiz/attempt`, {
+            const res = await window.langlySession.request(`${BASE_URL}/quiz/attempt`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1071,8 +1071,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("token");
+        logoutBtn.addEventListener("click", async () => {
+            await window.langlySession.signOut();
             window.location.href = "index.html";
         });
     }
