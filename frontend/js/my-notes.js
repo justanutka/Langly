@@ -548,47 +548,16 @@ function formatDate(value) {
 }
 
 function cleanEditorHtml(html) {
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
-
-    temp.querySelectorAll("script, style").forEach(el => el.remove());
-
-    temp.querySelectorAll("*").forEach(el => {
-        [...el.attributes].forEach(attr => {
-            if (attr.name !== "class") {
-                el.removeAttribute(attr.name);
-            }
-        });
-
-        const allowedClasses = [
-            "text-highlight-yellow",
-            "text-highlight-pink",
-            "text-highlight-turquoise"
-        ];
-
-        if (el.className) {
-            const classes = String(el.className)
-                .split(" ")
-                .filter(cls => allowedClasses.includes(cls));
-
-            if (classes.length) {
-                el.className = classes.join(" ");
-            } else {
-                el.removeAttribute("class");
-            }
-        }
-    });
-
-    return temp.innerHTML.trim();
+    return sanitizeNoteHtml(html).trim();
 }
 
 function sanitizeNoteHtml(html) {
-    const temp = document.createElement("div");
+    const temp = document.createElement("template");
     temp.innerHTML = html || "";
 
-    temp.querySelectorAll("script, style").forEach(el => el.remove());
+    temp.content.querySelectorAll("script, style").forEach(el => el.remove());
 
-    temp.querySelectorAll("*").forEach(el => {
+    temp.content.querySelectorAll("*").forEach(el => {
         const tagName = el.tagName.toLowerCase();
         const allowedTags = ["div", "p", "br", "span", "b", "strong", "i", "em"];
 
@@ -626,9 +595,9 @@ function sanitizeNoteHtml(html) {
 }
 
 function getPlainText(html) {
-    const temp = document.createElement("div");
+    const temp = document.createElement("template");
     temp.innerHTML = html || "";
-    return temp.textContent || "";
+    return temp.content.textContent || "";
 }
 
 function escapeHtml(text) {

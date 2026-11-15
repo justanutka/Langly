@@ -279,8 +279,10 @@ async function loadFolders() {
 
             item.innerHTML = `
                 <span class="icon">\uD83D\uDCC1</span>
-                <span class="folder-name">${folder.name}</span>
+                <span class="folder-name"></span>
             `;
+
+            item.querySelector(".folder-name").textContent = folder.name ?? "";
 
             item.onclick = () => {
                 const isLibraryPage = window.location.pathname.includes("my-words.html") ||

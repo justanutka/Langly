@@ -445,12 +445,16 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button class="delete-btn" type="button">🗑</button>
 
                 <div class="folder-body">
-                    <div class="folder-emoji">${folder.emoji || "📁"}</div>
-                    <div class="folder-title">${folder.name}</div>
+                    <div class="folder-emoji"></div>
+                    <div class="folder-title"></div>
                     <div class="folder-divider"></div>
-                    <div class="folder-description">${folder.description || ""}</div>
+                    <div class="folder-description"></div>
                 </div>
             `;
+
+            card.querySelector(".folder-emoji").textContent = folder.emoji || "📁";
+            card.querySelector(".folder-title").textContent = folder.name ?? "";
+            card.querySelector(".folder-description").textContent = folder.description || "";
 
             card.querySelector(".delete-btn").onclick = (e) => {
                 e.stopPropagation();
@@ -605,7 +609,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <button class="delete-btn" type="button" aria-label="Delete module">🗑</button>
 
             <div class="module-body">
-                <div class="module-name">${module.name}</div>
+                <div class="module-name"></div>
                 <div class="module-divider"></div>
             </div>
 
@@ -626,6 +630,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </button>
             </div>
         `;
+
+        card.querySelector(".module-name").textContent = module.name ?? "";
 
         const deleteBtn = card.querySelector(".delete-btn");
         const lessonBtn = card.querySelector(".lesson-btn");
@@ -833,13 +839,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             item.innerHTML = `
                 <div class="word-left">
                     <div class="word-line word-line--study">
-                        <div class="word-main">${word.word}</div>
+                        <div class="word-main"></div>
                     </div>
                 </div>
 
                 <div class="word-right">
                     <div class="word-line word-line--translation">
-                        <div class="word-translation">${word.translation}</div>
+                        <div class="word-translation"></div>
                     </div>
                     <button class="master-word-btn ${word.is_mastered ? "active" : ""}" type="button">
                         ${word.is_mastered ? `✓ ${t("words.mastered", null, "Mastered")}` : t("words.mark_mastered", null, "Mark mastered")}
@@ -847,6 +853,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <button class="delete-word-btn" type="button">🗑</button>
                 </div>
             `;
+
+            item.querySelector(".word-main").textContent = word.word ?? "";
+            item.querySelector(".word-translation").textContent = word.translation ?? "";
 
             const deleteBtn = item.querySelector(".delete-word-btn");
             const masterBtn = item.querySelector(".master-word-btn");

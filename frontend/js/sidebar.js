@@ -152,9 +152,12 @@ async function loadSidebarFolders() {
             item.className = "folder-item";
 
             item.innerHTML = `
-                <span class="icon">${folder.emoji || "📁"}</span>
-                <span class="folder-name">${folder.name}</span>
+                <span class="icon"></span>
+                <span class="folder-name"></span>
             `;
+
+            item.querySelector(".icon").textContent = folder.emoji || "📁";
+            item.querySelector(".folder-name").textContent = folder.name ?? "";
 
             item.addEventListener("click", () => {
                 const isLibraryPage = window.location.pathname.includes("my-words.html") ||
