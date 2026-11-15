@@ -58,8 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   function saveDraft() {
     const draft = {
       email: emailInput.value,
-      password: passwordInput.value,
-      confirm: confirmInput.value,
       nativeLanguageId: selectedLanguageId,
       nativeLanguageName: selectedLanguageName,
       termsAccepted: Boolean(termsInput?.checked)
@@ -70,19 +68,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function getDraft() {
     try {
-      return JSON.parse(sessionStorage.getItem(SIGNUP_DRAFT_KEY) || "null");
+      const draft = JSON.parse(sessionStorage.getItem(SIGNUP_DRAFT_KEY) || "null");
+      if (!draft || typeof draft !== "object" || Array.isArray(draft)) return null;
+      delete draft.password;
+      delete draft.confirm;
+      sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+      return draft;
     } catch {
       return null;
     }
   }
+
+  getDraft();
 
   function restoreDraft(languages) {
     const draft = getDraft();
     if (!draft) return;
 
     emailInput.value = draft.email || "";
-    passwordInput.value = draft.password || "";
-    confirmInput.value = draft.confirm || "";
 
     if (termsInput) {
       termsInput.checked = Boolean(draft.termsAccepted);

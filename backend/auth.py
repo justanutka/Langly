@@ -1,14 +1,41 @@
+import os
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from hashlib import sha256
+from pathlib import Path
 from secrets import compare_digest, token_urlsafe
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 from . import database, models
 
-SECRET_KEY = "supersecretkey"
+def _load_local_env():
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if not env_path.is_file():
+        return
+
+    for line in env_path.read_text(encoding="utf-8-sig").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+
+        key, value = stripped.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, value)
+
+
+_load_local_env()
+
+SECRET_KEY = os.getenv("LANGLY_JWT_SECRET", "").strip()
+if len(SECRET_KEY.encode("utf-8")) < 32:
+    raise RuntimeError(
+        "Set LANGLY_JWT_SECRET to a randomly generated secret of at least 32 bytes "
+        "in the environment or .env."
+    )
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
 MAX_SESSION_AGE = timedelta(days=7)
@@ -120,10 +147,6 @@ def resolve_login(token: str, db: Session, *, allow_expired: bool = False):
     user = db.query(models.User).filter(models.User.email == payload["sub"]).first()
     if user is None:
         raise invalid_credentials()
-
-    # Previously issued tokens retain their original expiry during the upgrade.
-    if "sid" not in payload and not allow_expired:
-        return user, None
 
     session_id = payload.get("sid")
     if not isinstance(session_id, str):

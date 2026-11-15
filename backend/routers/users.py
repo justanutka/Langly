@@ -15,33 +15,6 @@ from ..stats import get_or_create_user_language, xp_needed_for_level
 router = APIRouter(prefix="/users", tags=["Users"])
 
 PASSWORD_RESET_CODE_MINUTES = 10
-DOTENV_LOADED = False
-
-
-def load_local_env():
-    global DOTENV_LOADED
-
-    if DOTENV_LOADED:
-        return
-
-    DOTENV_LOADED = True
-    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-
-    if not os.path.exists(env_path):
-        return
-
-    with open(env_path, "r", encoding="utf-8") as env_file:
-        for line in env_file:
-            stripped = line.strip()
-            if not stripped or stripped.startswith("#") or "=" not in stripped:
-                continue
-
-            key, value = stripped.split("=", 1)
-            key = key.strip()
-            value = value.strip().strip('"').strip("'")
-
-            if key and key not in os.environ:
-                os.environ[key] = value
 
 
 def hash_reset_code(code: str) -> str:
@@ -49,8 +22,6 @@ def hash_reset_code(code: str) -> str:
 
 
 def send_password_reset_code(email: str, code: str):
-    load_local_env()
-
     subject = "Langly password reset code"
     body = (
         "Hello,\n\n"
@@ -71,7 +42,6 @@ def send_password_reset_code(email: str, code: str):
     smtp_starttls = (os.getenv("LANGLY_SMTP_STARTTLS") or "true").strip().lower() not in {"0", "false", "no"}
 
     if not smtp_host or not smtp_from:
-        print(f"[Langly password reset] Code for {email}: {code}")
         return False
 
     message = EmailMessage()
@@ -257,9 +227,8 @@ def reset_password(
 
         try:
             email_sent = send_password_reset_code(normalized_email, code)
-        except Exception as error:
-            print(f"[Langly password reset] Email send failed for {normalized_email}: {error}")
-            print(f"[Langly password reset] Code for {normalized_email}: {code}")
+        except Exception:
+            print("[Langly password reset] Email delivery failed")
             raise HTTPException(
                 status_code=500,
                 detail="Could not send the confirmation code. Check SMTP settings."
