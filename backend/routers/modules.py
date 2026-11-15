@@ -5,15 +5,28 @@ from .. import models, database, auth
 router = APIRouter(prefix="/modules", tags=["Modules"])
 
 
+def _get_owned_folder(folder_id: int, current_user: models.User, db: Session):
+    folder = db.query(models.Folder).filter(
+        models.Folder.id == folder_id,
+        models.Folder.user_id == current_user.id
+    ).first()
+
+    if not folder:
+        raise HTTPException(status_code=404, detail="Folder not found")
+
+    return folder
+
+
 @router.get("/{folder_id}")
 def get_modules(
     folder_id: int,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    folder = _get_owned_folder(folder_id, current_user, db)
 
     return db.query(models.Module).filter(
-        models.Module.folder_id == folder_id
+        models.Module.folder_id == folder.id
     ).all()
 
 
@@ -24,10 +37,11 @@ def create_module(
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
+    folder = _get_owned_folder(folder_id, current_user, db)
 
     module = models.Module(
         name=name,
-        folder_id=folder_id
+        folder_id=folder.id
     )
 
     db.add(module)
@@ -36,7 +50,6 @@ def create_module(
 
     return module
 
-#DELETE 
 @router.delete("/{module_id}")
 def delete_module(
     module_id: int,
