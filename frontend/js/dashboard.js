@@ -280,15 +280,24 @@ async function initDiscovery(container) {
 
   if (saveAllBtn) {
     saveAllBtn.addEventListener("click", async () => {
+      if (saveAllBtn.disabled || state.savingWords) return;
       if (!state.moduleId) {
         setToast(container, tr("dashboard.select_module_to_save"), "error");
         return;
       }
 
       let saved = 0;
-      for (const item of state.dailyWords) {
-        const ok = await saveDiscoveryWord({ token, state, item, silent: true });
-        if (ok) saved += 1;
+      state.savingWords = true;
+      saveAllBtn.disabled = true;
+      const destination = { ...state };
+      try {
+        for (const item of [...state.dailyWords]) {
+          const ok = await saveDiscoveryWord({ token, state: destination, item, silent: true });
+          if (ok) saved += 1;
+        }
+      } finally {
+        state.savingWords = false;
+        saveAllBtn.disabled = !state.moduleId;
       }
 
       setToast(container, saved > 0 ? tr("dashboard.saved_words", { count: saved }) : tr("dashboard.nothing_saved"), saved > 0 ? "success" : "error");
@@ -369,7 +378,7 @@ async function hydrateModuleSelect({ container, state }) {
   }
 
   if (saveAllBtn) {
-    saveAllBtn.disabled = !state.moduleId;
+    saveAllBtn.disabled = Boolean(state.savingWords) || !state.moduleId;
     saveAllBtn.style.opacity = state.moduleId ? "1" : "0.55";
     saveAllBtn.style.cursor = state.moduleId ? "pointer" : "not-allowed";
   }
@@ -385,7 +394,7 @@ async function hydrateModuleSelect({ container, state }) {
       state.moduleId = String(moduleId || "");
       localStorage.setItem("langlyDiscoveryModuleId", state.moduleId);
       if (saveAllBtn) {
-        saveAllBtn.disabled = !state.moduleId;
+        saveAllBtn.disabled = Boolean(state.savingWords) || !state.moduleId;
         saveAllBtn.style.opacity = state.moduleId ? "1" : "0.55";
         saveAllBtn.style.cursor = state.moduleId ? "pointer" : "not-allowed";
       }
@@ -495,13 +504,16 @@ function renderWordsList({ container, state }) {
     const saveBtn = row.querySelector('[data-action="save"]');
     if (saveBtn) {
       saveBtn.addEventListener("click", async () => {
+        if (saveBtn.disabled) return;
         if (!state.moduleId) {
           setToast(container, tr("dashboard.select_module_to_save"), "error");
           return;
         }
 
         const token = localStorage.getItem("token");
+        saveBtn.disabled = true;
         const ok = await saveDiscoveryWord({ token, state, item });
+        saveBtn.disabled = ok;
         if (ok) {
           setToast(container, tr("dashboard.saved"), "success");
           saveBtn.textContent = tr("dashboard.saved");
@@ -524,25 +536,19 @@ async function saveDiscoveryWord({ token, state, item, silent = false }) {
   if (!languageId || !moduleId || !word || !translation) return false;
 
   try {
-    const res = await window.langlySession.request(`${BASE_URL}/words/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        language_id: languageId,
-        module_id: Number(moduleId),
-        word,
-        translation,
-        example: null
-      })
-    });
+    const result = await window.langlyVocabulary.createWord({
+      language_id: languageId,
+      module_id: Number(moduleId),
+      word,
+      translation,
+      example: null
+    }, token);
+    if (result.cancelled) return false;
+    const { response: res, data } = result;
 
     if (!res.ok) {
       if (!silent) {
-        const data = await res.json().catch(() => null);
-        const msg = data?.detail || tr("dashboard.could_not_save", null, "Could not save word.");
+        const msg = window.langlyVocabulary.errorMessage(data, tr("dashboard.could_not_save", null, "Could not save word."));
         setToast(document.getElementById("discovery-container"), msg, "error");
       }
       return false;

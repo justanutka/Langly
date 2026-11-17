@@ -417,10 +417,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function normalizeText(text) {
-        return String(text || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ");
+        return window.langlyVocabulary.normalize(text);
     }
 
     function shuffle(array) {
@@ -439,43 +436,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function getQuestionCountOptions(wordsLength) {
-        if (wordsLength < 2) return [];
+        if (wordsLength < 1) return [];
 
         if (wordsLength <= 10) {
-            return Array.from({ length: wordsLength - 1 }, (_, index) => index + 2);
+            return Array.from({ length: wordsLength }, (_, index) => index + 1);
         }
 
         const options = [5, 10, 15, 20, wordsLength];
-        return [...new Set(options.filter((value) => value >= 2 && value <= wordsLength))];
+        return [...new Set(options.filter((value) => value >= 1 && value <= wordsLength))];
     }
 
     function getDefaultQuestionCount(wordsLength) {
-        if (wordsLength < 2) return 0;
+        if (wordsLength < 1) return 0;
         return Math.min(10, wordsLength);
     }
 
     function updateQuestionCountMeta() {
         if (!countHint) return;
-
-        if (moduleWords.length < 2) {
-            countHint.textContent = "";
-            return;
-        }
-
-        if (moduleWords.length <= 10) {
-            countHint.textContent = qt(
-                "quiz.module_small",
-                { count: moduleWords.length },
-                `This module has ${moduleWords.length} words, so you can choose between 2 and ${moduleWords.length} questions.`
-            );
-            return;
-        }
-
-        countHint.textContent = qt(
-            "quiz.module_large",
-            { count: moduleWords.length },
-            `You can choose up to ${moduleWords.length} questions for this module.`
-        );
+        countHint.textContent = moduleWords.length
+            ? qt("quiz.unique_count", { count: moduleWords.length })
+            : "";
     }
 
     function initCustomSelect(dropdown) {
@@ -584,7 +564,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const maxAllowed = moduleWords.length;
         const normalizedCount = Number(selectedQuestionCount) || getDefaultQuestionCount(maxAllowed);
-        return Math.max(2, Math.min(normalizedCount, maxAllowed));
+        return Math.max(1, Math.min(normalizedCount, maxAllowed));
     }
 
     async function loadModuleWords() {
@@ -607,12 +587,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            moduleWords = await res.json();
+            moduleWords = window.langlyVocabulary.groupEntries(await res.json());
             wordCountLabel.textContent = String(moduleWords.length);
 
             initQuestionCountSelect(moduleWords.length);
 
-            if (moduleWords.length < 2) {
+            if (moduleWords.length < 1) {
                 showView("empty");
                 syncHistory("empty", "replace");
                 return;
@@ -631,53 +611,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    function getRandomWrongTranslations(correctWordId, count = 3) {
-        const pool = moduleWords
-            .filter((word) => word.id !== correctWordId)
-            .map((word) => word.translation);
-
-        return shuffle([...new Set(pool)]).slice(0, count);
-    }
-
     function buildMultipleChoiceQuestion(word) {
-        const wrongOptions = getRandomWrongTranslations(word.id, 3);
-        const options = shuffle([word.translation, ...wrongOptions]);
-
+        const wrongOptions = shuffle(window.langlyVocabulary.wrongTranslations(moduleWords, word)).slice(0, 3);
+        if (!wrongOptions.length) return buildWriteQuestion(word);
         return {
             type: "multiple",
             word,
-            options,
+            options: shuffle([word.translation, ...wrongOptions]),
             correctAnswer: word.translation
         };
     }
 
     function buildWriteQuestion(word) {
-        return {
-            type: "write",
-            word,
-            correctAnswer: word.translation
-        };
+        return { type: "write", word, correctAnswer: word.translation };
     }
 
     function buildTrueFalseQuestion(word) {
-        const shouldBeCorrect = Math.random() > 0.5;
-        let shownTranslation = word.translation;
-        let isCorrectPair = true;
-
-        if (!shouldBeCorrect) {
-            const wrongPool = moduleWords.filter((candidate) => candidate.id !== word.id);
-            const randomWrongWord = shuffle(wrongPool)[0];
-
-            if (randomWrongWord) {
-                shownTranslation = randomWrongWord.translation;
-                isCorrectPair = false;
-            }
-        }
-
+        const wrongOptions = window.langlyVocabulary.wrongTranslations(moduleWords, word);
+        if (!wrongOptions.length) return buildWriteQuestion(word);
+        const isCorrectPair = Math.random() > 0.5;
         return {
             type: "truefalse",
             word,
-            shownTranslation,
+            shownTranslation: isCorrectPair ? word.translation : shuffle(wrongOptions)[0],
             correctAnswer: isCorrectPair ? "true" : "false"
         };
     }
@@ -815,7 +771,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const userAnswer = input.value.trim();
             if (!userAnswer) return;
 
-            const isCorrect = normalizeText(userAnswer) === normalizeText(question.correctAnswer);
+            const isCorrect = window.langlyVocabulary.accepts(question.word, userAnswer);
 
             const feedback = document.createElement("div");
             feedback.className = `feedback-box ${isCorrect ? "correct" : "wrong"}`;

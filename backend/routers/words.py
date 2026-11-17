@@ -1,4 +1,6 @@
 import requests
+import re
+import unicodedata
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -6,6 +8,10 @@ from .. import models, schemas, database, auth
 from datetime import datetime
 
 router = APIRouter(prefix="/words", tags=["Words"])
+
+
+def normalize_entry(text: str) -> str:
+    return " ".join(unicodedata.normalize("NFC", text).split())
 
 
 # =========================
@@ -157,29 +163,39 @@ def create_word(
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
 
-    existing_word = db.query(models.Word).filter(
-        models.Word.module_id == word.module_id,
-        models.Word.word == word.word
-    ).first()
+    entry = normalize_entry(word.word)
+    translation = normalize_entry(word.translation)
+    if not entry or not translation:
+        raise HTTPException(status_code=400, detail={"code": "empty_entry"})
 
-    if existing_word:
-        raise HTTPException(
-            status_code=400,
-            detail="Word already exists in this module"
-        )
-
+    existing_words = db.query(models.Word.word).filter(
+        models.Word.module_id == word.module_id
+    ).all()
+    duplicate = any(normalize_entry(value).lower() == entry.lower() for (value,) in existing_words)
+    is_phrase = sum(bool(re.search(r"[^\W\d_]", part)) for part in entry.split()) > 1
     language_code = language.code
 
     # =========================
     # WORD VALIDATION
     # =========================
 
-    is_valid_word = validate_word_exists(word.word.strip(), language_code)
+    is_valid_word = validate_word_exists(entry, language_code)
 
-    if not is_valid_word:
+    if not is_valid_word and not is_phrase:
         raise HTTPException(
             status_code=400,
-            detail="This word does not seem to exist or is misspelled"
+            detail={"code": "invalid_word"}
+        )
+
+    warnings = []
+    if duplicate and not word.allow_duplicate:
+        warnings.append("duplicate")
+    if not is_valid_word and is_phrase and not word.allow_unverified_phrase:
+        warnings.append("unverified_phrase")
+    if warnings:
+        raise HTTPException(
+            status_code=409,
+            detail={"code": "word_confirmation_required", "warnings": warnings}
         )
 
     # =========================
@@ -204,8 +220,8 @@ def create_word(
     # =========================
 
     new_word = models.Word(
-        word=word.word,
-        translation=word.translation,
+        word=entry,
+        translation=translation,
         example=word.example,
         language_id=word.language_id,
         module_id=word.module_id
@@ -225,13 +241,6 @@ def create_word(
         db.commit()
     except IntegrityError:
         db.rollback()
-        # Another request may have inserted the same word after the precheck.
-        duplicate = db.query(models.Word).filter(
-            models.Word.module_id == word.module_id,
-            models.Word.word == word.word
-        ).first()
-        if duplicate:
-            raise HTTPException(status_code=400, detail="Word already exists in this module")
         raise
 
     db.refresh(new_word)

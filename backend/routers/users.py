@@ -62,9 +62,7 @@ def send_password_reset_code(email: str, code: str):
     return True
 
 
-# =========================
 # REGISTER (AUTO LOGIN + SAVE NATIVE LANGUAGE)
-# =========================
 @router.post("/register")
 def register(
     user: schemas.UserCreate, request: Request, response: Response,
@@ -108,9 +106,7 @@ def register(
     return auth.start_session(new_user, db, request, response)
 
 
-# =========================
 # LOGIN
-# =========================
 @router.post("/login")
 def login(
     request: Request,
@@ -282,9 +278,8 @@ def confirm_reset_password(
     return {"message": "Password has been reset successfully."}
 
 
-# =========================
+
 # CURRENT USER
-# =========================
 @router.get("/me")
 def read_users_me(
     current_user: models.User = Depends(auth.get_current_user),
@@ -397,17 +392,13 @@ def read_users_me(
     }
 
 
-# =========================
 # GET LANGUAGES
-# =========================
 @router.get("/languages")
 def get_languages(db: Session = Depends(database.get_db)):
     return db.query(models.Language).all()
 
 
-# =========================
 # SET ACTIVE LANGUAGE
-# =========================
 @router.post("/set-language")
 def set_language(
     language_id: int,
@@ -431,9 +422,7 @@ def set_language(
     return {"message": "Language updated"}
 
 
-# =========================
 # SET INTERFACE LANGUAGE
-# =========================
 @router.post("/set-interface-language")
 def set_interface_language(
     language_id: int,

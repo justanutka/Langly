@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 from datetime import date
-from sqlalchemy import UniqueConstraint
 from sqlalchemy import ForeignKey
 
 
@@ -105,10 +104,6 @@ class Word(Base):
     language = relationship("Language", back_populates="words")
     review_state = relationship("ReviewState", back_populates="word", uselist=False)
     quiz_answers = relationship("QuizAnswer", back_populates="word", cascade="all, delete")
-
-    __table_args__ = (
-        UniqueConstraint('module_id', 'word', name='unique_word_per_module'),
-    )
 
 class ReviewState(Base):
     __tablename__ = "review_states"

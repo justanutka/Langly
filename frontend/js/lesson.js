@@ -107,10 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function normalizeText(text) {
-        return String(text || "")
-            .trim()
-            .toLowerCase()
-            .replace(/\s+/g, " ");
+        return window.langlyVocabulary.normalize(text);
     }
 
     function shuffle(items) {
@@ -213,32 +210,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function buildPracticeQuestions() {
-        const count = Math.min(5, moduleWords.length);
-        const baseWords = sample(moduleWords, count);
-
-        if (moduleWords.length < 2) {
-            return baseWords.map((word) => ({
-                type: "write",
-                word,
-                correctAnswer: word.translation
-            }));
-        }
-
+        const entries = window.langlyVocabulary.groupEntries(moduleWords);
+        const baseWords = sample(entries, Math.min(5, entries.length));
         return baseWords.map((word, index) => {
-            if (index % 3 === 1) {
-                return {
-                    type: "write",
-                    word,
-                    correctAnswer: word.translation
-                };
+            const wrongOptions = shuffle(window.langlyVocabulary.wrongTranslations(entries, word)).slice(0, 3);
+            if (index % 3 === 1 || !wrongOptions.length) {
+                return { type: "write", word, correctAnswer: word.translation };
             }
-
-            const wrongOptions = shuffle(
-                moduleWords
-                    .filter((candidate) => candidate.id !== word.id)
-                    .map((candidate) => candidate.translation)
-            ).slice(0, 3);
-
             return {
                 type: "multiple",
                 word,
@@ -325,7 +303,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const answer = input.value.trim();
             if (!answer) return;
 
-            const isCorrect = normalizeText(answer) === normalizeText(question.correctAnswer);
+            const isCorrect = window.langlyVocabulary.accepts(question.word, answer);
             if (isCorrect) {
                 score++;
             }

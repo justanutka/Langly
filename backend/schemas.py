@@ -38,6 +38,8 @@ class WordCreate(BaseModel):
     word: str
     translation: str
     example: str | None = None
+    allow_duplicate: bool = False
+    allow_unverified_phrase: bool = False
 
 class FolderCreate(BaseModel):
     name: str

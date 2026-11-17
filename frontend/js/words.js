@@ -931,6 +931,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     saveWordBtn.onclick = async () => {
+        if (saveWordBtn.disabled) return;
         const word = wordInput.value.trim();
         const translation = translationInput.value.trim();
 
@@ -947,29 +948,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         saveWordsState();
+        saveWordBtn.disabled = true;
+        const targetModuleId = currentModuleId;
 
         try {
             const user = await getUser();
 
-            const res = await window.langlySession.request(`${BASE_URL}/words/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    language_id: user.active_language_id,
-                    module_id: currentModuleId,
-                    word,
-                    translation,
-                    example: null
-                })
-            });
-
-            const data = await res.json().catch(() => null);
+            const result = await window.langlyVocabulary.createWord({
+                language_id: user.active_language_id,
+                module_id: targetModuleId,
+                word,
+                translation,
+                example: null
+            }, token);
+            if (result.cancelled) return;
+            const { response: res, data } = result;
 
             if (!res.ok) {
-                const errorText = data?.detail || t("words.add_word_error", null, "Something went wrong while adding the word.");
+                const errorText = window.langlyVocabulary.errorMessage(data, t("words.add_word_error", null, "Something went wrong while adding the word."));
                 showWordMessage(errorText, "error");
                 return;
             }
@@ -982,6 +978,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (error) {
             showWordMessage(t("notes.server_error", null, "Server connection error. Please try again."), "error");
             console.error(error);
+        } finally {
+            saveWordBtn.disabled = false;
         }
     };
 

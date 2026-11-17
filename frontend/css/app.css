@@ -362,3 +362,64 @@ body::after {
   box-shadow: none;
 }
 
+.vocabulary-confirm {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid #e4e7ff;
+  border-radius: 24px;
+  padding: 28px;
+  color: #202956;
+  background: #fff;
+  font: inherit;
+  box-shadow: 0 24px 70px #18214d33;
+}
+
+.vocabulary-confirm::backdrop {
+  background: #18214d66;
+}
+
+.vocabulary-confirm h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+.vocabulary-confirm p {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.vocabulary-confirm-entry {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f5f6ff;
+}
+
+.vocabulary-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.vocabulary-confirm-actions button {
+  border: 1px solid #dce0ff;
+  border-radius: 20px;
+  padding: 11px 18px;
+  background: #f5f6ff;
+  color: #35426b;
+  font: inherit;
+  cursor: pointer;
+}
+
+.vocabulary-confirm-actions .vocabulary-confirm-accept {
+  background: #5066ff;
+  color: #fff;
+}
+
+.vocabulary-confirm-actions button:focus-visible {
+  outline: 3px solid #a3afff;
+  outline-offset: 3px;
+}
