@@ -92,6 +92,7 @@
     "auth.email_rule": "Gib eine gueltige E-Mail-Adresse mit @ ein.",
     "auth.password_rule": "Das Passwort muss mindestens 7 Zeichen lang sein und einen Buchstaben sowie eine Zahl enthalten.",
     "auth.passwords_no_match": "Passwoerter stimmen nicht ueberein.",
+    "auth.retry_languages": "Erneut versuchen",
     "auth.no_languages": "Derzeit sind keine Sprachen verfuegbar.",
     "auth.languages_error": "Sprachen konnten nicht geladen werden.",
     "auth.native_required": "Bitte Muttersprache waehlen.",

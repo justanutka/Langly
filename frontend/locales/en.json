@@ -142,6 +142,7 @@
     "auth.email_rule": "Enter a valid email address with @.",
     "auth.password_rule": "Password must be at least 7 characters long and contain at least one letter and one digit.",
     "auth.passwords_no_match": "Passwords do not match.",
+    "auth.retry_languages": "Try again",
     "auth.no_languages": "No languages available right now.",
     "auth.languages_error": "Cannot load languages right now.",
     "auth.native_required": "Please choose your native language.",

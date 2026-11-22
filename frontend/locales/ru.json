@@ -326,6 +326,7 @@
     "auth.email_rule": "Введите корректный email с @.",
     "auth.password_rule": "Пароль должен быть не короче 7 символов и содержать хотя бы одну букву и одну цифру.",
     "auth.passwords_no_match": "Пароли не совпадают.",
+    "auth.retry_languages": "Повторить",
     "auth.no_languages": "Сейчас нет доступных языков.",
     "auth.languages_error": "Не удалось загрузить языки.",
     "auth.native_required": "Выберите родной язык.",

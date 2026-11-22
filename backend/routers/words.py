@@ -310,20 +310,6 @@ def delete_word(
     if not word:
         raise HTTPException(status_code=404, detail="Word not found")
 
-    review_state = db.query(models.ReviewState).filter(
-        models.ReviewState.word_id == word.id
-    ).first()
-
-    if review_state:
-        db.delete(review_state)
-
-    quiz_answers = db.query(models.QuizAnswer).filter(
-        models.QuizAnswer.word_id == word.id
-    ).all()
-
-    for answer in quiz_answers:
-        db.delete(answer)
-
     db.delete(word)
     db.commit()
 

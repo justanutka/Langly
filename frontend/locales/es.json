@@ -92,6 +92,7 @@
     "auth.email_rule": "Introduce un email valido con @.",
     "auth.password_rule": "La contrasena debe tener al menos 7 caracteres, una letra y un numero.",
     "auth.passwords_no_match": "Las contrasenas no coinciden.",
+    "auth.retry_languages": "Volver a intentar",
     "auth.no_languages": "No hay idiomas disponibles ahora.",
     "auth.languages_error": "No se pueden cargar los idiomas ahora.",
     "auth.native_required": "Elige tu idioma nativo.",

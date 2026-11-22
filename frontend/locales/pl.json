@@ -142,6 +142,7 @@
     "auth.email_rule": "Wpisz poprawny adres email z @.",
     "auth.password_rule": "Haslo musi miec co najmniej 7 znakow, jedna litere i jedna cyfre.",
     "auth.passwords_no_match": "Hasla nie sa takie same.",
+    "auth.retry_languages": "Spróbuj ponownie",
     "auth.no_languages": "Brak dostepnych jezykow.",
     "auth.languages_error": "Nie mozna zaladowac jezykow.",
     "auth.native_required": "Wybierz jezyk ojczysty.",

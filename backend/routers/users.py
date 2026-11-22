@@ -7,6 +7,7 @@ from email.message import EmailMessage
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import case
 from sqlalchemy.orm import Session
 from .. import models, schemas, database, auth
@@ -101,7 +102,13 @@ def register(
     )
 
     db.add(new_user)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        if db.query(models.User.id).filter_by(email=normalized_email).first():
+            raise HTTPException(status_code=400, detail="Email already registered") from None
+        raise
 
     return auth.start_session(new_user, db, request, response)
 

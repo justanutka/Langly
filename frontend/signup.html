@@ -69,17 +69,15 @@
         </div>
 
         <div class="field">
-          <label data-ui-text="auth.native_language">Your native language</label>
+          <label for="native-trigger" data-ui-text="auth.native_language">Your native language</label>
 
           <div class="custom-select" id="native-select">
-            <div class="select-trigger">
+            <button type="button" class="select-trigger" id="native-trigger" aria-expanded="false" aria-controls="select-options">
               <span id="selected-value" data-ui-text="auth.select_language">Select a language</span>
-              <div class="arrow"></div>
-            </div>
+              <span class="arrow" aria-hidden="true"></span>
+            </button>
 
-            <div class="select-options" id="select-options">
-            <!-- JS вставит языки сюда -->
-            </div>
+            <div class="select-options" id="select-options" inert></div>
           </div>
         </div>
 

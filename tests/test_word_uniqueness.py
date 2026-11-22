@@ -26,7 +26,7 @@ class WordEntryTests(unittest.TestCase):
         self.addCleanup(self.engine.dispose)
         self.addCleanup(self.db.close)
         self.db.add(models.Language(id=1, name="English", code="en"))
-        self.db.add_all([models.User(id=1), models.User(id=2)])
+        self.db.add_all([models.User(id=i, email=f"user{i}@example.test", password_hash="fixture") for i in (1, 2)])
         self.db.flush()
         self.db.add_all([
             models.UserLanguage(user_id=1, language_id=1),

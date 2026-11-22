@@ -1,18 +1,20 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Text
+from sqlalchemy import CheckConstraint, Column, Integer, String, ForeignKey, DateTime, Boolean, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 from datetime import date
-from sqlalchemy import ForeignKey
 
 
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint("email = trim(email, char(9,10,11,12,13,32))", name="ck_users_email_trimmed"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    password_hash = Column(String)
+    email = Column(String(collation="NOCASE"), nullable=False, unique=True, index=True)
+    password_hash = Column(String, nullable=False)
 
     streak = Column(Integer, default=0)
     last_study_date = Column(String, nullable=True)
@@ -63,12 +65,12 @@ class Language(Base):
     name = Column(String, unique=True, nullable=False)
     code = Column(String, unique=True, nullable=False)
 
-    words = relationship("Word", back_populates="language")
+    words = relationship("Word", back_populates="language", passive_deletes="all")
 
     users = relationship(
         "UserLanguage",
         back_populates="language",
-        cascade="all, delete"
+        passive_deletes="all"
     )
 
 class UserLanguage(Base):
@@ -99,18 +101,18 @@ class Word(Base):
     example = Column(String, nullable=True)
 
     language_id = Column(Integer, ForeignKey("languages.id"))
-    module_id = Column(Integer, ForeignKey("modules.id"), nullable=True)
+    module_id = Column(Integer, ForeignKey("modules.id", ondelete="CASCADE"), nullable=True)
 
     language = relationship("Language", back_populates="words")
-    review_state = relationship("ReviewState", back_populates="word", uselist=False)
-    quiz_answers = relationship("QuizAnswer", back_populates="word", cascade="all, delete")
+    review_state = relationship("ReviewState", back_populates="word", uselist=False, cascade="all, delete", passive_deletes=True)
+    quiz_answers = relationship("QuizAnswer", back_populates="word", cascade="all, delete", passive_deletes=True)
 
 class ReviewState(Base):
     __tablename__ = "review_states"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    word_id = Column(Integer, ForeignKey("words.id"))
+    word_id = Column(Integer, ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
 
     repetition = Column(Integer, default=0)
     interval = Column(Integer, default=1)
@@ -142,7 +144,7 @@ class Folder(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    modules = relationship("Module", back_populates="folder", cascade="all, delete")
+    modules = relationship("Module", back_populates="folder", cascade="all, delete", passive_deletes=True)
 
 class Module(Base):
     __tablename__ = "modules"
@@ -151,21 +153,21 @@ class Module(Base):
 
     name = Column(String, nullable=False)
 
-    folder_id = Column(Integer, ForeignKey("folders.id"))
+    folder_id = Column(Integer, ForeignKey("folders.id", ondelete="CASCADE"), nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
     folder = relationship("Folder", back_populates="modules")
-    words = relationship("Word")
-    quiz_attempts = relationship("QuizAttempt", back_populates="module", cascade="all, delete")
-    lesson_attempts = relationship("LessonAttempt", back_populates="module", cascade="all, delete")
+    words = relationship("Word", cascade="all, delete", passive_deletes=True)
+    quiz_attempts = relationship("QuizAttempt", back_populates="module", cascade="all, delete", passive_deletes=True)
+    lesson_attempts = relationship("LessonAttempt", back_populates="module", cascade="all, delete", passive_deletes=True)
 
 class QuizAttempt(Base):
     __tablename__ = "quiz_attempts"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
+    module_id = Column(Integer, ForeignKey("modules.id", ondelete="CASCADE"), nullable=False)
 
     quiz_type = Column(String, nullable=False)
     score = Column(Integer, nullable=False, default=0)
@@ -176,15 +178,15 @@ class QuizAttempt(Base):
 
     user = relationship("User", back_populates="quiz_attempts")
     module = relationship("Module", back_populates="quiz_attempts")
-    answers = relationship("QuizAnswer", back_populates="attempt", cascade="all, delete")
+    answers = relationship("QuizAnswer", back_populates="attempt", cascade="all, delete", passive_deletes=True)
 
 
 class QuizAnswer(Base):
     __tablename__ = "quiz_answers"
 
     id = Column(Integer, primary_key=True, index=True)
-    attempt_id = Column(Integer, ForeignKey("quiz_attempts.id"), nullable=False)
-    word_id = Column(Integer, ForeignKey("words.id"), nullable=False)
+    attempt_id = Column(Integer, ForeignKey("quiz_attempts.id", ondelete="CASCADE"), nullable=False)
+    word_id = Column(Integer, ForeignKey("words.id", ondelete="CASCADE"), nullable=False)
 
     question_type = Column(String, nullable=False)
     user_answer = Column(String, nullable=True)
@@ -200,7 +202,7 @@ class LessonAttempt(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
+    module_id = Column(Integer, ForeignKey("modules.id", ondelete="CASCADE"), nullable=False)
 
     score = Column(Integer, nullable=False, default=0)
     total_tasks = Column(Integer, nullable=False, default=0)

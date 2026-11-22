@@ -6,7 +6,7 @@ Create Date: 2026-03-17 18:50:00
 """
 
 revision = '308ab02a5d83'
-down_revision = None  
+down_revision = "012acbf883f1"
 branch_labels = None
 depends_on = None
 

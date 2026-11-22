@@ -48,6 +48,14 @@ def save_quiz_attempt(
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
 
+    word_ids = {answer.word_id for answer in payload.answers}
+    if word_ids:
+        matching = db.query(models.Word.id).filter(
+            models.Word.module_id == module.id, models.Word.id.in_(word_ids)
+        ).count()
+        if matching != len(word_ids):
+            raise HTTPException(status_code=400, detail="Quiz words must belong to the selected module")
+
     xp_earned = calculate_quiz_xp(payload.score, payload.total_questions)
 
     attempt = models.QuizAttempt(

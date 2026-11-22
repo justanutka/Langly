@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const termsLink = document.querySelector('a[href="terms.html"]');
 
   const nativeSelect = document.getElementById("native-select");
+  const trigger = document.getElementById("native-trigger");
   const selectedValue = document.getElementById("selected-value");
   const optionsContainer = document.getElementById("select-options");
 
@@ -79,30 +80,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  getDraft();
-
-  function restoreDraft(languages) {
-    const draft = getDraft();
-    if (!draft) return;
-
+  const draft = getDraft();
+  if (draft) {
     emailInput.value = draft.email || "";
-
     if (termsInput) {
       termsInput.checked = Boolean(draft.termsAccepted);
     }
+  }
 
-    const restoredLanguage = Array.isArray(languages)
-      ? languages.find((lang) => String(lang.id) === String(draft.nativeLanguageId))
-      : null;
+  function selectLanguage(language) {
+    selectedLanguageId = language.id;
+    selectedLanguageName = language.name;
+    selectedValue.textContent = language.name;
+  }
 
+  function restoreLanguage(languages) {
+    const restoredLanguage = languages.find((lang) => String(lang.id) === String(draft?.nativeLanguageId));
     if (restoredLanguage) {
-      selectedLanguageId = restoredLanguage.id;
-      selectedLanguageName = restoredLanguage.name;
-      selectedValue.textContent = restoredLanguage.name;
-    } else if (draft.nativeLanguageId && draft.nativeLanguageName) {
-      selectedLanguageId = draft.nativeLanguageId;
-      selectedLanguageName = draft.nativeLanguageName;
-      selectedValue.textContent = draft.nativeLanguageName;
+      selectLanguage(restoredLanguage);
     }
   }
 
@@ -192,31 +187,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  async function loadLanguages() {
+  function showLanguageStatus(message, canRetry = false, focus = false) {
+    const status = document.createElement("p");
+    status.className = "select-status";
+    status.setAttribute("role", "status");
+    status.textContent = message;
+    optionsContainer.replaceChildren(status);
+    if (canRetry) {
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "select-option select-retry";
+      retry.textContent = t("auth.retry_languages", "Try again");
+      retry.addEventListener("click", () => loadLanguages(true));
+      optionsContainer.appendChild(retry);
+      if (focus && !optionsContainer.inert) retry.focus();
+    }
+  }
+
+  async function loadLanguages(retry = false) {
+    showLanguageStatus(t("choose.loading", "Loading languages..."));
     try {
-      const res = await window.langlySession.request(BASE_URL + "/users/languages");
+      const res = await window.langlySession.request(BASE_URL + "/users/languages", {
+        signal: AbortSignal.timeout(5000)
+      });
       if (!res.ok) {
         throw new Error("Failed to load languages");
       }
 
       const languages = await res.json();
-      optionsContainer.innerHTML = "";
-
-      if (!Array.isArray(languages) || !languages.length) {
-        setMessage(t("auth.no_languages", "No languages available right now."), "error");
+      if (!Array.isArray(languages)) {
+        throw new Error("Invalid language list");
+      }
+      if (!languages.length) {
+        showLanguageStatus(t("auth.no_languages", "No languages available right now."), true, retry);
         return;
       }
 
+      optionsContainer.replaceChildren();
       languages.forEach((lang) => {
-        const option = document.createElement("div");
+        const option = document.createElement("button");
+        option.type = "button";
         option.classList.add("select-option");
         option.textContent = lang.name;
 
         option.addEventListener("click", () => {
-          selectedValue.textContent = lang.name;
-          selectedLanguageId = lang.id;
-          selectedLanguageName = lang.name;
-          closeDropdown();
+          selectLanguage(lang);
+          setDropdownOpen(false);
+          trigger.focus();
           setMessage("", "");
           saveDraft();
         });
@@ -224,35 +241,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         optionsContainer.appendChild(option);
       });
 
-      restoreDraft(languages);
+      restoreLanguage(languages);
+      if (retry && !optionsContainer.inert) optionsContainer.firstElementChild.focus();
     } catch (error) {
       console.error("Failed to load languages", error);
-      setMessage(t("auth.languages_error", "Cannot load languages right now."), "error");
-      restoreDraft([]);
+      showLanguageStatus(t("auth.languages_error", "Cannot load languages right now."), true, retry);
     }
   }
 
-  try {
-    await loadLanguages();
-  } finally {
-    setPageReady();
-  }
-
-  const trigger = nativeSelect.querySelector(".select-trigger");
-
   trigger.addEventListener("click", () => {
-    optionsContainer.classList.toggle("open");
-    trigger.classList.toggle("active");
+    setDropdownOpen(optionsContainer.inert);
   });
 
-  function closeDropdown() {
-    optionsContainer.classList.remove("open");
-    trigger.classList.remove("active");
+  function setDropdownOpen(open) {
+    optionsContainer.inert = !open;
+    optionsContainer.classList.toggle("open", open);
+    trigger.classList.toggle("active", open);
+    trigger.setAttribute("aria-expanded", String(open));
   }
 
   document.addEventListener("click", (e) => {
-    if (!nativeSelect.contains(e.target)) {
-      closeDropdown();
+    if (!e.composedPath().includes(nativeSelect)) {
+      setDropdownOpen(false);
+    }
+  });
+
+  nativeSelect.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !optionsContainer.inert) {
+      setDropdownOpen(false);
+      trigger.focus();
     }
   });
 
@@ -334,4 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   });
+
+  loadLanguages();
+  setPageReady();
 });
