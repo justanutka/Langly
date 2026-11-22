@@ -200,6 +200,9 @@
 /* TOGGLE BUTTON */
 
 .sidebar-toggle {
+    border: 0;
+    background: transparent;
+    padding: 0 0 0 14px;
     font-size: 20px;
     cursor: pointer;
     color: #64748B;
@@ -209,7 +212,6 @@
 
     height: 40px;
     margin-bottom: 10px;
-    padding-left: 14px;
 }
 
 /* COLLAPSED SIDEBAR */

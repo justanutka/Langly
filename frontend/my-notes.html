@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Notes – Langly</title>
 
     <link rel="stylesheet" href="css/app.css">
@@ -82,7 +83,7 @@
 </div>
 
 <div class="modal-overlay" id="note-modal">
-    <div class="note-modal">
+    <div class="note-modal" role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
         <div class="note-modal-header">
             <h2 id="note-modal-title" data-ui-text="notes.new_note">New note</h2>
             <button id="close-note-modal" class="modal-close" type="button">×</button>
@@ -198,6 +199,18 @@
         </div>
     </div>
 </div>
+
+<dialog class="delete-modal" id="unsaved-note-dialog" aria-labelledby="unsaved-note-title" aria-describedby="unsaved-note-description">
+    <h2 id="unsaved-note-title" data-ui-text="notes.unsaved_title">Save changes?</h2>
+    <p id="unsaved-note-description" data-ui-text="notes.unsaved_description">You have unsaved changes to this note.</p>
+    <div class="modal-actions unsaved-note-actions">
+        <div class="unsaved-note-choices">
+            <button class="btn-secondary" id="continue-note-btn" type="button" autofocus data-ui-text="notes.keep_editing">Keep editing</button>
+            <button class="btn-danger" id="discard-note-btn" type="button" data-ui-text="notes.discard_changes">Discard changes</button>
+        </div>
+        <button class="btn-main" id="save-unsaved-note-btn" type="button" data-ui-text="notes.save_note">Save note</button>
+    </div>
+</dialog>
 
 <div id="toast" class="toast hidden">
     <span id="toast-text"></span>

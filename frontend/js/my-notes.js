@@ -1,4 +1,5 @@
 const NOTES_BASE_URL = "http://127.0.0.1:8000";
+const NOTE_HIGHLIGHT_CLASSES = ["text-highlight-yellow", "text-highlight-pink", "text-highlight-turquoise"];
 
 let notes = [];
 let editingNoteId = null;
@@ -7,6 +8,9 @@ let noteToDeleteId = null;
 let savedSelection = null;
 let viewingNoteId = null;
 let notesFilterValue = "all";
+let initialNote = null;
+let savingNote = false;
+let editorOpener = null;
 
 function t(key, params, fallback) {
     const value = window.langlyUiText?.t(key, params);
@@ -23,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
         if (typeof loadSidebar === "function") {
-            await loadSidebar();
+            await loadSidebar({ compactQuery: "(max-width: 720px)" });
         }
 
         await window.langlyUiText?.init?.();
@@ -62,6 +66,7 @@ function initNotesPage() {
     const closeModalBtn = document.getElementById("close-note-modal");
     const cancelNoteBtn = document.getElementById("cancel-note-btn");
     const saveNoteBtn = document.getElementById("save-note-btn");
+    const unsavedDialog = document.getElementById("unsaved-note-dialog");
 
     const cancelDeleteBtn = document.getElementById("cancel-delete-note");
     const confirmDeleteBtn = document.getElementById("confirm-delete-note");
@@ -79,16 +84,17 @@ function initNotesPage() {
         openNoteModal();
     });
 
-    closeModalBtn.addEventListener("click", () => {
+    closeModalBtn.addEventListener("click", requestNoteClose);
+    cancelNoteBtn.addEventListener("click", requestNoteClose);
+    saveNoteBtn.addEventListener("click", saveNote);
+    document.getElementById("continue-note-btn").addEventListener("click", () => unsavedDialog.close());
+    document.getElementById("discard-note-btn").addEventListener("click", () => {
+        unsavedDialog.close();
         closeNoteModal();
     });
-
-    cancelNoteBtn.addEventListener("click", () => {
-        closeNoteModal();
-    });
-
-    saveNoteBtn.addEventListener("click", async () => {
-        await saveNote();
+    document.getElementById("save-unsaved-note-btn").addEventListener("click", () => {
+        unsavedDialog.close();
+        saveNote();
     });
 
     cancelDeleteBtn.addEventListener("click", () => {
@@ -142,7 +148,7 @@ function initNotesPage() {
 
     editor.addEventListener("mouseup", saveSelection);
     editor.addEventListener("keyup", saveSelection);
-    editor.addEventListener("focus", saveSelection);
+    document.addEventListener("selectionchange", saveSelection);
 
     document.querySelectorAll(".highlight-btn").forEach(button => {
         button.addEventListener("mousedown", (event) => {
@@ -155,8 +161,15 @@ function initNotesPage() {
     });
 
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-            closeNoteModal();
+        if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
+        if (unsavedDialog.open) {
+            if (event.repeat) event.preventDefault();
+            return;
+        }
+        if (initialNote) {
+            event.preventDefault();
+            if (!event.repeat) requestNoteClose();
+        } else {
             closeDeleteModal();
             closeViewNoteModal();
         }
@@ -273,6 +286,7 @@ function openNoteModal(note = null) {
     const editor = document.getElementById("note-content-input");
     const importantInput = document.getElementById("note-important-input");
 
+    editorOpener = document.activeElement;
     hideNoteMessage();
 
     if (note) {
@@ -298,8 +312,30 @@ function openNoteModal(note = null) {
     });
 
     savedSelection = null;
+    initialNote = JSON.stringify(readNoteDraft());
     modal.style.display = "flex";
     titleInput.focus();
+}
+
+function readNoteDraft() {
+    const editor = document.getElementById("note-content-input");
+    const content = sanitizeNoteHtml(editor.innerHTML).trim();
+    return {
+        title: document.getElementById("note-title-input").value,
+        content: getPlainText(content).trim() ? content : "",
+        color: selectedColor,
+        is_important: document.getElementById("note-important-input").checked
+    };
+}
+
+function requestNoteClose() {
+    if (!initialNote || savingNote) return;
+    if (JSON.stringify(readNoteDraft()) === initialNote) {
+        closeNoteModal();
+        return;
+    }
+    const dialog = document.getElementById("unsaved-note-dialog");
+    if (!dialog.open) dialog.showModal();
 }
 
 function closeNoteModal() {
@@ -307,39 +343,42 @@ function closeNoteModal() {
 
     modal.style.display = "none";
     editingNoteId = null;
+    initialNote = null;
     selectedColor = "indigo";
     savedSelection = null;
     hideNoteMessage();
+    if (editorOpener?.isConnected && editorOpener.getClientRects().length && editorOpener !== document.body) {
+        editorOpener.focus();
+    } else {
+        document.getElementById("open-note-modal").focus();
+    }
+    editorOpener = null;
 }
 
 async function saveNote() {
+    if (!initialNote || savingNote) return;
     const token = localStorage.getItem("token");
-
     const titleInput = document.getElementById("note-title-input");
     const editor = document.getElementById("note-content-input");
-    const importantInput = document.getElementById("note-important-input");
+    const payload = readNoteDraft();
+    payload.title = payload.title.trim();
 
-    const title = titleInput.value.trim();
-    const content = cleanEditorHtml(editor.innerHTML);
-    const plainContent = getPlainText(content).trim();
-
-    if (!title || !plainContent) {
+    if (!payload.title || !payload.content) {
         showNoteMessage(t("notes.fill_title_content", null, "Please fill in title and content."));
+        (payload.title ? editor : titleInput).focus();
         return;
     }
-
-    const payload = {
-        title,
-        content,
-        color: selectedColor,
-        is_important: importantInput.checked
-    };
 
     const url = editingNoteId
         ? `${NOTES_BASE_URL}/notes/${editingNoteId}`
         : `${NOTES_BASE_URL}/notes/`;
 
     const method = editingNoteId ? "PUT" : "POST";
+    const modal = document.getElementById("note-modal");
+    const activeElement = document.activeElement;
+    hideNoteMessage();
+    savingNote = true;
+    modal.inert = true;
 
     try {
         const res = await window.langlySession.request(url, {
@@ -367,6 +406,10 @@ async function saveNote() {
     } catch (error) {
         console.error(error);
         showNoteMessage(t("notes.server_error", null, "Server connection error."));
+    } finally {
+        savingNote = false;
+        modal.inert = false;
+        if (initialNote && modal.contains(activeElement)) activeElement.focus();
     }
 }
 
@@ -420,80 +463,86 @@ function saveSelection() {
     savedSelection = range.cloneRange();
 }
 
-function restoreSelection() {
-    if (!savedSelection) return false;
-
-    const selection = window.getSelection();
-
-    selection.removeAllRanges();
-    selection.addRange(savedSelection);
-
-    return true;
-}
-
 function applyTextHighlight(type) {
     const editor = document.getElementById("note-content-input");
-
-    editor.focus();
-
-    if (!restoreSelection()) return;
-
-    const selection = window.getSelection();
-
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+    const range = savedSelection?.cloneRange();
+    if (!range || range.collapsed || !editor.contains(range.commonAncestorContainer)) {
         showNoteMessage(t("notes.select_text", null, "Select text first, then choose a highlight color."));
         return;
     }
 
-    const range = selection.getRangeAt(0);
-
-    if (type === "clear") {
-        clearHighlightFromSelection(range);
-        selection.removeAllRanges();
-        savedSelection = null;
-        return;
+    const textRuns = [];
+    const affectedHighlights = new Set();
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const start = range.startContainer === node ? range.startOffset : 0;
+        const end = range.endContainer === node ? range.endOffset : node.length;
+        const selected = start < end && range.intersectsNode(node);
+        let highlight = null;
+        for (let element = node.parentElement; element !== editor; element = element.parentElement) {
+            const color = NOTE_HIGHLIGHT_CLASSES.findLast(name => element.classList.contains(name));
+            if (!color) continue;
+            highlight ??= { element, color };
+            if (selected) affectedHighlights.add(element);
+        }
+        textRuns.push({ node, start, end, selected, highlight });
     }
 
-    const span = document.createElement("span");
-    span.className = `text-highlight-${type}`;
-
-    try {
-        range.surroundContents(span);
-    } catch (error) {
-        const selectedContent = range.extractContents();
-        span.appendChild(selectedContent);
-        range.insertNode(span);
+    for (const element of affectedHighlights) {
+        element.classList.remove(...NOTE_HIGHLIGHT_CLASSES);
+        if (!element.classList.length) element.removeAttribute("class");
+        if (element.matches("span:not([class])") && !element.attributes.length) {
+            element.replaceWith(...element.childNodes);
+        }
     }
 
+    const newColor = type === "clear" ? null : `text-highlight-${type}`;
+    let firstSelected = null;
+    let lastSelected = null;
+    for (const { node, start, end, selected, highlight } of textRuns) {
+        const previousColor = affectedHighlights.has(highlight?.element) ? highlight.color : null;
+        if (!selected && !previousColor) continue;
+        if (!selected) {
+            const fragment = document.createDocumentFragment();
+            appendHighlightText(fragment, node.data, previousColor);
+            node.replaceWith(fragment);
+            continue;
+        }
+
+        const fragment = document.createDocumentFragment();
+        appendHighlightText(fragment, node.data.slice(0, start), previousColor);
+        const selectedText = appendHighlightText(fragment, node.data.slice(start, end), newColor);
+        appendHighlightText(fragment, node.data.slice(end), previousColor);
+        node.replaceWith(fragment);
+        firstSelected ??= selectedText;
+        lastSelected = selectedText;
+    }
+
+    if (!firstSelected) return;
+    const updatedRange = document.createRange();
+    updatedRange.setStart(firstSelected, 0);
+    updatedRange.setEnd(lastSelected, lastSelected.length);
+    editor.focus();
+    const selection = window.getSelection();
     selection.removeAllRanges();
-    savedSelection = null;
+    selection.addRange(updatedRange);
+    editor.normalize();
+    saveSelection();
     hideNoteMessage();
 }
 
-function clearHighlightFromSelection(range) {
-    const editor = document.getElementById("note-content-input");
-    const selectedText = range.toString();
-
-    if (!selectedText) return;
-
-    const wrapper = document.createElement("div");
-    wrapper.appendChild(range.cloneContents());
-
-    wrapper.querySelectorAll("span[class^='text-highlight-']").forEach(span => {
-        span.replaceWith(document.createTextNode(span.textContent));
-    });
-
-    range.deleteContents();
-
-    const fragment = document.createDocumentFragment();
-
-    while (wrapper.firstChild) {
-        fragment.appendChild(wrapper.firstChild);
+function appendHighlightText(fragment, text, color) {
+    if (!text) return null;
+    const node = document.createTextNode(text);
+    if (color) {
+        const span = document.createElement("span");
+        span.className = color;
+        span.appendChild(node);
+        fragment.appendChild(span);
+    } else {
+        fragment.appendChild(node);
     }
-
-    range.insertNode(fragment);
-
-    editor.normalize();
+    return node;
 }
 
 function showNoteMessage(text) {
@@ -547,10 +596,6 @@ function formatDate(value) {
     });
 }
 
-function cleanEditorHtml(html) {
-    return sanitizeNoteHtml(html).trim();
-}
-
 function sanitizeNoteHtml(html) {
     const temp = document.createElement("template");
     temp.innerHTML = html || "";
@@ -572,16 +617,10 @@ function sanitizeNoteHtml(html) {
             }
         });
 
-        const allowedClasses = [
-            "text-highlight-yellow",
-            "text-highlight-pink",
-            "text-highlight-turquoise"
-        ];
-
         if (el.className) {
             const classes = String(el.className)
                 .split(" ")
-                .filter(cls => allowedClasses.includes(cls));
+                .filter(cls => NOTE_HIGHLIGHT_CLASSES.includes(cls));
 
             if (classes.length) {
                 el.className = classes.join(" ");

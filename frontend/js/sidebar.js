@@ -33,7 +33,7 @@ async function loadSidebar(options = {}) {
         container.classList.add("is-initializing");
         container.innerHTML = html;
 
-        initSidebar();
+        initSidebar(options.compactQuery);
         initNewFolderButton();
         initStudyPicker();
         window.langlyUiText?.apply(container);
@@ -50,26 +50,35 @@ async function loadSidebar(options = {}) {
 }
 
 /* SIDEBAR TOGGLE */
-function initSidebar() {
+function initSidebar(compactQuery) {
     const toggle = document.getElementById("sidebar-toggle");
     const sidebar = document.querySelector(".sidebar");
     const host = document.getElementById("sidebar-container");
 
     if (!toggle || !sidebar || !host) return;
 
-    const isCollapsed = localStorage.getItem("langlySidebarCollapsed") === "1";
-    if (isCollapsed) {
-        sidebar.classList.add("collapsed");
-        host.classList.add("is-collapsed");
+    const compact = compactQuery ? window.matchMedia(compactQuery) : null;
+    let desktopCollapsed = localStorage.getItem("langlySidebarCollapsed") === "1";
+    let compactCollapsed = true;
+
+    function updateSidebar() {
+        const collapsed = compact?.matches ? compactCollapsed : desktopCollapsed;
+        sidebar.classList.toggle("collapsed", collapsed);
+        host.classList.toggle("is-collapsed", collapsed);
+        toggle.setAttribute("aria-expanded", String(!collapsed));
     }
 
+    updateSidebar();
+    compact?.addEventListener("change", updateSidebar);
+
     toggle.addEventListener("click", () => {
-        sidebar.classList.toggle("collapsed");
-        host.classList.toggle("is-collapsed");
-        localStorage.setItem(
-            "langlySidebarCollapsed",
-            sidebar.classList.contains("collapsed") ? "1" : "0"
-        );
+        if (compact?.matches) {
+            compactCollapsed = !compactCollapsed;
+        } else {
+            desktopCollapsed = !desktopCollapsed;
+            localStorage.setItem("langlySidebarCollapsed", desktopCollapsed ? "1" : "0");
+        }
+        updateSidebar();
     });
 }
 
