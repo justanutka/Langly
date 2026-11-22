@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
         if (typeof loadSidebar === "function") {
-            await loadSidebar({ compactQuery: "(max-width: 720px)" });
+            await loadSidebar();
         }
 
         await window.langlyUiText?.init?.();

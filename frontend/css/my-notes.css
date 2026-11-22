@@ -892,57 +892,6 @@ RESPONSIVE
 ========================= */
 
 @media(max-width:720px){
-  .top-bar{
-    padding:0 16px;
-  }
-
-  .app-layout{
-    flex-direction:column;
-  }
-
-  #sidebar-container,
-  #sidebar-container.is-collapsed{
-    width:100%;
-    min-height:0;
-    flex-basis:auto;
-    transition:none;
-  }
-
-  .sidebar,
-  .sidebar.collapsed{
-    box-sizing:border-box;
-    width:100%;
-    height:auto;
-    min-height:0;
-    padding:4px 16px 12px;
-    border-right:0;
-    border-bottom:1px solid rgba(0,0,0,0.08);
-    transition:none;
-  }
-
-  .sidebar.collapsed{
-    padding-bottom:4px;
-  }
-
-  .sidebar.collapsed > :not(.sidebar-toggle){
-    display:none;
-  }
-
-  .sidebar .sidebar-toggle,
-  .sidebar.collapsed .sidebar-toggle{
-    width:44px;
-    margin:0;
-    padding:0;
-    justify-content:center;
-  }
-
-  .sidebar .label,
-  .sidebar .folder-name,
-  .sidebar-footer{
-    white-space:normal;
-    overflow-wrap:anywhere;
-  }
-
   .notes-header{
     align-items:flex-start;
     text-align:left;

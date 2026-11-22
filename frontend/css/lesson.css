@@ -29,8 +29,6 @@ body::before{
 }
 
 .lesson-page{
-  min-height:calc(100vh - 64px);
-  padding:18px 28px 50px;
   background:transparent !important;
   font-family:"Inter", sans-serif;
 }
@@ -84,6 +82,7 @@ body::before{
 .lesson-link-row{
   display:flex;
   gap:10px;
+  flex-wrap:wrap;
 }
 
 .lesson-soft-link,
@@ -130,10 +129,14 @@ body::before{
 .lesson-hero-stats{
   display:flex;
   gap:10px;
+  flex-wrap:wrap;
+  max-width:100%;
 }
 
 .lesson-pill{
-  min-width:126px;
+  min-width:min(126px, 100%);
+  max-width:100%;
+  box-sizing:border-box;
   padding:13px 16px;
   border-radius:18px;
   background:rgba(255,255,255,0.72);
@@ -207,7 +210,7 @@ body::before{
 
 .lesson-view-grid{
   display:grid;
-  grid-template-columns:minmax(0,1.2fr) minmax(260px,0.8fr);
+  grid-template-columns:minmax(0,1.2fr) minmax(0,0.8fr);
   gap:22px;
   align-items:stretch;
 }
@@ -660,7 +663,7 @@ body::before{
   justify-content:center;
 }
 
-@media(max-width:860px){
+@media(max-width:1050px){
   .lesson-view-grid,
   .lesson-preview-list,
   .lesson-answer-grid,
@@ -671,8 +674,14 @@ body::before{
   .lesson-hero h1{
     font-size:38px;
   }
+}
 
-  .lesson-page{
-    padding:16px 18px 40px;
+@media(max-width:480px){
+  .lesson-card{
+    padding:16px;
+  }
+
+  .lesson-hero h1{
+    font-size:clamp(26px, 8vw, 38px);
   }
 }

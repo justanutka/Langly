@@ -63,7 +63,8 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 60px;
+  padding: 0 clamp(16px, 5vw, 60px);
+  gap: 12px;
   box-shadow: 0 1px 0 rgba(0,0,0,0.05);
   position: relative;
   z-index: 2;
@@ -171,7 +172,15 @@ body::after {
 /* MAIN CONTENT */
 .main-content {
   flex: 1;
-  padding: 60px 80px;
+  min-width: 0;
+  padding: clamp(24px, 5vw, 60px) clamp(16px, 4vw, 56px);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 800px) {
+  .app-layout {
+    flex-direction: column;
+  }
 }
 
 /* WELCOME CARD */

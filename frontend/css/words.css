@@ -30,9 +30,7 @@ MY WORDS HEADER
 }
 
 .create-folder-top{
-  position:absolute;
-  right:0;
-  top:10px;
+  margin-top:8px;
 }
 
 
@@ -61,7 +59,7 @@ FOLDERS GRID
 
 .folders-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(min(100%, 260px),1fr));
   gap:26px;
   margin-top:40px;
 }
@@ -112,6 +110,7 @@ FOLDER BODY
   align-items:center;
   gap:10px;
   min-width:0;
+  max-width:100%;
 }
 
 .folder-emoji{
@@ -186,7 +185,7 @@ MODULES
 
 .modules-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(260px, 260px));
+  grid-template-columns:repeat(auto-fill, minmax(min(100%, 260px), 260px));
   gap:26px;
   margin-top:30px;
 }
@@ -315,10 +314,13 @@ ADD WORD CARD
   display:flex;
   gap:12px;
   align-items:center;
+  flex-wrap:wrap;
 }
 
 .add-word-row input{
-  flex:1;
+  flex:1 1 160px;
+  min-width:0;
+  max-width:100%;
   padding:12px 14px;
   border:1px solid #e2e8f0;
   border-radius:10px;
@@ -625,6 +627,7 @@ MODAL OVERLAY / MODAL
   bottom:0;
   background:rgba(20, 20, 30, 0.4);
   backdrop-filter:blur(6px);
+  padding:12px;
   display:none;
   justify-content:center;
   align-items:center;
@@ -635,7 +638,9 @@ MODAL OVERLAY / MODAL
   background:#ffffff;
   border-radius:20px;
   padding:28px;
-  width:320px;
+  width:min(320px, 100%);
+  max-height:100%;
+  overflow-y:auto;
   box-shadow:0 20px 60px rgba(0,0,0,0.2);
   animation:modalFade 0.2s ease;
 }
@@ -666,6 +671,7 @@ MODAL OVERLAY / MODAL
   display:flex;
   justify-content:flex-end;
   gap:10px;
+  flex-wrap:wrap;
 }
 
 .btn-danger{
@@ -863,15 +869,6 @@ DELETE WORD
 
 
 /* =========================
-SIDEBAR WIDTH ONLY ON MY WORDS
-========================= */
-
-#sidebar-container .sidebar.collapsed{
-  width:70px;
-}
-
-
-/* =========================
 TOAST (ERROR POPUP)
 ========================= */
 
@@ -942,9 +939,27 @@ MASTERED BUTTON
   .word-right{
     margin-left:0;
     justify-content:flex-start;
+    min-width:0;
   }
 
   .word-translation{
     text-align:left;
+  }
+}
+
+@media(max-width:520px){
+  .add-word-row > input,
+  .add-word-row > button{
+    flex:1 1 100%;
+    font-size:16px;
+  }
+
+  .modules-grid{
+    grid-template-columns:minmax(0, 1fr);
+  }
+
+  .modal input,
+  .filters-bar input{
+    font-size:16px;
   }
 }

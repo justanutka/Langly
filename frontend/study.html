@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Study – Language Learning App</title>
   <style>
     * {
@@ -110,7 +111,8 @@
 
     .main {
       flex: 1;
-      padding: 32px 40px;
+      min-width: 0;
+      padding: 32px clamp(12px, 4vw, 40px);
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -119,11 +121,12 @@
     .card {
       background: rgba(15, 23, 42, 0.96);
       border-radius: 16px;
-      padding: 28px 32px;
+      padding: clamp(16px, 5vw, 32px);
       width: 100%;
       max-width: 520px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.45);
       text-align: center;
+      overflow-wrap: anywhere;
     }
 
     .top-row {
@@ -176,7 +179,7 @@
       background: #020617;
       color: #f9fafb;
       font-size: 13px;
-      min-width: 220px;
+      width: min(220px, 100%);
     }
 
     select:focus {
@@ -258,6 +261,26 @@
 
     #message.success {
       color: #bbf7d0;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: 0;
+      }
+
+      .nav-list {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .top-row {
+        flex-wrap: wrap;
+      }
     }
   </style>
 </head>
