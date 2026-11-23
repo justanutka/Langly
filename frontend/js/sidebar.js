@@ -39,6 +39,7 @@ async function loadSidebar(options = {}) {
         window.langlyUiText?.apply(container);
         container.dataset.sidebarLoaded = "1";
         window.requestAnimationFrame(() => {
+            container.getBoundingClientRect();
             container.classList.remove("is-initializing");
         });
         await loadSidebarUserData(options.user);
@@ -130,6 +131,7 @@ async function loadSidebarUserData(providedUser = null) {
 
         if (emailElement && user) {
             emailElement.textContent = user.email || "";
+            emailElement.title = emailElement.textContent;
         }
     } catch (error) {
         console.error("Sidebar user load error:", error);
@@ -159,6 +161,7 @@ async function loadSidebarFolders() {
         recentFolders.forEach(folder => {
             const item = document.createElement("div");
             item.className = "folder-item";
+            item.title = folder.name ?? "";
 
             item.innerHTML = `
                 <span class="icon"></span>
@@ -166,7 +169,7 @@ async function loadSidebarFolders() {
             `;
 
             item.querySelector(".icon").textContent = folder.emoji || "📁";
-            item.querySelector(".folder-name").textContent = folder.name ?? "";
+            item.querySelector(".folder-name").textContent = item.title;
 
             item.addEventListener("click", () => {
                 const isLibraryPage = window.location.pathname.includes("my-words.html") ||

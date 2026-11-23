@@ -111,7 +111,9 @@
 
     function errorMessage(data, fallback) {
         const code = data?.detail?.code;
-        if (["invalid_word", "empty_entry"].includes(code)) return text(`words.${code}`);
+        if (["invalid_word", "dictionary_unavailable", "empty_entry"].includes(code)) {
+            return text(`words.${code}`);
+        }
         return typeof data?.detail === "string" ? data.detail : fallback;
     }
 

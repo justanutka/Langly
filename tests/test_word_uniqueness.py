@@ -2,8 +2,10 @@ import runpy
 import sqlite3
 import unittest
 from pathlib import Path
+from unittest.mock import Mock
 from unittest.mock import patch
 
+import requests
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from fastapi import HTTPException
@@ -16,6 +18,51 @@ from backend.routers import words
 
 
 MIGRATION = Path(__file__).resolve().parents[1] / "migrations" / "versions" / "f2c814a6d390_allow_confirmed_word_duplicates.py"
+
+
+class DictionaryLookupTests(unittest.TestCase):
+    def test_wiktionary_requires_a_heading_for_the_requested_language(self):
+        cases = [
+            ("de", "Brunnen", "== Brunnen ({{Sprache|Deutsch}}) =="),
+            ("es", "manzana", "== {{lengua|es}} =="),
+            ("pl", "jabłko", "== jabłko ({{język polski}}) =="),
+            ("ru", "иду", "= {{-ru-|nocat}} ="),
+        ]
+        for language, word, heading in cases:
+            for content, expected in [(heading, True), (f"=== Example ===\nAn example: {heading}", False)]:
+                with self.subTest(language=language, expected=expected):
+                    response = Mock()
+                    response.json.return_value = {"query": {"pages": [
+                        {"ns": 0, "revisions": [{"slots": {"main": {"content": content}}}]}
+                    ]}}
+                    with patch.object(words.requests, "get", return_value=response) as request:
+                        self.assertIs(words.validate_word_exists(word, language), expected)
+                    self.assertEqual(request.call_args.args[0], f"https://{language}.wiktionary.org/w/api.php")
+                    options = request.call_args.kwargs
+                    self.assertEqual(options["headers"]["User-Agent"], words.WIKTIONARY_USER_AGENT)
+                    self.assertIn(word, options["params"]["titles"].split("|"))
+
+    def test_wiktionary_tries_german_noun_capitalization(self):
+        response = Mock()
+        response.json.return_value = {"query": {"pages": [{"ns": 0, "missing": True}]}}
+        with patch.object(words.requests, "get", return_value=response) as request:
+            self.assertFalse(words.validate_word_exists("BRUNNEN", "de"))
+        self.assertEqual(request.call_args.kwargs["params"]["titles"], "BRUNNEN|brunnen|Brunnen")
+
+    def test_wiktionary_unexpected_api_response_is_unavailable(self):
+        response = Mock()
+        response.json.return_value = {"error": {"code": "maxlag"}}
+        with patch.object(words.requests, "get", return_value=response):
+            with self.assertRaises(words.DictionaryUnavailable):
+                words.validate_word_exists("jabłko", "pl")
+
+    def test_english_missing_word_and_network_error_have_different_outcomes(self):
+        response = Mock(status_code=404)
+        with patch.object(words.requests, "get", return_value=response):
+            self.assertFalse(words.validate_word_exists("unknown", "en"))
+        with patch.object(words.requests, "get", side_effect=requests.Timeout):
+            with self.assertRaises(words.DictionaryUnavailable):
+                words.validate_word_exists("apple", "en")
 
 
 class WordEntryTests(unittest.TestCase):
@@ -110,6 +157,20 @@ class WordEntryTests(unittest.TestCase):
             self.assertEqual(result.exception.detail["warnings"], ["unverified_phrase"])
             saved = self.add_word(word="  go   to school ", allow_unverified_phrase=True)
             self.assertEqual(saved.word, "go to school")
+
+    def test_dictionary_outage_blocks_single_words_but_allows_confirmed_phrases(self):
+        with patch.object(words, "validate_word_exists", side_effect=words.DictionaryUnavailable):
+            with self.assertRaises(HTTPException) as result:
+                self.add_word(word="apple", allow_unverified_phrase=True)
+            self.assertEqual(result.exception.status_code, 503)
+            self.assertEqual(result.exception.detail["code"], "dictionary_unavailable")
+
+            with self.assertRaises(HTTPException) as result:
+                self.add_word(word="go to school")
+            self.assertEqual(result.exception.status_code, 409)
+            self.assertEqual(result.exception.detail["warnings"], ["unverified_phrase"])
+            self.assertEqual(self.db.query(models.Word).count(), 0)
+            self.assertEqual(self.add_word(word="go to school", allow_unverified_phrase=True).word, "go to school")
 
     def test_dictionary_check_uses_each_study_language(self):
         for language_id, code in enumerate(["pl", "es", "de", "ru"], start=2):
